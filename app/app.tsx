@@ -7,7 +7,7 @@ import { Component } from "react";
 import { ipcRenderer } from 'electron';
 import { 
     attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, 
-    initDate, measureTimePromise,  onErrorWindow, log, typeEquals, generateEmptyProject, generateEmptyArea, isNotEmpty 
+    initDate, onErrorWindow, isNotEmpty 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isNotNil, isString } from './utils/isSomething';
@@ -18,12 +18,11 @@ import { MainContainer } from './Components/MainContainer';
 import { filter } from 'lodash';
 import { 
     Project, Todo, Calendar, Config, Store, Indicators, action, 
-    PouchChanges, PouchError, PouchChange, DatabaseChanges, Area, actionStartSync, actionSetKey 
+    PouchChanges, PouchError, PouchChange, actionStartSync, actionSetKey 
 } from './types';
 import { 
     isNil, map, when, evolve, prop, isEmpty, path, 
-    compose, ifElse, mapObjIndexed, reject, values, allPass,
-    cond, identity, any, defaultTo, fromPairs, anyPass 
+    compose, allPass, identity, any, defaultTo, fromPairs 
 } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -53,7 +52,6 @@ import { ImportPopup } from './Components/ImportPopup';
 import { TopPopoverMenu } from './Components/TopPopoverMenu/TopPopoverMenu';
 import { decryptDoc, decryptKey } from './utils/crypto/crypto';
 import { server } from './utils/couchHost';
-export const pouchWorker = new Worker('pouchWorker.js');
 const remote = require('electron').remote;
 const session = remote.session;
 import axios from 'axios';
@@ -61,12 +59,11 @@ import { isDev } from './utils/isDev';
 import { logout } from './utils/logout';
 window.onerror = onErrorWindow; 
 
- 
 
-let isCharacter = e => e.which !== 0 && !e.ctrlKey && !e.metaKey && !e.altKey;
-let isAlpha = e => e.keyCode >= 65 && e.keyCode <= 90;
-let isNum = e => e.keyCode >= 48 && e.keyCode <= 57;
-    
+
+//init database worker
+export const pouchWorker = new Worker('pouchWorker.js');
+
 
 
 interface AppProps extends Store{}
@@ -105,18 +102,7 @@ export class App extends Component<AppProps,AppState>{
             .fromEvent(document, "keypress", event => event) 
             .skipWhile(event => this.props.openSettings)
             .filter(event => event.target===document.body)
-            .subscribe(
-                (event:any) => { 
-                    //this.props.dispatch({type:"collapsed",load:true});
-                    this.props.dispatch({type:"showMenu",load:true});
-                    /*
-                    this.props.dispatch({
-                        type:"multiple",
-                        load:[{type:"collapsed",load:true},{type:"showMenu",load:true}]
-                    })
-                    */
-                }
-            ) 
+            .subscribe(event => this.props.dispatch({type:"showMenu",load:true})) 
         );
     }; 
 
@@ -164,7 +150,9 @@ export class App extends Component<AppProps,AppState>{
  
 
     onPouchChanges = (action:action) => { 
-        console.log(`%c pouch ${action.type}  import:${action.import}`, `color: "#000080"`, action.load);
+        if(isDev()){
+           console.log(`%c pouch ${action.type}  import:${action.import}`, `color: "#000080"`, action.load);
+        }
       
         let changes : { dbname:string, changes:PouchChanges } = action.load; 
         let dbname = prop("dbname")(changes);
@@ -174,9 +162,12 @@ export class App extends Component<AppProps,AppState>{
            this.props.dispatch({ type:"lastImport", load:new Date() });
         }
 
+
+        checkAuthenticated().then( when(identity, () => this.props.dispatch({ type:"lastSync", load:new Date() })) )
+
+
         if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  } //continue only if change from "outside"
  
-        let timestamp = new Date(change.start_time);
         let decrypt = decryptDoc(dbname, this.props.secretKey, globalErrorHandler);
 
         let docs = compose(  
@@ -186,18 +177,16 @@ export class App extends Component<AppProps,AppState>{
             data =>  fromPairs( [[dbname,data]] ),  
             defaultTo([]), 
             prop('docs')
-        )(change); 
+        )(change);  
  
-        let lastSyncAction = { type:"lastSync", load:timestamp, kind:"sync" };
-        
         let local = defaultTo([])(this.props[dbname]);
 
         let actions : action[] = compose( changesToActions(dbname), toStoreChanges(local) )(docs);
         
-        this.props.dispatch({type:"multiple", load: [...actions,lastSyncAction] });
+        this.props.dispatch({type:"multiple", load:actions});
     };  
 
-
+    
 
     onPouchLog = (action:action) => { 
         if(isDev()){
@@ -260,19 +249,12 @@ export class App extends Component<AppProps,AppState>{
 
     initSync = () => 
         checkAuthenticated()
-        .then( 
-            auth => {
-                if(
-                    isString(this.props.email) && 
-                    auth && 
-                    this.props.sync
-                ){
-                    let action : actionStartSync = { type:"startSync", load:emailToUsername(this.props.email) };
-
-                    pouchWorker.postMessage(action);
-                }
+        .then(auth => {
+            if(isString(this.props.email) && auth && this.props.sync){
+               let action : actionStartSync = { type:"startSync", load:emailToUsername(this.props.email) };
+               pouchWorker.postMessage(action);
             }
-        );
+        });
     
     
 
@@ -291,19 +273,18 @@ export class App extends Component<AppProps,AppState>{
 
 
     reportStart = () => collectSystemInfo().then(
-         ({ arch, cpus, platform, release, type }) => 
-        googleAnalytics.send(   
+         ({ arch, cpus, platform, release, type }) => googleAnalytics.send(   
             'event',    
             {  
                 ec:'Start',   
                 ea:`
-                        Application launched ${new Date().toString()}
-                        System info :
-                        arch ${arch}; 
-                        cpus ${cpus.length};
-                        platform ${platform};
-                        release ${release};
-                        type ${type}; 
+                Application launched ${new Date().toString()}
+                System info :
+                arch ${arch}; 
+                cpus ${cpus.length};
+                platform ${platform};
+                release ${release};
+                type ${type}; 
                 `,  
                 el:'Application launched', 
                 ev:0

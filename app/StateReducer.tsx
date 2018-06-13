@@ -1,5 +1,4 @@
-import { adjust, cond, all, equals, isEmpty, contains, not, remove, uniq, isNil, defaultTo } from 'ramda';
-import { isTodo, isBoolean, isDate, isString, isNumber, isCategory, isProject, isArea } from "./utils/isSomething";
+import { cond } from 'ramda';
 import { typeEquals } from "./utils/utils";
 import { Store, Category, Todo, section, Calendar, Area, Project, ImportAction } from "./types";
 

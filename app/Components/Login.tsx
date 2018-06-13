@@ -1,27 +1,18 @@
-import Refresh from 'material-ui/svg-icons/navigation/refresh';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse, prop, when, allPass } from 'ramda';
-import Cloud from 'material-ui/svg-icons/file/cloud-done';
+import { isNil, isEmpty, prop, when, allPass } from 'ramda';
 import { action, actionStartSync, actionSetKey, actionEncryptDatabase, actionEraseDatabase } from '../types';
-import { getMonthName, isNotEmpty, nDaysFromNow } from '../utils/utils';
-import Toggle from 'material-ui/Toggle';
-import { timeOfTheDay } from '../utils/time';
-import { isToday, isNotNil } from '../utils/isSomething';
+import { isNotEmpty, nDaysFromNow } from '../utils/utils';
+import { isNotNil } from '../utils/isSomething';
 import axios from 'axios';
 import { emailToUsername } from '../utils/emailToUsername';
-import { host, server } from '../utils/couchHost';
-import { validateEmail } from '../utils/validateEmail';
-import { validatePassword, getPasswordErrorMessage } from '../utils/validatePassword';
-import { LoginFormInput  } from './LoginFormInput';
+import { server } from '../utils/couchHost';
 import { getToken } from '../utils/getToken';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
 import { isDev } from '../utils/isDev';
-import RefreshIndicator from 'material-ui/RefreshIndicator';
-import { encryptDoc, encryptData, decryptData, encryptKey, decryptKey, generateSecretKey } from '../utils/crypto/crypto';
+import { encryptKey, decryptKey, generateSecretKey } from '../utils/crypto/crypto';
 import { LoginForm } from './LoginForm';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 const remote = require('electron').remote;
@@ -56,11 +47,14 @@ export class Login extends Component<LoginProps,LoginState>{
         return workerSendAction(pouchWorker)(action);
     };
 
+
+
     eraseDatabase = () : Promise<void> => {
         let action : actionEraseDatabase = {type:"eraseDatabase", load:null};
 
         return workerSendAction(pouchWorker)(action);
     };
+
 
 
     initSync = (username:string)  => () : Promise<void> => { 

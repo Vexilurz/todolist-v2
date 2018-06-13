@@ -34,6 +34,7 @@ interface FooterProps{
     drag:boolean,
     collapsed:boolean,
     sync:boolean,
+    dispatch:Function,    
     openNewProjectAreaPopup:(e:any) => void,
     setNewProjectAnchor:(e:any) => void,
     openSettings:(e:any) => void,
@@ -95,7 +96,7 @@ export class Footer extends Component<FooterProps,FooterState>{
                 </div>    
             </div>   
             <div style={{flexGrow:1, display:"flex", justifyContent:"flex-end"}}> 
-                <Spinner sync={this.props.sync} openSyncSettings={this.props.openSyncSettings}/> 
+                <Spinner dispatch={this.props.dispatch} sync={this.props.sync} openSyncSettings={this.props.openSyncSettings}/> 
             </div>            
             <div style={{display:"flex", paddingRight:"10px", alignItems:"center", cursor:"pointer"}}>     
                 <IconButton    

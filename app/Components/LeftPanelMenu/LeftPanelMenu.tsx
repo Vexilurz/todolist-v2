@@ -291,6 +291,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
                 <Footer  
                     sync={this.props.sync}
+                    dispatch={this.props.dispatch}
                     drag={this.state.drag}
                     width={ this.props.leftPanelWidth }  
                     collapsed={ this.props.collapsed }

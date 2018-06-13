@@ -4,12 +4,6 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse, prop } from 'ramda';
-import Cloud from 'material-ui/svg-icons/file/cloud-done';
-import { action, actionStartSync, actionSetKey } from '../types';
-import { getMonthName } from '../utils/utils';
-import Toggle from 'material-ui/Toggle';
-import { timeOfTheDay } from '../utils/time';
-import { isToday, isNotNil } from '../utils/isSomething';
 import axios from 'axios';
 import { emailToUsername } from '../utils/emailToUsername';
 import { host } from '../utils/couchHost';
@@ -17,9 +11,6 @@ import { validateEmail } from '../utils/validateEmail';
 import { validatePassword, getPasswordErrorMessage } from '../utils/validatePassword';
 import { LoginFormInput  } from './LoginFormInput';
 import { getToken } from '../utils/getToken';
-import { workerSendAction } from '../utils/workerSendAction';
-import { pouchWorker } from '../app';
-import { isDev } from '../utils/isDev';
 import RefreshIndicator from 'material-ui/RefreshIndicator';
 
 

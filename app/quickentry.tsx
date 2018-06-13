@@ -3,34 +3,16 @@ import './assets/calendarStyle.css';
 import './assets/quickentry.css'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
-import spacing from 'material-ui/styles/spacing';  
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Star from 'material-ui/svg-icons/toggle/star';
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box';  
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';  
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
-import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import Plus from 'material-ui/svg-icons/content/add';
-import Trash from 'material-ui/svg-icons/action/delete';
-import Search from 'material-ui/svg-icons/action/search'; 
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Logbook from 'material-ui/svg-icons/av/library-books';
-import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer } from 'electron'; 
-import AutosizeInput from 'react-input-autosize';
 import { createStore } from "redux"; 
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import List from 'material-ui/svg-icons/action/list';
@@ -43,13 +25,8 @@ import {
 import Popover from 'material-ui/Popover';
 import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Layers from 'material-ui/svg-icons/maps/layers'; 
-import Alert from 'material-ui/svg-icons/alert/add-alert';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import Inbox from 'material-ui/svg-icons/content/inbox';
-import getMuiTheme from 'material-ui/styles/getMuiTheme'; 
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-let uniqid = require("uniqid"); 
-import Clear from 'material-ui/svg-icons/content/clear';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -60,12 +37,8 @@ import RaisedButton from 'material-ui/RaisedButton';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { generateId } from './utils/generateId';
 import { generateEmptyTodo } from './utils/generateEmptyTodo';
-import { daysRemaining } from './utils/daysRemaining';
 import { insideTargetArea } from './utils/insideTargetArea';
 import { chooseIcon } from './utils/chooseIcon';
-import { uppercase } from './utils/uppercase';
-import { SortableContainer } from './Components/CustomSortableContainer';
-import { arrayMove } from './utils/arrayMove';
 import { Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { isString, isDate, isProject, isArea, isToday } from './utils/isSomething';
@@ -91,12 +64,11 @@ import {
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
 import { 
-    noteToState, noteFromState, getNotePlainText,
+    noteToState, noteFromState, 
 } from './utils/draftUtils';
-import { RawDraftContentState, Todo, ChecklistItem, Project, Area, Category, Config } from './types';
+import { Todo, ChecklistItem, Project, Area, Category, Config } from './types';
 import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
 import { generateLayout } from './Components/Area/generateLayout';
-import { App } from './app';
 import { getFilters } from './utils/getFilters';
 import { requestFromMain } from './utils/requestFromMain';
 let moment = require("moment");
@@ -104,7 +76,6 @@ injectTapEventPlugin();
 
 
 window.onerror = function (msg:any, url, lineNo, columnNo, error){
-    let string = msg.toLowerCase();
     var message = [ 
         'Message: ' + msg,
         'URL: ' + url,

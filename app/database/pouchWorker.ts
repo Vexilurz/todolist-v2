@@ -6,8 +6,6 @@ Date.prototype["addDays"] = function(days){
 import { 
     getDatabaseObjects, addItems, removeItems, updateItems, setItemsToDatabase 
 } from './databaseUtils';
-import { singleItem } from './../utils/singleItem'; 
-import { sleep } from './../utils/sleep'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { 
@@ -16,8 +14,6 @@ import {
     actionEncryptDatabase, 
     actionEraseDatabase
 } from './../types';
-import { host } from './../utils/couchHost';
-import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
 import { 
     cond, compose, equals, prop, isEmpty, when, fromPairs, 
     isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
@@ -29,7 +25,6 @@ import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
 import { onError } from './onError'; 
 import { init } from './init';
 import { startDatabaseSync } from './startDatabaseSync';
-import { getRangeMonthUntilDate } from '../utils/utils';
 let window : any = self;
 
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils

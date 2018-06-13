@@ -1,20 +1,11 @@
-import Refresh from 'material-ui/svg-icons/navigation/refresh';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { isNil, isEmpty, compose, path, toLower, cond, contains } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
 import { action, actionStartSync } from '../../types';
-import { getMonthName } from '../../utils/utils';
 import Toggle from 'material-ui/Toggle';
-import { timeOfTheDay } from '../../utils/time';
-import { isToday, isString, isDate } from '../../utils/isSomething';
-import axios from 'axios';
+import { isString } from '../../utils/isSomething';
 import { emailToUsername } from '../../utils/emailToUsername';
-import { host } from '../../utils/couchHost';
-import { getCouchCookies } from '../../utils/getCouchCookies';
-import { isCouchSessionExpired } from '../../utils/isCouchSessionExpired';
 import { Connected } from '../Connected';
 import { Login } from '../Login';
 import { debounce } from 'lodash';
@@ -29,7 +20,7 @@ interface SyncSettingsProps{
     secretKey:string,
     sync:boolean,
     lastSync:Date
-} 
+}  
 
 
  
@@ -39,7 +30,7 @@ interface SyncSettingsState{
 
 
 
-export class SyncSettings extends Component<any,SyncSettingsState>{
+export class SyncSettings extends Component<SyncSettingsProps,SyncSettingsState>{
 
     constructor(props){
         super(props);

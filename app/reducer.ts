@@ -6,7 +6,6 @@ import { stateReducer } from './stateReducer';
 import { Reducer, Store, action, Config } from "./types";
 import { prop, ifElse, compose, not, when, identity, contains, keys, equals, pick, difference, isEmpty } from 'ramda';
 import { typeEquals, wrapArray, turnedOn, turnedOff } from "./utils/utils";
-import { pouchWorker } from './app';
 import { isString } from './utils/isSomething';
 import { updateDatabase } from './database/updateDatabase';
 import { requestFromMain } from './utils/requestFromMain';

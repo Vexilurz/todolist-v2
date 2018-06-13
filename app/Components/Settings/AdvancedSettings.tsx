@@ -2,34 +2,29 @@
 import '../../assets/styles.css';  
 import '../../assets/calendarStyle.css';   
 import * as React from 'react'; 
-import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { 
-    remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, ifElse, evolve,
-    contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when, prop, applyTo 
-} from 'ramda';
+import { isNil, not, isEmpty, compose, map, ifElse, when, prop } from 'ramda';
 import { Checkbox } from '../TodoInput/Checkbox';
 import { 
     checkForUpdates, getCompletedWhen, log,
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase, sideEffect 
 } from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
-import { Area, Project, Todo, Calendar, Databases, actionSetDatabase, ImportAction, ImportActionLoad } from '../../types'; 
-import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
-import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
+import { Todo, Databases, ImportAction, ImportActionLoad } from '../../types'; 
+import { UpdateCheckResult } from 'electron-updater'; 
+import { isNotNil } from '../../utils/isSomething';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { getData } from '../../utils/getData';
-import { convertEventDate } from '../Calendar';
 import { keyFromDate } from '../../utils/time';
 import { ipcRenderer } from 'electron';  
-import { pouchWorker } from '../../app';
 import { fixIncomingData } from './../../utils/fixIncomingData';
-import { workerSendAction } from '../../utils/workerSendAction';
 import RefreshIndicator from 'material-ui/RefreshIndicator';
 const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
+
+ 
 
 let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet')) as any;
 
@@ -440,14 +435,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 <div style={{cursor:"pointer", height:"30px"}}>
                     {   
                         <div     
-                            onClick={(e) => {
-                                this.props.dispatch({ 
-                                    type:"multiple",
-                                    load:[
-                                        {type:"showLicense",load:true}
-                                    ]
-                                });  
-                            }}
+                            onClick={() => this.props.dispatch({type:"multiple",load:[{type:"showLicense",load:true}]})}
                             style={{
                                 width:"100%",
                                 height:"30px",

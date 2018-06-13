@@ -1,17 +1,5 @@
-import { 
-    uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
-    equals, any, complement, compose, defaultTo, path, prop, always,
-    identity, anyPass
-} from 'ramda';
-import Editor from 'draft-js-plugins-editor'; 
-import {
-    convertToRaw,
-    convertFromRaw,
-    CompositeDecorator,
-    ContentState,
-    EditorState,
-    RichUtils
-} from 'draft-js';
+import { isEmpty, isNil, ifElse, compose, always, identity, anyPass } from 'ramda';
+import { convertToRaw, convertFromRaw, ContentState, EditorState } from 'draft-js';
 import { isString } from './isSomething';
 import { RawDraftContentState } from '../types';
 
@@ -36,7 +24,7 @@ let getText : (state:any) => string =
 
 export let noteToState : (note:RawDraftContentState) => any = 
         ifElse(
-            anyPass([isNil,isString]), 
+            anyPass([isNil,isString,isEmpty]), 
             EditorState.createEmpty, 
             compose(EditorState.createWithContent, convertFromRaw)
         );
@@ -45,7 +33,7 @@ export let noteToState : (note:RawDraftContentState) => any =
 //State -> Content -> Raw
 export let noteFromState : (state:any) => RawDraftContentState = 
         ifElse(
-            anyPass([isNil,isString]),
+            anyPass([isNil,isString,isEmpty]),
             getEmptyRaw,
             compose(convertToRaw, (state) => state.getCurrentContent())
         );
@@ -54,7 +42,7 @@ export let noteFromState : (state:any) => RawDraftContentState =
 //State -> Content -> String
 export let getNotePlainText : (state:any) => string = 
         ifElse(
-            anyPass([isNil,isString]), 
+            anyPass([isNil,isString,isEmpty]), 
             always(''), 
             getText
         );
@@ -65,7 +53,7 @@ export let getNotePlainTextFromRaw : (note:RawDraftContentState) => string =
         compose(
             getText,
             noteToState, 
-            ifElse(anyPass([isNil,isString]),getEmptyRaw,identity)
+            ifElse(anyPass([isNil,isString,isEmpty]),getEmptyRaw,identity)
         );
 
 
