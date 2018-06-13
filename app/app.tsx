@@ -39,7 +39,6 @@ import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
 import { uppercase } from './utils/uppercase';
 import { getFilters } from './utils/getFilters';
-import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
 import { applicationReducer } from './reducer';
 import { workerSendAction } from './utils/workerSendAction';
@@ -49,11 +48,6 @@ import { subscribeToChannel } from './utils/subscribeToChannel';
 import { requestFromMain } from './utils/requestFromMain';
 import { checkAuthenticated } from './utils/checkAuthenticated';
 import { emailToUsername } from './utils/emailToUsername';
-import { generateId } from './utils/generateId';
-import { generateEmptyTodo } from './utils/generateEmptyTodo';
-import { isDev } from './utils/isDev';
-import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
-import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
 import { TopPopoverMenu } from './Components/TopPopoverMenu/TopPopoverMenu';
@@ -63,6 +57,8 @@ export const pouchWorker = new Worker('pouchWorker.js');
 const remote = require('electron').remote;
 const session = remote.session;
 import axios from 'axios';
+import { isDev } from './utils/isDev';
+import { logout } from './utils/logout';
 window.onerror = onErrorWindow; 
 
  
@@ -326,10 +322,6 @@ export class App extends Component<AppProps,AppState>{
         return generateIndicatorsWorkerSendAction<Indicators>(action);
     };
     
-
-
-    
-
 
 
     updateQuickEntry = (nextProps:Store,indicators:Indicators) => 

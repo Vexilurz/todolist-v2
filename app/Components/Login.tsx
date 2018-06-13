@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse, prop, when, allPass } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
-import { action, actionStartSync, actionSetKey, actionEncryptDatabase } from '../types';
+import { action, actionStartSync, actionSetKey, actionEncryptDatabase, actionEraseDatabase } from '../types';
 import { getMonthName, isNotEmpty, nDaysFromNow } from '../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
@@ -56,6 +56,11 @@ export class Login extends Component<LoginProps,LoginState>{
         return workerSendAction(pouchWorker)(action);
     };
 
+    eraseDatabase = () : Promise<void> => {
+        let action : actionEraseDatabase = {type:"eraseDatabase", load:null};
+
+        return workerSendAction(pouchWorker)(action);
+    };
 
 
     initSync = (username:string)  => () : Promise<void> => { 
@@ -83,13 +88,7 @@ export class Login extends Component<LoginProps,LoginState>{
 
         }else if(isNotNil(retrieved) && isNotNil(requested)){
 
-            if(retrieved===requested){
-                return retrieved;
-            }else{
-                //something goes wrong this scenario should not be possible
-                //throw an error ?
-                return retrieved;
-            }
+            return retrieved;
 
         }else if(isNil(retrieved) && isNil(requested)){
 
@@ -105,7 +104,7 @@ export class Login extends Component<LoginProps,LoginState>{
     
     //"U2FsdGVkX1/OANF01CahKJ+gCiyPx8dw/QWJIJs3HmrXr/pFf2DCuOVni9uMXLI5"
     //save key locally and remotely if needed
-    preserveKey = (requested:string,retrieved:string,email:string,password:string) => (key:string) => {
+    preserveKey = (requested:string,retrieved:string,email:string,password:string) => (key:string) : Promise<string> => {
         let username = emailToUsername(email); 
         let submitKey = (key:string) => axios({
             method:'post',
@@ -183,17 +182,25 @@ export class Login extends Component<LoginProps,LoginState>{
         return Promise
         .all([retrieveKey(),requestKey()])
         .then(
-            ([retrieved,requested]) => [retrieved,requested,this.digestKeys([retrieved,requested])]
-    
+            ([retrieved,requested]) => {
+                if(isNotNil(retrieved) && isNotNil(requested) && retrieved!==requested){
+                    //login with different account
+                    return this.eraseDatabase().then(() => {
+
+                        return this.preserveKey(
+                            requested, 
+                            retrieved, 
+                            email, 
+                            password
+                        )(requested);
+                    }) 
+                }else{
+
+                    let key = this.digestKeys([retrieved,requested]);
+                    return this.preserveKey(requested, retrieved, email, password)(key);
+                }
+            }
         ) //return key or null
-        .then(
-            ([retrieved,requested,key]) => this.preserveKey(
-                requested, 
-                retrieved,
-                email,
-                password
-            )(key)
-        )
         .then(this.setKeyInWorker)
         .then(this.encryptDatabase)
         .then(this.initSync(username))

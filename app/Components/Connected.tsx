@@ -11,11 +11,14 @@ import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
 import { isToday, isNotDate } from '../utils/isSomething';
 import axios from 'axios';
-import { host } from '../utils/couchHost';
+import { host, server } from '../utils/couchHost';
 import { removeCouchCookies } from '../utils/removeCouchCookies';
 import { workerSendAction } from '../utils/workerSendAction';
 import { logout } from '../utils/logout';
 import { pouchWorker } from '../app';
+import { globalErrorHandler } from '../utils/globalErrorHandler';
+const remote = require('electron').remote;
+const session = remote.session;
 
 
 interface ConnectedSectionProps{

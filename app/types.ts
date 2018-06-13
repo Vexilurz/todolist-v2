@@ -41,6 +41,8 @@ export interface Option{ title:string, f:(e:any) => void };
 export interface actionEncryptDatabase{ type:"encryptDatabase", load:string };
 
 
+export interface actionEraseDatabase{ type:"eraseDatabase", load:any };
+
 
 export interface actionSetKey{ type:"setKey", load:string };
 

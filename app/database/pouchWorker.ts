@@ -13,7 +13,8 @@ import * as Rx from 'rxjs/Rx';
 import { 
     action, Query, Databases, Changes, DatabaseChanges, PouchChanges, actionStartSync, 
     actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey, 
-    actionEncryptDatabase 
+    actionEncryptDatabase, 
+    actionEraseDatabase
 } from './../types';
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
@@ -65,7 +66,9 @@ Observable.fromEvent(self, 'message', event => event)
             [ typeEquals("setKey"), setKey ],
 
             [ typeEquals("encryptDatabase"), encryptDatabase ],
-            
+
+            [ typeEquals("eraseDatabase"), eraseDatabase ],
+
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])(action);
          
@@ -210,6 +213,20 @@ let encryptDatabase = (action:actionEncryptDatabase) : Promise<any> =>
             db => updateItems(db, onError)(data[db.name]) 
         )
     );
+
+
+
+let eraseDatabase = (action:actionEraseDatabase) : Promise<void> => {
+    return Promise.all( 
+        databases.map(
+            db => db.destroy()
+        )
+    ).then(
+        () => {
+            databases = init();
+        }
+    ) 
+};    
 
 
 

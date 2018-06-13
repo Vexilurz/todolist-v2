@@ -30,14 +30,16 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) :
     };
 
     let containerStyle = {
-        position: "absolute",
-        pointerEvents: "none",
-        width: "90%",
-        height: "80%",
-        alignItems: "center",
-        display: "flex",
-        justifyContent: "center",
-        userSelect: "none"
+        position:"absolute",
+        top:0,
+        left:0,
+        pointerEvents:"none",
+        width:"100%",
+        height:"100%",
+        alignItems:"center",
+        display:"flex",
+        justifyContent:"center",
+        userSelect:"none"
     }; 
 
     return cond([

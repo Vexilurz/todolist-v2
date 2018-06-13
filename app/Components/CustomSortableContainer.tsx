@@ -458,8 +458,19 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let x = event.clientX;
         let y = event.clientY;
 
+        let addMargin = (rect:ClientRect) : ClientRect => {
+            return {
+                bottom: rect.bottom + 20,
+                height: rect.height,
+                left: rect.left - 20,
+                right: rect.right,
+                top: rect.top - 20,
+                width: rect.width
+            };
+        };
+
         return decorators.find(
-            ({area, decorator, id}) => insideTargetArea(null,area,x,y)
+            ({area, decorator, id}) => insideTargetArea(null,area,x,y,addMargin)
         );
     }; 
 
