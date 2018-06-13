@@ -65,6 +65,8 @@ export let setItemsToDatabase = (onError:Function, db:any) =>
         let encrypt = encryptDoc(db.name, window.key, onError);
         let encrypted = map(encrypt, docs);
         
+        console.log(`set in database`,docs,encrypted,db);
+
         return db.bulkDocs(encrypted).then(() => encrypted)
         .catch(
            error => {

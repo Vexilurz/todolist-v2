@@ -162,9 +162,7 @@ export class App extends Component<AppProps,AppState>{
            this.props.dispatch({ type:"lastImport", load:new Date() });
         }
 
-
         checkAuthenticated().then( when(identity, () => this.props.dispatch({ type:"lastSync", load:new Date() })) )
-
 
         if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  } //continue only if change from "outside"
  

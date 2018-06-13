@@ -179,6 +179,8 @@ export class Login extends Component<LoginProps,LoginState>{
             ([retrieved,requested]) => {
                 if(isNotNil(retrieved) && isNotNil(requested) && retrieved!==requested){
                     //login with different account
+                    this.props.dispatch({type:"erase", load:undefined});
+
                     return this.eraseDatabase().then(() => {
 
                         return this.preserveKey(

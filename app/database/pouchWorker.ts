@@ -3,22 +3,18 @@ Date.prototype["addDays"] = function(days){
     dat.setDate(dat.getDate() + days);
     return dat; 
 }; 
-import { 
-    getDatabaseObjects, addItems, removeItems, updateItems, setItemsToDatabase 
-} from './databaseUtils';
+import { getDatabaseObjects, addItems, removeItems, updateItems } from './databaseUtils';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { 
-    action, Query, Databases, Changes, DatabaseChanges, PouchChanges, actionStartSync, 
-    actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey, 
-    actionEncryptDatabase, 
-    actionEraseDatabase
+    action, Databases, Changes, DatabaseChanges, actionStartSync, 
+    actionStopSync, actionChanges, actionLoadDatabase, actionSetKey, 
+    actionEncryptDatabase, actionEraseDatabase
 } from './../types';
 import { 
-    cond, compose, equals, prop, isEmpty, when, fromPairs, 
-    isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
-    map, mapObjIndexed, values, flatten, path, pick, identity,
-    complement 
+    cond, compose, equals, prop, isEmpty,
+    isNil, evolve, map, mapObjIndexed, 
+    values, flatten, complement 
 } from 'ramda';
 import { isDev } from '../utils/isDev';
 import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
@@ -33,14 +29,13 @@ let isString = (item) : boolean => typeof item==="string"; //TODO move to utils
 
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
-
-
 let databases = init();
 let list = [];
 
 
 
-Observable.fromEvent(self, 'message', event => event)
+Observable
+.fromEvent(self, 'message', event => event)
 .concatMap(
     (e:any,index:number) => {
         if(isDev()){
@@ -48,6 +43,8 @@ Observable.fromEvent(self, 'message', event => event)
         }
 
         let action : action = e.data; 
+
+        console.log(`concatMap`,action)
 
         let result = cond([
             [ typeEquals("load"), load ], 
@@ -80,12 +77,6 @@ Observable.fromEvent(self, 'message', event => event)
 .subscribe(
     (action:action) => sendMessage(action)
 )
-
-
-
-
-
-
 
 
 
@@ -172,16 +163,15 @@ let changes = (action:actionChanges) : Promise<void> => {
         mapObjIndexed(
             (change:DatabaseChanges<any>, dbname:string) => {
                 let db = databases.find(d => d.name===dbname);
-
                 if(isNil(db)){ return new Promise( resolve => resolve() ) } 
 
                 let result = compose(
                     flatten,
                     values,
-                    evolve({
-                        add:addItems(db, onError),
-                        remove:removeItems(db, onError),
-                        update:updateItems(db, onError)
+                    evolve({ 
+                        add:addItems(db, onError), 
+                        remove:removeItems(db, onError), 
+                        update:updateItems(db, onError) 
                     })
                 )(change);
  

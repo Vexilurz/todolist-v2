@@ -87,6 +87,8 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
 
     let changes = detectChanges(state)(newState);
 
+    console.log('updateDatabase - changes', changes);
+
     let items = compose(flatten,map(values),values)(changes);
  
     if(!isEmpty(changes) && !isEmpty(items)){ 
