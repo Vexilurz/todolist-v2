@@ -1,11 +1,6 @@
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
-import { 
-    cond, compose, equals, prop, isEmpty, when, fromPairs, 
-    isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
-    map, mapObjIndexed, values, flatten, path, pick, identity,
-    defaultTo 
-} from 'ramda';
+import { prop, path } from 'ramda';
 import { 
     action, Query, Databases, Changes, DatabaseChanges, PouchChanges, actionStartSync, 
     actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey 

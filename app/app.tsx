@@ -151,7 +151,7 @@ export class App extends Component<AppProps,AppState>{
 
     onPouchChanges = (action:action) => { 
         if(isDev()){
-           console.log(`%c pouch ${action.type}  import:${action.import}`, `color: "#000080"`, action.load);
+           console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
         }
       
         let changes : { dbname:string, changes:PouchChanges } = action.load; 
