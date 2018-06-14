@@ -53,6 +53,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
         }else if(not(contains(selectedCategory)(project.hide))){
             hide = [...project.hide,selectedCategory];
         }
+
         
         this.setState( {openMenu:false}, () => dispatch({type:"updateProject", load:{...project,hide}}) );
     };  

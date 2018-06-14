@@ -5,7 +5,6 @@ Date.prototype["addDays"] = function(days){
 }; 
 import { getDatabaseObjects, addItems, removeItems, updateItems } from './databaseUtils';
 import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
 import { 
     action, Databases, Changes, DatabaseChanges, actionStartSync, 
     actionStopSync, actionChanges, actionLoadDatabase, actionSetKey, 
@@ -17,16 +16,13 @@ import {
     values, flatten, complement 
 } from 'ramda';
 import { isDev } from '../utils/isDev';
-import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
+import { encryptDoc } from '../utils/crypto/crypto';
 import { onError } from './onError'; 
 import { init } from './init';
 import { startDatabaseSync } from './startDatabaseSync';
 let window : any = self;
 
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
-let isNotNil = complement(isNil); //TODO move to utils
-let isString = (item) : boolean => typeof item==="string"; //TODO move to utils 
-
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
 let databases = init();

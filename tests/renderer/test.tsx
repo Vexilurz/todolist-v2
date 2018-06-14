@@ -14,4 +14,4 @@ const toStoreChanges = require('./utils/toStoreChanges');
 const generateUpcomingSequence = require('./utils/generateUpcomingSequence'); 
 const updateConfigFromStore = require('./utils/updateConfigFromStore'); 
 const MainContainer = require('./Components/MainContainer'); 
-//const updateDatabase = require('./utils/updateDatabase'); 
+const updateDatabase = require('./utils/updateDatabase'); 

@@ -75,7 +75,7 @@ describe(
 
                 let eq = equals(retrieved, result); 
 
-                //expect(eq).to.equal(true);
+                expect(eq).to.equal(true);
             } 
         );
     }

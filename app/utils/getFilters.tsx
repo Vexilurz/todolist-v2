@@ -10,7 +10,6 @@ import {
     byCategory, isDeadlineTodayOrPast, 
     isTodayOrPast, byScheduled, typeEquals, log 
 } from "./utils";  
-import { introListIds } from '../utils/introList';
 
 
 export let getFilters = (projects:Project[]) : {
@@ -46,7 +45,6 @@ export let getFilters = (projects:Project[]) : {
         byNotDeleted  
     ],
     next:[ 
-        (item : (Project | Todo)) : boolean => not( contains(item._id,introListIds) ),
         (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
         (t:Todo) => t.category!=="inbox" && t.category!=="someday",  
         byNotCompleted,   

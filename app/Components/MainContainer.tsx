@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import {isDev} from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { Todo, Project, Area, Calendar, Category, action, Databases } from '.././types';
+import { Todo, Project, Area, Calendar, Category, action } from '.././types';
 import Print from 'material-ui/svg-icons/action/print';  
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -19,7 +19,7 @@ import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { 
     isNil, contains, not, evolve, map, compose, allPass, 
-    cond, defaultTo, when, prop, concat, append, isEmpty
+    cond, defaultTo, when, concat, append
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -35,17 +35,13 @@ import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
 import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
-import { 
-    getData, moveReminderFromPast, assureCorrectNoteTypeProject, 
-    assureCorrectNoteTypeTodo, assureCorrectCompletedTypeTodo, updateQuickEntryData 
-} from '../utils/getData';
+import { getData, updateQuickEntryData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
-    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, 
-    log, sideEffect, convertProjectDates, convertTodoDates, convertAreaDates, limit 
+    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted
 } from '../utils/utils';
-import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
-import { introListLayout, getIntroList, introListIds } from '../utils/introList';
+import { threeDaysLater, inPast, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
+import { introListLayout, getIntroList } from '../utils/introList';
 import { fixIncomingData } from '../utils/fixIncomingData';
 import { extend } from '../utils/extend';
 import { UpcomingDefault } from './Categories/Upcoming/UpcomingDefault';
@@ -552,7 +548,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let inboxFilters = this.props.filters.inbox;    
                                     let inboxTodos = filter(this.props.todos, allPass(inboxFilters));
                                     
-                                    
                                     return <Inbox 
                                         todos={inboxTodos} 
                                         filters={this.props.filters}
@@ -577,7 +572,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let todayFilters = this.props.filters.today; 
                                     let todayTodos = filter(this.props.todos, allPass(todayFilters));
                                     
-
                                     return <Today   
                                         todos={todayTodos}
                                         filters={this.props.filters}
@@ -607,7 +601,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let somedayFilters = this.props.filters.someday;
                                     let selectedTodos = filter(this.props.todos, allPass(somedayFilters));
 
-
                                     return <Someday 
                                         todos={selectedTodos}
                                         filters={this.props.filters}
@@ -632,11 +625,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => {
                                     let nextFilters = this.props.filters.next; 
                                     let nextTodos = filter(this.props.todos, allPass(nextFilters));
-                                    let projects = this.props.projects.filter(
-                                        (item:Project) : boolean => not( contains(item._id,introListIds) )
-                                    );
-
-
+                                    
                                     return <Next   
                                         todos={nextTodos}
                                         filters={this.props.filters}
@@ -652,7 +641,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         areas={this.props.areas} 
-                                        projects={projects} 
+                                        projects={this.props.projects} 
                                     />
                                 }
                             ],  
@@ -684,7 +673,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => {
                                     let logbookTodos = filter(this.props.todos, allPass(this.props.filters.logbook)); 
                                     
-
                                     return <Logbook   
                                         todos={logbookTodos} 
                                         groupTodos={this.props.groupTodos}

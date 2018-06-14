@@ -4,24 +4,11 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { TodosList } from '../Components/TodosList';
-import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions } from '../types';
-import * as Waypoint from 'react-waypoint';
-import { ContainerHeader } from './ContainerHeader';
-import { 
-    byTags, getDayName, getDatesRange, byNotCompleted, byNotDeleted,
-    getTagsFromItems, getMonthName, yearFromDate, convertTodoDates,
-    getRangeDays, isNotEmpty, typeEquals, compareByDate, monthFromDate,
-    log, anyTrue, different, initDate, nDaysFromNow
-} from '../utils/utils';  
-import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where, without,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
-    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
-} from 'ramda';
+import { Todo,Project, Area, Category, CalendarEvent } from '../types';
+import { isNotEmpty } from '../utils/utils';  
+import {  compose, isEmpty, without, defaultTo } from 'ramda';
 import { ProjectLink } from './Project/ProjectLink';
 import { groupEventsByType } from '../utils/groupEventsByType';
-import { isDev } from '../utils/isDev';
-import { assert } from '../utils/assert';
 import { byTime } from '../utils/byTime';
 import { getSameDayEventElement } from '../utils/getCalendarEventElement';
 

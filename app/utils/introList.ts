@@ -1,12 +1,13 @@
 import { noteFromText } from "./draftUtils";
 import { Project, Heading, Todo } from "../types";
+import { generateId } from "./generateId";
 
 
 export let getIntroList = () : Project => {
     let layout = introListLayout.map((item) => item.type==="todo" ? item._id : item);
 
     return {    
-        _id : "Intro List",    
+        _id : generateId(),    
         type : "project",  
         name : "Intro List",  
         priority : 1,
@@ -16,49 +17,17 @@ export let getIntroList = () : Project => {
         deadline : null,
         completed : null,
         layout : layout as any,     
-        attachedTags : [] 
+        attachedTags : [],
+        hide:['next'] 
     };
 };        
-
-
-
-export const introListIds : string[] = [
-    "Intro List",
-    "Learn the basics",
-    "Click this task",
-    "Create a new task",
-    "Plan this task for later",
-    "Create new heading",
-    "Create a project",
-    "You're done",
-    "Tune your setup",
-    "Show your calendar events",
-    "Enable the today widget",
-    "Sync your devices",
-    "Boost your productivity",
-    "Add task from anywhere",
-    "Link to emails, files, and web pages",
-    "Search and navigate with Quick Find",
-    "Tag your task",
-    "Go step by step with checklists",
-    "Add a reminder so you won't forget",
-    "Plan your evening",
-    "Hide the sidebar to focus on your work",
-    "Open multiple windows",
-    "Convert a task into a project",
-    "Make your task repeat",          
-    "Before you go...",
-    "Any questions ? We're here to help!"
-];
-
-
 
 export const introListLayout : (Todo | Heading)[] = [
     {
         type : "heading", 
         priority:1,
         title : "Learn the basics", 
-        _id : "Learn the basics", 
+        _id : generateId(), 
         key : "Learn the basics"
     }, 
     {
@@ -76,7 +45,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Click this task"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -93,7 +62,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Create a new task"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -110,7 +79,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Plan this task for later"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -127,7 +96,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Create new heading"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -144,7 +113,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Create a project"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -161,13 +130,13 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"You're done"
+        _id:generateId()
     },
     {
         type : "heading", 
         priority:8,
         title : "Tune your setup", 
-        _id : "Tune your setup", 
+        _id : generateId(),
         key : "Tune your setup"
     }, 
     {
@@ -185,7 +154,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Show your calendar events"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -202,7 +171,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Enable the today widget"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -219,13 +188,13 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Sync your devices"
+        _id:generateId()
     },
     {
         type : "heading", 
         priority:12,
         title : "Boost your productivity", 
-        _id : "Boost your productivity", 
+        _id : generateId(), 
         key : "Boost your productivity"
     },
     {
@@ -243,7 +212,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Add task from anywhere"
+        _id:generateId()
     }, 
     {
         type:"todo",
@@ -260,7 +229,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Link to emails, files, and web pages"
+        _id:generateId()
     }, 
     {
         type:"todo",
@@ -277,7 +246,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Search and navigate with Quick Find"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -294,7 +263,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Tag your task"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -311,7 +280,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Go step by step with checklists"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -328,7 +297,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Add a reminder so you won't forget"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -345,7 +314,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Plan your evening"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -362,7 +331,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Hide the sidebar to focus on your work"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -379,7 +348,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Open multiple windows"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -396,7 +365,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Convert a task into a project"
+        _id:generateId()
     },
     {
         type:"todo",
@@ -413,13 +382,13 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Make your task repeat"
+        _id:generateId()
     },            
     {
         type : "heading", 
         priority:24,
         title : "Before you go...", 
-        _id : "Before you go...", 
+        _id : generateId(), 
         key : "Before you go..."
     },
     {
@@ -437,6 +406,6 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Any questions ? We're here to help!"
+        _id:generateId()
     }
 ];

@@ -2,34 +2,15 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';   
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { Provider, connect } from "react-redux";
-import ClearArrow from 'material-ui/svg-icons/content/backspace';   
-import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
- import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import Popover from 'material-ui/Popover';
-import {  
-    attachDispatchToProps, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, 
-    daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, 
-    getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, limitDate, isNotNan, 
-    limitInput, isNotEmpty, nDaysFromNow, log
-} from '../utils/utils'; 
-import { 
-    RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store 
-} from '../types';
-import { 
-    remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten, groupBy, difference,
-    equals, all, when, prop, complement, adjust, path, drop, add, uniqBy, reduce, range, xprod, evolve 
-} from 'ramda';
-let uniqid = require("uniqid");    
+import { connect } from "react-redux";
+import { attachDispatchToProps, dateToDateInputValue, dateInputUpperLimit, isNotNan, limitInput, isNotEmpty } from '../utils/utils'; 
+import { RepeatOptions, Todo, Store } from '../types';
+import { isNil, not, isEmpty, compose, map, cond, defaultTo, equals, when, adjust, path, drop, uniqBy, evolve } from 'ramda';
 import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import FlatButton from 'material-ui/FlatButton';
 import { generateId } from '../utils/generateId';
-import { isDate, isTodo, isArrayOfTodos, isNotDate, isNotNil, isString, isRepeatOptions } from '../utils/isSomething';
+import { isDate, isTodo,isNotDate, isNotNil, isRepeatOptions } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';

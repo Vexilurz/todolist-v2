@@ -1,5 +1,5 @@
 import { 
-  contains, isNil, isEmpty, values, assoc, flatten, map, compose, uniq, path,
+  isNil, isEmpty, values, assoc, flatten, map, compose, uniq, path,
   reject, prop, pick, evolve, when, ifElse, groupBy, and, adjust, cond, defaultTo, find
 } from 'ramda'; 
 import { filter } from 'lodash';
