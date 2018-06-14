@@ -246,6 +246,9 @@ describe(
 
                                             delete item.deleted
                                             delete old.deleted
+
+                                            delete item.completed
+                                            delete old.completed
                                             
                                             expect(item,'should be equal').to.deep.equal(old)
                                         }

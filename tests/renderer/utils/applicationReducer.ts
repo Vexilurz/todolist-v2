@@ -75,6 +75,10 @@ describe(
 
                 let eq = equals(retrieved, result); 
 
+                if(!eq){
+                    debugger;
+                }
+
                 expect(eq).to.equal(true);
             } 
         );

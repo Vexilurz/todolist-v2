@@ -7,11 +7,7 @@ import { defaultStoreItems } from './../../../app/defaultStoreItems';
 import { requestFromMain } from '../../../app/utils/requestFromMain';
 import { stateReducer } from '../../../app/stateReducer';
 import { objectsReducer } from '../../../app/objectsReducer';
-import { sleep } from '../../../app/utils/sleep';
 import { fakeCalendar } from '../../../randomDatabase/fakeCalendar';
-import { updateDatabase } from '../../../app/database/updateDatabase';
-const chai = require('chai');
-let assert = require('chai').assert;
 let expect = require('chai').expect;
 import { generateRandomDatabase } from "../../../randomDatabase/generateRandomDatabase";
 import { getItemsFromDatabase } from '../../../app/database/databaseUtils';
@@ -91,11 +87,6 @@ describe(
                 .then(
                     result => {
                         let r = equals(result.todos,dataNext.todos);
-
-                        if(!r){
-                            debugger;
-                        }
-
                         expect(dataNext.todos,'should be the same in database').to.deep.equal(result.todos);
                     }
                 ) 
