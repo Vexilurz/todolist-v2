@@ -156,8 +156,8 @@ export class Login extends Component<LoginProps,LoginState>{
 
         session.defaultSession.cookies.set( 
             {url:server,name:'AuthToken',value:token,expirationDate:expire.getTime()}, 
-            globalErrorHandler
-        );
+            when(isNotNil,globalErrorHandler)
+        ); 
 
         let requestKey = () => axios({
             method:'get', 
@@ -179,15 +179,21 @@ export class Login extends Component<LoginProps,LoginState>{
             ([retrieved,requested]) => {
                 if(isNotNil(retrieved) && isNotNil(requested) && retrieved!==requested){
                     //login with different account
-                    //this.props.dispatch({type:"erase", load:undefined});
-                    //this.eraseDatabase()
-                    return this.preserveKey(
-                        requested, 
-                        retrieved, 
-                        email, 
-                        password
-                    )(requested);
-                }else{
+                    this.props.dispatch({type:"eraseDataStore", load:undefined});
+
+                    return this.eraseDatabase().then(
+                        (error) => {
+                            if(isNotNil(error)){ globalErrorHandler(error) }
+
+                            return this.preserveKey(
+                                requested, 
+                                retrieved, 
+                                email, 
+                                password
+                            )(requested);
+                        }
+                    )
+                }else{ 
                     let key = this.digestKeys([retrieved,requested]);
                     return this.preserveKey(requested, retrieved, email, password)(key);
                 }

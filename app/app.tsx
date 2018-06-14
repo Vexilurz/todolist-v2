@@ -25,7 +25,6 @@ import {
     compose, allPass, identity, any, defaultTo, fromPairs 
 } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
@@ -52,11 +51,11 @@ import { ImportPopup } from './Components/ImportPopup';
 import { TopPopoverMenu } from './Components/TopPopoverMenu/TopPopoverMenu';
 import { decryptDoc, decryptKey } from './utils/crypto/crypto';
 import { server } from './utils/couchHost';
-const remote = require('electron').remote;
-const session = remote.session;
 import axios from 'axios';
 import { isDev } from './utils/isDev';
 import { logout } from './utils/logout';
+const remote = require('electron').remote;
+const session = remote.session;
 window.onerror = onErrorWindow; 
 
 
@@ -603,7 +602,7 @@ let setKey = (config:Config) => {
                                return null;
                             }else{
                                return decryptKey(password)(key);
-                            }
+                            } 
                         })
                         .then((key:any) => {
                             if(!isEmpty(key) && !isNil(key)){

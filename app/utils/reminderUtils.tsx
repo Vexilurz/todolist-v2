@@ -1,9 +1,5 @@
-import { 
-    isNil, not, map, isEmpty, compose, contains,
-    prop, when, evolve, ifElse, applyTo, allPass,
-    flatten, reject, all, concat, identity                 
-} from 'ramda';
-import { isString, isDate, isNumber, isNotNil } from './isSomething';
+import { isNil, map,  compose, prop, allPass } from 'ramda';
+import { isDate, isNumber, isNotNil } from './isSomething';
 import { assert } from './assert';
 import { setCallTimeout } from './setCallTimeout';
 import { filter } from 'lodash';
@@ -11,9 +7,7 @@ import { Store,Todo } from '../types';
 import { byNotCompleted, byNotDeleted } from './utils';
 import { isDev } from './isDev';
 import { ipcRenderer } from 'electron';
-import { inFuture, inPast } from './time';
-import { globalErrorHandler } from './globalErrorHandler';
-
+import { inFuture } from './time';
 
 
 let scheduleReminder = (todo:Todo) : number => {

@@ -32,7 +32,12 @@ const Promise = require('bluebird');
 let databases = init();
 let list = [];
 
-
+Promise.config({
+    // Enables all warnings except forgotten return statements.
+    warnings: {
+        wForgottenReturn: false
+    }
+});
 
 Observable
 .fromEvent(self, 'message', event => event)
@@ -43,8 +48,6 @@ Observable
         }
 
         let action : action = e.data; 
-
-        console.log(`concatMap`,action)
 
         let result = cond([
             [ typeEquals("load"), load ], 
@@ -132,7 +135,10 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
                     Observable
                     .fromEvent(s, 'complete', (event) => event)
                     .first()
-                    .subscribe(complete => resolve(complete));
+                    .subscribe(complete => {
+                        console.log('pouch sync completed for', s, complete);
+                        resolve(complete);
+                    });
 
                     s.cancel(); 
                 } 
@@ -141,6 +147,9 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
     ).then(
         events => {
             list = []; 
+            if(isDev()){
+                sendMessage({type:'log', load:`pouch sync completed`});
+            }
             return events;
         }
     );   
@@ -209,8 +218,9 @@ let eraseDatabase = (action:actionEraseDatabase) : Promise<void> => {
     ).then(
         () => {
             databases = init();
+            return undefined;
         }
-    ) 
+    ).catch((error) => error) 
 };    
 
 

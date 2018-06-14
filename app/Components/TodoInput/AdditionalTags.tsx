@@ -23,40 +23,8 @@ import {
     isNotEmpty, log, anyTrue, attachDispatchToProps 
 } from '../../utils/utils'; 
 import { Todo, Project, Group, ChecklistItem, Category, RawDraftContentState } from '../../types';
-import { Checklist } from './TodoChecklist';
-import { TodoTags } from './TodoTags';
-import { TagsPopup } from './TagsPopup';
-import { TodoInputLabel } from './TodoInputLabel'; 
-import {  
-    uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
-    equals, any, complement, compose, defaultTo, path, prop, always,
-    identity, when
-} from 'ramda';
-import Restore from 'material-ui/svg-icons/content/undo';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
-import { Observable } from 'rxjs/Rx';
-import { insideTargetArea } from '../../utils/insideTargetArea';
-import { googleAnalytics } from '../../analytics';
-import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { isFunction, isDate, isString, isNotNil, isToday } from '../../utils/isSomething';
-import { daysRemaining } from '../../utils/daysRemaining';
-import Alert from 'material-ui/svg-icons/alert/add-alert';
-import { stringToLength } from '../../utils/stringToLength';
-import TextareaAutosize from 'react-autosize-textarea';
-import {Tooltip,withTooltip} from 'react-tippy';
-import {shell} from 'electron'; 
-import Editor from 'draft-js-plugins-editor';
-import {
-    convertToRaw,
-    convertFromRaw,
-    CompositeDecorator,
-    ContentState,
-    EditorState,
-    RichUtils
-} from 'draft-js';
-import createLinkifyPlugin from 'draft-js-linkify-plugin';
+import { isEmpty, isNil } from 'ramda';
+import {Tooltip} from 'react-tippy';
 import 'draft-js/dist/Draft.css';
 import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
 import { getTime, setTime } from '../../utils/time';

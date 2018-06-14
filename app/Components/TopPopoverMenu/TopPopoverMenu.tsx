@@ -19,7 +19,6 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
 import { isArrayOfStrings, isString } from '../../utils/isSomething';
 import { isDev } from '../../utils/isDev';

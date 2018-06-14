@@ -1,32 +1,11 @@
 import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import IconMenu from 'material-ui/IconMenu'; 
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { Spinner } from '../Spinner';
-import { 
-    attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
-    byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, 
-    anyTrue
-} from "../../utils/utils";  
-import { ipcRenderer } from 'electron';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
-import { Todo, Project, Area, Category, Store } from '../../types';
-import { ResizableHandle } from './../ResizableHandle';
-import { NewProjectAreaPopup } from './NewProjectAreaPopup';
-import { allPass, isNil, not, flatten, contains } from 'ramda';
-import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
-import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { googleAnalytics } from '../../analytics';
-import { isArrayOfStrings, isString } from '../../utils/isSomething';
-import { isDev } from '../../utils/isDev';
-
 
 
 interface FooterProps{

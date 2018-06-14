@@ -50,6 +50,7 @@ let ignoredActions = [
     "showRepeatPopup",
     "openRepeatPopup",
     "openTodoInputPopup",
+    "eraseDataStore",
     "showTrashPopup",
     "dragged",
     "openSearch",

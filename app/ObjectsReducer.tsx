@@ -1,24 +1,16 @@
 import { Project, Area, Todo, Calendar, Store, action } from './types';
-import { isDev } from './utils/isDev';
 import { ipcRenderer } from 'electron';
 import { 
-    byNotDeleted, typeEquals, byNotCompleted, convertTodoDates, 
-    differentBy, compareByDate, isNotEmpty 
+    byNotDeleted, typeEquals, convertTodoDates, compareByDate
 } from './utils/utils';
 import { 
-    adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, 
-    findIndex, splitAt, last, assocPath, isNil, and, complement, compose, add, 
-    reject, concat, map, when, find, prop, ifElse, identity, path, equals, 
-    allPass, evolve, pick, defaultTo  
+    adjust, cond, isEmpty, contains, remove, uniq, assoc, reverse, 
+    findIndex, splitAt, last, assocPath, isNil, and, compose, add, 
+    reject, map, when, find, prop, ifElse, identity, path,  defaultTo  
 } from 'ramda'; 
 import { filter } from 'lodash';
-import { 
-    isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, 
-    isArrayOfProjects, isArrayOfAreas, isDate, isNumber 
-} from './utils/isSomething';
+import { isString, isDate } from './utils/isSomething';
 import { moveReminderFromPast } from './utils/getData';
-import { encryptDoc } from './utils/crypto/crypto';
-import { globalErrorHandler } from './utils/globalErrorHandler';
 
 
 
@@ -129,6 +121,16 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 })
             ], 
             [
+                typeEquals("eraseDataStore"),  
+                (action:{type:string, load:void}) : Store => ({
+                    ...state,
+                    todos:[],
+                    projects:[],
+                    areas:[],
+                    calendars:[]
+                })
+            ], 
+            [ 
                 typeEquals("erase"),  
                 (action:{type:string, load:void}) : Store => ({
                     ...state,

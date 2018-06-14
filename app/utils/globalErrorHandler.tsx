@@ -25,13 +25,17 @@ export let globalErrorHandler = (error:any) : Promise<any> => {
     }else{
         try{ message = JSON.stringify(error) }catch(e){ }
     }
-
+    
     if(!isNil(error)){
         if(error.code){ value = error.code; }
         else if(error.lineNumber){ value = error.lineNumber; } 
     } 
     
     console.log(message);
+
+    if(isDev()){
+        throw new Error(message)
+    }
    
     return requestFromMain("getConfig", [], (event, config) => config).then(
         (config:Config) => Promise.all(

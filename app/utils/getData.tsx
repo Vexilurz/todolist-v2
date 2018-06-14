@@ -12,7 +12,6 @@ import { updateCalendars } from '../Components/Calendar';
 import { inPast, oneMinuteLater } from './time';
 import { ipcRenderer } from 'electron';
 import { pouchWorker } from '../app';
-import { globalErrorHandler } from './globalErrorHandler';
 import { workerSendAction } from './workerSendAction';
 
 export let moveReminderFromPast : (todo:Todo) => Todo =  

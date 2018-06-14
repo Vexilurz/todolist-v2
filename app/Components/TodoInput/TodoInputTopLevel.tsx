@@ -32,14 +32,6 @@ import {
     equals, any, complement, compose, defaultTo, path, prop, always,
     identity, when
 } from 'ramda';
-import Restore from 'material-ui/svg-icons/content/undo';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
-import { Observable } from 'rxjs/Rx';
-import { insideTargetArea } from '../../utils/insideTargetArea';
-import { googleAnalytics } from '../../analytics';
-import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { isFunction, isDate, isString, isNotNil, isToday } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
 import Alert from 'material-ui/svg-icons/alert/add-alert';

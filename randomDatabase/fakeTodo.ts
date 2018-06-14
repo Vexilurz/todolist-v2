@@ -83,15 +83,10 @@ export let fakeTodo = (tags:string[], withReminder:number) : Todo => {
     
     let completedWhen = checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null;                
 
-    /*let reminder = isToday(attachedDate) && isNil(deleted) && not(checked) ?  
-                   randomDate(new Date(), fiveMinutesBefore(new Date())) : 
-                   null; */
-
     let reminder = (isToday(attachedDate) && isNil(deleted) && not(checked)) ?  
                    randomDate(fiveMinutesBefore(new Date()), onHourLater(new Date())) :  
                    null; //onHourLater(date) //fiveMinutesLater(date);
-     
-    //reminder = randomDate(new Date(), new Date()["addDays"](-50)); 
+
     let category = randomCategory();
 
 
@@ -103,17 +98,17 @@ export let fakeTodo = (tags:string[], withReminder:number) : Todo => {
         priority:Math.random()*999999999,
         note:noteFromText(note.join(' ')), 
         checklist:checklist,   
-        reminder:null,  
+        reminder,  
         attachedTags:tags,   
-        deadline:null,/*category==="someday" ? null :
+        deadline:category==="someday" ? null :
                  Math.random() < 0.3 ? null :
                  Math.random() > 0.5 ?
                  randomDate(new Date(), new Date()["addDays"](50)) : 
-                 new Date()*/ 
-        created:null,//randomDate(new Date(), new Date()["addDays"](50)),
-        deleted:null,
+                 new Date(),
+        created:randomDate(new Date(), new Date()["addDays"](50)),
+        deleted,
         attachedDate:category==="someday" ? null : attachedDate,
-        completedSet:null,
-        completedWhen:null
+        completedSet,
+        completedWhen
     };   
 };

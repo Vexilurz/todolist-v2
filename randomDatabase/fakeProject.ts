@@ -28,11 +28,11 @@ export let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project 
         type : "project", 
         name : name.join(' '),  
         priority : Math.random()*999999999,
-        deleted : null,//Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined,
+        deleted : Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined,
         description : noteFromText(description.join(' ')), 
-        created : null,//randomDate(new Date()["addDays"](-50), new Date()),
-        deadline : null,//randomDate(new Date(), new Date()["addDays"](50)),
-        completed : null,//checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
+        created : randomDate(new Date()["addDays"](-50), new Date()),
+        deadline : randomDate(new Date(), new Date()["addDays"](50)),
+        completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
         layout,     
         attachedTags  
     };    

@@ -1,25 +1,11 @@
 import { 
-    uniq, splitEvery, contains, isNil, not, and, 
-    evolve, when, map, reject, range, flatten, 
-    isEmpty, complement, equals, compose, ifElse, anyPass 
+    range, flatten, complement, equals
 } from 'ramda';
-import { parseCalendar } from '../app/Components/Calendar';
-import { isToday, isString } from '../app/utils/isSomething';
-import { keyFromDate, getTime, setTime, fiveMinutesBefore, fiveMinutesLater, onHourLater } from '../app/utils/time';
-import { Project, Calendar, Area, Todo, Category, ChecklistItem, Heading, LayoutItem, IcalData } from '../app/types';
-import { generateId } from '../app/utils/generateId';
-import { noteFromText } from '../app/utils/draftUtils';
-import { randomInteger, randomDate, randomArrayMember, fakeTags } from './utils';
-import { fakeTodo } from './fakeTodo';
-import { fakeProject } from './fakeProject';
-import { fakeArea } from './fakeArea';
+import { getTime, setTime } from '../app/utils/time';
+import { randomInteger, randomDate, randomArrayMember } from './utils';
 let randomWords = require('random-words');
-const randomWord = () => randomWords();//require('random-word');
-let uniqid = require("uniqid"); 
+const randomWord = () => randomWords();
 let ical = require('ical-generator');
-let different = complement(equals);
-const fs = require('fs');
-const path = require('path');
 
 
 
