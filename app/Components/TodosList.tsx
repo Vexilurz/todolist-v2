@@ -116,7 +116,7 @@ export let dropTodoOnCategory = ({
                     };
 
                     if(isDev()){
-                       assert(allPass(filters.inbox)(todo),`Error : dropTodoOnCategory. Inbox.`);
+                       //assert(allPass(filters.inbox)(todo),`Error : dropTodoOnCategory. Inbox.`);
                     }
 
                     return todo; 

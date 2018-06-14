@@ -1,14 +1,9 @@
-import { Store, Todo, Project } from './../types';
-import { contains, flatten, isNil, not } from 'ramda';
-import { filter } from 'lodash';
+import { Todo, Project } from './../types';
+import { contains, flatten, isNil } from 'ramda';
 import { isString } from './isSomething';
 import {    
-    attachDispatchToProps, convertTodoDates, 
-    convertProjectDates, convertAreaDates, 
-    oneMinuteBefore, nDaysFromNow, initDate, byDeleted, 
-    byNotDeleted, byCompleted, byNotCompleted, 
-    byCategory, isDeadlineTodayOrPast, 
-    isTodayOrPast, byScheduled, typeEquals, log 
+    byDeleted, byNotDeleted, byCompleted, byNotCompleted, 
+    byCategory, isDeadlineTodayOrPast, isTodayOrPast, byScheduled 
 } from "./utils";  
 
 
