@@ -146,13 +146,13 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
             <div>
                 {
                     <div style={{display:!this.props.collapsed && !this.props.showMenu ? "none" : "inline-block"}}>
-                    <ToggleTopMenuButton 
-                        collapsed={this.props.collapsed}
-                        toggled={this.props.showMenu} 
-                        onClick={this.showMenu} 
-                        setRef={(e) => { this.anchor=e; }} 
-                        title={this.getButtonTitle()}       
-                    />
+                        <ToggleTopMenuButton 
+                            collapsed={this.props.collapsed}
+                            toggled={this.props.showMenu} 
+                            onClick={this.showMenu} 
+                            setRef={(e) => { this.anchor=e; }} 
+                            title={this.getButtonTitle()}       
+                        />
                     </div>
                 }
                 <Popover  
@@ -160,7 +160,10 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                     open={this.props.showMenu}
                     useLayerForClickAway={false}
                     anchorEl={this.anchor}
-                    onRequestClose={() => this.props.dispatch({type:"showMenu",load:false})}
+                    onRequestClose={() => this.props.dispatch({
+                        type:"multiple",
+                        load:[{type:"showMenu", load:false},{type:"searchQuery", load:''}]
+                    })}
                     anchorOrigin={{vertical:"bottom",horizontal:"middle"}}  
                     targetOrigin={{vertical:"top",horizontal:"middle"}}  
                 >   

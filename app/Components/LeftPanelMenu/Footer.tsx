@@ -8,6 +8,7 @@ import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
 
 
+
 interface FooterProps{
     width:number,
     drag:boolean,
@@ -20,7 +21,11 @@ interface FooterProps{
     openSyncSettings:(e:any) => void 
 }
 
+
+
 interface FooterState{}
+
+ 
 
 export class Footer extends Component<FooterProps,FooterState>{
   
@@ -28,10 +33,8 @@ export class Footer extends Component<FooterProps,FooterState>{
         super(props); 
     }
 
-
-    
     render(){ 
-        let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor, drag } = this.props; 
+        let {collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor, drag} = this.props; 
 
         return <div style={{    
             transition:drag ? "" : "width 0.2s ease-in-out", 
@@ -56,21 +59,17 @@ export class Footer extends Component<FooterProps,FooterState>{
                 }}
             >     
                 <div 
-                    style={{
-                        display:"flex",
-                        alignItems:"center",
-                        justifyContent:"center"
-                    }}
+                    style={{display:"flex",alignItems:"center",justifyContent:"center"}}
                     ref={setNewProjectAnchor}
                 >
-                    <Plus    
-                        style = {{     
+                    <Plus 
+                        style={{     
                             color:"rgb(79, 79, 79)",
                             width:"25px",
                             height:"25px",
                             paddingLeft: "5px",
                             paddingRight: "5px"     
-                        }}
+                        }} 
                     />
                 </div>    
             </div>   

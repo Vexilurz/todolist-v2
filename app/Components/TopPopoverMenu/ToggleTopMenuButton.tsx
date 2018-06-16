@@ -1,31 +1,10 @@
 import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import IconMenu from 'material-ui/IconMenu'; 
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { 
-    attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
-    byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, 
-    anyTrue
-} from "../../utils/utils";  
-import { ipcRenderer } from 'electron';
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import Plus from 'material-ui/svg-icons/content/add';  
-import { Todo, Project, Area, Category, Store } from '../../types';
-import { allPass, isNil, not, flatten, contains } from 'ramda';
-import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
-import { googleAnalytics } from '../../analytics';
-import { isArrayOfStrings, isString } from '../../utils/isSomething';
-import { isDev } from '../../utils/isDev';
-import Popover from 'material-ui/Popover';
 import ShowMenu from 'material-ui/svg-icons/navigation/unfold-more';  
 import { uppercase } from '../../utils/uppercase';
-import Clear from 'material-ui/svg-icons/content/clear';
+
 
 interface ToggleTopMenuButtonProps{
     setRef:(e:any) => void,
@@ -51,8 +30,6 @@ export class ToggleTopMenuButton extends Component<ToggleTopMenuButtonProps,Togg
             ref={this.props.setRef}
             style={{
                 padding:"5px",
-                //transition:"opacity 0.2s ease-in-out", 
-                //opacity:this.props.collapsed ? 1 : 0,
                 border:this.props.toggled ? 
                        "1px solid rgba(150,150,150,0)" : 
                        "1px solid rgba(150,150,150,0.1)",

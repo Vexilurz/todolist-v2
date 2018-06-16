@@ -334,7 +334,10 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
                 onClick={
                     e => {
                         this.props.dispatch(action);
-                        this.props.dispatch({type:"showMenu", load:false});
+                        this.props.dispatch({type:"multiple",load:[
+                            {type:"showMenu", load:false},
+                            {type:"searchQuery", load:''}
+                        ]});
                     }
                 }
             >
