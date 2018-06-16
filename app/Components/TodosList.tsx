@@ -2,20 +2,18 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { Category, Todo, Project, Area, Config } from '../types';
+import { Category, Todo, Project, Area } from '../types';
 import { Component } from 'react';
 import { getCompletedWhen, generateDropStyle } from '../utils/utils';  
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { TodoInput } from './TodoInput/TodoInput';
 import { isNil, isEmpty, findIndex, cond, find,
-    compose, map, contains, remove, not, equals, all, 
+    compose, map, contains, not, equals, all, 
     intersection, path, prop, adjust, reject, allPass
 } from 'ramda';
 import { indexToPriority } from '../utils/indexToPriority';
 import { SortableContainer } from './CustomSortableContainer';
-import { 
-    isString, isCategory, isTodo, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isProject, isArea 
-} from '../utils/isSomething'; 
+import { isCategory, isTodo, isProject } from '../utils/isSomething'; 
 import { assert } from '../utils/assert';
 import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';
