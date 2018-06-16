@@ -76,7 +76,8 @@ interface AppState{
         someday:number,
         logbook:number,
         trash:number
-    }
+    },
+    syncActive:boolean
 }
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{ 
@@ -90,7 +91,7 @@ export class App extends Component<AppProps,AppState>{
 
         this.generateIndicatorsWorker = null;
 
-        this.state = { amounts:getAmounts(this.props), indicators:{} };
+        this.state = { amounts:getAmounts(this.props), indicators:{}, syncActive:false };
     };
  
 
@@ -191,7 +192,37 @@ export class App extends Component<AppProps,AppState>{
         }
     };
 
+    
 
+    onPouchActive = (action:action) => { 
+        if(isDev()){
+           console.log(`sync active`, 'color: #926239');
+        }
+        this.setState({syncActive:true});
+    };
+
+
+
+    onPouchPaused = (action:action) => { 
+        if(isDev()){
+           console.log(`sync paused`, 'color: #926239');
+        }
+        this.setState({syncActive:false});
+    };
+
+
+
+    initSync = () => checkAuthenticated().then(auth => {
+        if(isString(this.props.email) && auth && this.props.sync){
+           let action : actionStartSync = { type:"startSync", load:emailToUsername(this.props.email) };
+           this.setState({syncActive:true}); 
+           pouchWorker.postMessage(action);
+        }else{
+           this.setState({syncActive:false}); 
+        }
+    });
+
+    
 
     onPouchError = (action:action) => { 
         let error : PouchError = action.load;
@@ -219,7 +250,10 @@ export class App extends Component<AppProps,AppState>{
         this.subscriptions.push(
             subscribeToChannel("changes", this.onPouchChanges),
             subscribeToChannel("log", this.onPouchLog),
-            subscribeToChannel("error", this.onPouchError)
+            subscribeToChannel("error", this.onPouchError),
+
+            subscribeToChannel("active", this.onPouchActive),
+            subscribeToChannel("paused", this.onPouchPaused)
         );
     };
 
@@ -242,17 +276,6 @@ export class App extends Component<AppProps,AppState>{
         );
     };
 
-
-
-    initSync = () => 
-        checkAuthenticated()
-        .then(auth => {
-            if(isString(this.props.email) && auth && this.props.sync){
-               let action : actionStartSync = { type:"startSync", load:emailToUsername(this.props.email) };
-               pouchWorker.postMessage(action);
-            }
-        });
-    
     
 
     suspendObservables = () => {
@@ -331,7 +354,7 @@ export class App extends Component<AppProps,AppState>{
         }
 
         this.setWindowTitle(this.props, nextProps, this.state.amounts.today+this.state.amounts.hot); 
-    };
+    }; 
 
 
 
@@ -340,9 +363,9 @@ export class App extends Component<AppProps,AppState>{
             let area = newProps.areas.find( a => a._id===newProps.selectedAreaId );
             if(area){
                 ipcRenderer.send(
-                  'setWindowTitle', 
-                  `(${today}) tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
-                   newProps.id
+                   'setWindowTitle', 
+                   `${today===0 ? '' : `(${today})`} tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
+                    newProps.id
                 );
             }
         }else if(newProps.selectedCategory==="project"){
@@ -350,13 +373,17 @@ export class App extends Component<AppProps,AppState>{
     
             if(project){
                 ipcRenderer.send(
-                    'setWindowTitle',  
-                    `(${today}) tasklist - ${uppercase( isEmpty(project.name) ? 'New Project' : project.name )}`, 
+                   'setWindowTitle',  
+                   `${today===0 ? '' : `(${today})`} tasklist - ${uppercase( isEmpty(project.name) ? 'New Project' : project.name )}`, 
                     newProps.id
                 );
             }
         }else{
-            ipcRenderer.send('setWindowTitle',`(${today}) tasklist - ${uppercase(newProps.selectedCategory)}`,newProps.id);    
+            ipcRenderer.send(
+               'setWindowTitle',
+               `${today===0 ? '' : `(${today})`} tasklist - ${uppercase(newProps.selectedCategory)}`, 
+                newProps.id
+            );    
         }
     };
     
@@ -389,7 +416,7 @@ export class App extends Component<AppProps,AppState>{
                 {    
                     this.props.clone ? null :
                     <LeftPanelMenu 
-                        sync={this.props.sync}
+                        sync={this.props.sync && this.state.syncActive}
                         dispatch={this.props.dispatch}
                         collapsed={this.props.collapsed}
                         selectedCategory={this.props.selectedCategory}
@@ -591,9 +618,10 @@ let setKey = (config:Config) => {
                     let cookie = cookies[0];
 
                     if(cookie && cookie.name==="AuthToken" && isNil(key)){
+
+
                         let token = cookie.value; 
-                        let {username,password} = getCredentialsFromToken(token);
-                        let decrypt = when(allPass([isNotNil, isNotEmpty]),decryptKey(password));
+                        let {password} = getCredentialsFromToken(token);
 
                         return axios({method:'get',url:`${server}/users/key`,headers:{'AuthToken':token}}) 
                         .then(prop("data"))
@@ -612,7 +640,12 @@ let setKey = (config:Config) => {
                             return workerSendAction(pouchWorker)(action).then(() => resolve(config));
                         })
                         .catch(e => workerSendAction(pouchWorker)(action).then(() => resolve(config))) 
+
+
+
                     }else{
+
+
                         return workerSendAction(pouchWorker)(action).then(() => resolve(config));
                     }
                 }

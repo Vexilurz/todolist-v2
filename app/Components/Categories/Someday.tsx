@@ -2,8 +2,6 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { byNotCompleted, byNotDeleted, getTagsFromItems, byTags } from "../../utils/utils";  
 import { Todo, Project, Area, Category } from '../../types';

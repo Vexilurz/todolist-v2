@@ -6,6 +6,7 @@ import { Component } from "react";
 import { Spinner } from '../Spinner';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
+import Exclamation from 'material-ui/svg-icons/notification/priority-high'; 
 
 
 
@@ -37,8 +38,8 @@ export class Footer extends Component<FooterProps,FooterState>{
         let {collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor, drag} = this.props; 
 
         return <div style={{    
-            transition:drag ? "" : "width 0.2s ease-in-out", 
-            width:collapsed ? "0px" : `${width}px`, 
+            transition:drag ? "":"width 0.2s ease-in-out", 
+            width:collapsed ? "0px":`${width}px`, 
             display:"flex",  
             alignItems:"center",  
             position:"fixed",    
@@ -51,12 +52,7 @@ export class Footer extends Component<FooterProps,FooterState>{
         }}>    
             <div  
                 onClick={openNewProjectAreaPopup}
-                style={{
-                    display:"flex",
-                    paddingLeft:"10px",
-                    alignItems:"center",
-                    cursor:"pointer"
-                }}
+                style={{display:"flex",paddingLeft:"10px",alignItems:"center",cursor:"pointer"}}
             >     
                 <div 
                     style={{display:"flex",alignItems:"center",justifyContent:"center"}}
@@ -64,7 +60,7 @@ export class Footer extends Component<FooterProps,FooterState>{
                 >
                     <Plus 
                         style={{     
-                            color:"rgb(79, 79, 79)",
+                            color:"rgb(79,79,79)",
                             width:"25px",
                             height:"25px",
                             paddingLeft: "5px",
@@ -73,15 +69,40 @@ export class Footer extends Component<FooterProps,FooterState>{
                     />
                 </div>    
             </div>   
-            <div style={{flexGrow:1, display:"flex", justifyContent:"flex-end"}}> 
-                <Spinner dispatch={this.props.dispatch} sync={this.props.sync} openSyncSettings={this.props.openSyncSettings}/> 
+            <div style={{flexGrow:1,display:"flex",justifyContent:"flex-end"}}> 
+                <div style={{
+                    position:"relative",
+                    display:"flex",
+                    justifyContent:"center",
+                    alignItems:"center"
+                }}>        
+                    {   
+                        this.props.sync ? null :
+                        <div style={{position:"absolute",width:"12px"}}>
+                            <Exclamation 
+                                style={{
+                                    color:"red",
+                                    fill:"currentcolor", 
+                                    height:"11px",
+                                    paddingLeft:"1px",
+                                    width:"11px"
+                                }}
+                            />
+                        </div>  
+                    }      
+                    <Spinner 
+                        dispatch={this.props.dispatch} 
+                        sync={this.props.sync} 
+                        openSyncSettings={this.props.openSyncSettings}
+                    /> 
+                </div>
             </div>            
-            <div style={{display:"flex", paddingRight:"10px", alignItems:"center", cursor:"pointer"}}>     
+            <div style={{display:"flex",paddingRight:"10px",alignItems:"center",cursor:"pointer"}}>     
                 <IconButton    
                     onClick={(e) => openSettings(e)}  
-                    iconStyle={{color:"rgba(100, 100, 100, 1)", width:"25px", height:"25px"}}
+                    iconStyle={{color:"rgba(100, 100, 100, 1)",width:"25px",height:"25px"}}
                 >        
-                    <Adjustments /> 
+                    <Adjustments />  
                 </IconButton>  
             </div> 
         </div> 

@@ -1,45 +1,13 @@
 import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';   
-import { ipcRenderer } from 'electron'; 
-import IconButton from 'material-ui/IconButton';  
 import { Component } from "react";  
-import { Provider, connect } from "react-redux";
-let uniqid = require("uniqid");  
-import * as Waypoint from 'react-waypoint';
-import Popover from 'material-ui/Popover';
-import {  
-    daysLeftMark, 
-    generateTagElement, 
-    attachDispatchToProps, 
-    byNotDeleted, 
-    findAttachedProject, 
-    getTagsFromItems,
-    byTags,
-    isNotEmpty,
-    different
-} from '../../utils/utils'; 
-import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
-import { 
-    reject, allPass, isNil, not, isEmpty, contains, flatten, prop, identity,
-    compose, any, intersection, defaultTo, all, evolve, map, ifElse 
-} from 'ramda';
-import { filter } from 'lodash'; 
-import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
-import PieChart from 'react-minimal-pie-chart';
+import { connect } from "react-redux";
+import { attachDispatchToProps, byTags } from '../../utils/utils'; 
+import { Todo, Store } from '../../types';
 import { TodoInput } from './../TodoInput/TodoInput';
-import { Tags } from './../Tags';
-import { isArray, isString, isDate, isNotDate } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
-import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
-import { isDev } from '../../utils/isDev';
-import { assert } from '../../utils/assert';
-import { getProjectHeading } from '../Search/getProjectHeading';
 import { sortByCompletedOrNot } from '../Search/sortByCompletedOrNot';
-import { getSuggestions } from '../Search/getSuggestions';
 
 interface TagProps extends Store{}
 interface TagState{}
@@ -84,7 +52,7 @@ export class Tag extends Component<TagProps,TagState>{
 
 
     render(){
-        let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props;  
+        let {todos, selectedTags, selectedCategory} = this.props;  
         let items = todos
         .sort((a:Todo,b:Todo) => a.priority-b.priority)
         .sort(sortByCompletedOrNot)
@@ -110,18 +78,6 @@ export class Tag extends Component<TagProps,TagState>{
                 </div>  
             </div> 
             {items.map(this.getTodoComponent)}
-            {
-            /*
-            <div className="no-print" style={{paddingTop:"15px", paddingBottom:"15px"}}>
-                <Tags  
-                    selectTags={tags => dispatch({type:"selectedTags", load:tags})}
-                    tags={tags} 
-                    selectedTags={selectedTags}
-                    show={true}  
-                />  
-            </div>
-            */
-            } 
         </div>  
     }
 }

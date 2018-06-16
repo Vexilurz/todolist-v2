@@ -11,9 +11,6 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { merge, isNil, not } from 'ramda';
 import { Category } from '../../types';
-import { anyTrue, different } from '../../utils/utils';
-import { uppercase } from '../../utils/uppercase';
-import { ipcRenderer } from 'electron'; 
 
  
 

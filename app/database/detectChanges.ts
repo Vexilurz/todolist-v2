@@ -1,23 +1,6 @@
-import { Project, Area, Todo, Calendar, Store, action, withId, Changes, DatabaseChanges } from '../types';
-import { isDev } from '../utils/isDev';
-import { ipcRenderer } from 'electron';
-import { 
-    byNotDeleted, typeEquals, byNotCompleted, convertTodoDates, 
-    differentBy, compareByDate, isNotEmpty, measureTime, log 
-} from '../utils/utils';
-import { 
-    adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, 
-    findIndex, splitAt, last, assocPath, isNil, and, complement, compose, 
-    reject, concat, map, when, find, prop, ifElse, identity, path, equals, any,
-    allPass, evolve, pick, defaultTo, pickBy, mapObjIndexed, forEachObjIndexed  
-} from 'ramda'; 
-import { filter } from 'lodash';
-import { 
-    isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, 
-    isArrayOfProjects, isArrayOfAreas, isDate, isNumber, isNotNil 
-} from '../utils/isSomething';
-import { moveReminderFromPast } from '../utils/getData';
-import { assert, assertC } from '../utils/assert';
+import { Store, withId, Changes, DatabaseChanges } from '../types';
+import { measureTime } from '../utils/utils';
+import { pick, pickBy, mapObjIndexed, compose } from 'ramda'; 
 
 
 
