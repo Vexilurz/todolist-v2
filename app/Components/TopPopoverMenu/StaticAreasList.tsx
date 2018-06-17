@@ -166,8 +166,6 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
             areas.filter(byNotDeleted)
         );
         let layout = generateLayout(this.props.areas,{table,detached}); 
-        let hideAreaPadding = true; 
-        let detachedEmpty = isEmpty(detached);
 
         return <div style={{userSelect:"none",paddingLeft:"5px",paddingRight:"5px"}}>     
             {
@@ -229,7 +227,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             selectArea, 
         } = this.props;
         let selected = (area._id===selectedAreaId) && selectedCategory==="area";
-        let {hideContentFromAreasList} = area;
  
         return <li   
             ref={e => {this.ref=e;}} 
@@ -244,7 +241,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 id={area._id} 
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{  
-                    overflow:"hidden",
                     borderRadius:selected ? "5px" : "0px", 
                     backgroundColor:selected ? "rgba(228,230,233,1)" : "",  
                     height:"20px", 
@@ -256,10 +252,9 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}
             >      
                 <div><NewAreaIcon style={{color:"rgba(109, 109, 109, 0.7)", width:"18px", height:"18px"}}/></div> 
-
                 <div style={{ 
                     display:'flex',
-                    width:"90%",
+                    width:'calc(90% - 18px)',
                     fontFamily:"sans-serif",
                     fontSize:"15px",    
                     cursor:"default", 
@@ -272,21 +267,27 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         text={area.name}
                         placeholder="New Area" 
                         fontSize={15}
-                        fontWeight="normal"
+                        fontWeight="bolder"
                         style={{}}
+                        offset={selected ? 6 : 3}
                         placeholderStyle={{}}
                     />
-                    {
+                    {   
                         this.props.area._id===this.props.selectedAreaId &&
                         selectedCategory==="area" ?
-                        <div style={{paddingRight:"8px"}}>
+                        <div style={{
+                            position:"absolute",
+                            right:"10px",
+                            height:"15px",
+                            width:"15px"
+                        }}>
                             <Checked style={{color:"rgb(56, 115, 207)", width:"15px", height:"15px"}}/>
                         </div>
                         :
                         null
-                    }
+                    }   
                 </div>  
-            </div> 
+            </div>  
         </li>
     }
 };
@@ -338,6 +339,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     paddingBottom:"3px",
                     paddingTop:"3px",
                     display:"flex",
+                    width:"100%",
                     alignItems:"center"  
                 }} 
             >     
@@ -380,28 +382,34 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     <div   
                         id = {this.props.project._id}   
                         style={{  
-                            width:"90%",
+                            width:'calc(90% - 16px)',
                             paddingLeft:"5px",
                             display:"flex",
-                            fontFamily: "sans-serif",
+                            fontFamily:"sans-serif",
                             fontSize:`15px`,  
-                            whiteSpace: "nowrap",
-                            cursor: "default",
+                            whiteSpace:"nowrap", 
+                            cursor:"default",
                             WebkitUserSelect: "none" 
                         }}
                     >    
                         <AutoresizableText
-                            text={project.name}
+                            text={project.name} 
                             placeholder="New Project"
                             fontWeight="normal"
                             fontSize={15}
                             style={{}}
+                            offset={selected ? 6 : 3}
                             placeholderStyle={{}}
                         />
-                        {
+                        {   
                             this.props.project._id===this.props.selectedProjectId && 
                             selectedCategory==="project" ?
-                            <div style={{paddingRight:"8px"}}>
+                            <div style={{
+                                position:"absolute",
+                                right:"10px",
+                                height:"15px",
+                                width:"15px"
+                            }}>
                                 <Checked style={{color:"rgb(56, 115, 207)", width:"15px", height:"15px"}}/>
                             </div>
                             :

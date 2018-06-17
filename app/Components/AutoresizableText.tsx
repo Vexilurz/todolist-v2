@@ -4,6 +4,7 @@ import { Component } from "react";
 import { isEmpty, merge } from 'ramda';
 import ResizeObserver from 'resize-observer-polyfill';
 import { stringToLength } from '../utils/stringToLength';
+import { isNumber, isNotNil } from '../utils/isSomething';
 
 
 
@@ -13,7 +14,8 @@ interface AutoresizableTextProps{
     fontSize:number,
     fontWeight:string,
     style:any,
-    placeholderStyle:any 
+    placeholderStyle:any,
+    offset?:number 
 } 
 
 
@@ -37,7 +39,7 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
 
     onResize = (entries) => { 
         const {width} = entries[0].contentRect;
-        const {text, style, fontSize, placeholder, fontWeight} = this.props;
+        const {text, fontSize, placeholder, fontWeight, offset} = this.props;
         let containerWidth = width; 
         let name = isEmpty(text) ? placeholder : text;
         let textWidth = getWidthOfText({
@@ -48,9 +50,13 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
             fontVariant:"normal",
             fontWeight
         });
-        console.log(entries, containerWidth, textWidth);
-        let stringLength = Math.round( (name.length*containerWidth)/textWidth ) - 1;
-        this.setState({stringLength:stringLength<name.length ? stringLength : name.length}); 
+        let stringLength = Math.round((name.length*containerWidth)/textWidth);
+
+        if(isNotNil(offset) && isNumber(offset)){
+           stringLength-=offset;
+        }
+
+        this.setState({stringLength:stringLength<name.length ? (stringLength) : name.length}); 
     };      
   
 
@@ -89,7 +95,7 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
     render(){
         let {text, style, fontSize, placeholder, placeholderStyle} = this.props;
         let {stringLength} = this.state;
-        let defaultStyle = {fontSize:`${fontSize}px`, whiteSpace:"nowrap", width:"inherit"};  
+        let defaultStyle = {fontSize:`${fontSize}px`, whiteSpace:"nowrap", width:"100%"};  
         let textStyle = merge(isEmpty(text) ? placeholderStyle : style, defaultStyle);  
         
         return <div ref={(e) => {this.ref = e;}} style={textStyle}>  

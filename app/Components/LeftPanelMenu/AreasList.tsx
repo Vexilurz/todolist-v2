@@ -466,8 +466,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             hideAreaPadding, 
             onCollapseContent
         } = this.props;
-
-        let {highlight} = this.state;
         let selected = (area._id===selectedAreaId) && selectedCategory==="area";
         let {hideContentFromAreasList} = area;
  
@@ -479,12 +477,9 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             onMouseEnter={this.onMouseEnter} 
             onMouseLeave={this.onMouseLeave} 
         >     
-            <div style={{outline:"none",width:"100%",height:hideAreaPadding ? "0px" : "20px"}}></div>  
+            <div style={{outline:"none", width:"100%", height:hideAreaPadding ? "0px" : "20px"}}></div>  
             <div     
-                onClick={(e) => {
-                    e.stopPropagation(); 
-                    selectArea(area);
-                }}
+                onClick={e => {e.stopPropagation(); selectArea(area);}}
                 id={area._id} 
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{  
@@ -492,29 +487,14 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     backgroundColor:selected ? "rgba(228,230,233,1)" : "",  
                     height:"25px", 
                     display:"flex",  
-                    overflow:"hidden",
                     alignItems:"center" 
                 }}
             >      
-                <IconButton  
-                    style={{ 
-                        width:"20px", 
-                        height:"20px", 
-                        padding:"0px",
-                        display:"flex", 
-                        alignItems:"center", 
-                        justifyContent:"center"
-                    }}    
-                    iconStyle={{ 
-                        color:"rgba(109,109,109,0.7)", 
-                        width:"20px", 
-                        height:"20px" 
-                    }}   
-                >      
-                    <NewAreaIcon style={{width:"20px",height:"20px"}}/> 
-                </IconButton>  
+                <div style={{height:"20px",paddingLeft:"2px",width:"20px"}}>
+                    <NewAreaIcon style={{width:"20px",height:"20px",color:'rgba(100, 100, 100,0.8)'}}/>
+                </div>
                 <div style={{ 
-                    width:"90%",
+                    width:'calc(80% - 40px)',
                     fontFamily:"sans-serif",
                     fontSize:"15px",    
                     cursor:"default", 
@@ -529,17 +509,19 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         fontSize={15}
                         fontWeight="normal"
                         style={{}}
+                        offset={2}
                         placeholderStyle={{}}
                     />
                 </div>  
                 { 
-                    not(hideContentFromAreasList) && not(highlight) ? null :
+                    not(hideContentFromAreasList) && not(this.state.highlight) ? null :
+                    <div style={{position:"absolute", right:"5px", width:"20px"}}>
                     <IconButton  
                         onClick={(e) => { 
                             e.stopPropagation();
                             onCollapseContent(area); 
                             this.onMouseLeave(null); 
-                        }} 
+                        }}  
                         style={{ 
                             width:"22px",  
                             height:"22px", 
@@ -558,6 +540,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                             }
                         </div>
                     </IconButton> 
+                    </div>
                 }
             </div> 
         </li>
@@ -639,8 +622,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     height:"25px",  
                     paddingLeft:"4px",   
                     display:"flex",
-                    alignItems:"center",
-                    overflow:"hidden"
+                    alignItems:"center"
                 }} 
             >     
                     <div style={{    
@@ -686,14 +668,14 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     <div   
                         id = {this.props.project._id}   
                         style={{  
-                            width:"90%",
+                            width:'calc(90% - 18px)',
                             paddingLeft:"5px",
                             fontFamily: "sans-serif",
                             fontSize:`15px`,  
                             whiteSpace: "nowrap",
                             cursor: "default",
                             WebkitUserSelect: "none" 
-                        }}
+                        }}  
                     >    
                         <AutoresizableText
                             text={project.name}
@@ -701,7 +683,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             fontSize={15}
                             fontWeight="normal"
                             style={{}}
-                            placeholderStyle={{}}
+                            placeholderStyle={{}} 
                         />
                     </div>    
             </div>
