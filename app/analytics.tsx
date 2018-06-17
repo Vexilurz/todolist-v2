@@ -1,7 +1,6 @@
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import Analytics from 'electron-ga';
 import { isNil } from 'ramda';
-import { ipcRenderer } from 'electron';
 import { requestFromMain } from './utils/requestFromMain';
 
 let analytics = null;

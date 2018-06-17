@@ -1,10 +1,6 @@
 
-import { Todo, Project, Group, ChecklistItem, Category, RawDraftContentState } from '../../types';
-import {  
-    uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
-    equals, any, complement, compose, defaultTo, path, prop, always,
-    identity, when
-} from 'ramda';
+import { Category } from '../../types';
+import { isEmpty, contains, isNil } from 'ramda';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react";  

@@ -3,36 +3,18 @@ import '../../../assets/calendarStyle.css';
 import * as React from 'react';   
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { TodosList } from '../../../Components/TodosList';
-import { 
-    Todo,Project, Area, Calendar, Category, CalendarEvent, 
-    RepeatOptions, objectsByDate, CalendarObject, Store 
-} from '../../../types';
-import * as Waypoint from 'react-waypoint';
+import { Todo,Project, Area, Calendar, Category, CalendarObject, Store } from '../../../types';
 import { ContainerHeader } from '../.././ContainerHeader';
-import { 
-    byTags, getDayName, getDatesRange, byNotCompleted, byNotDeleted,
-    getTagsFromItems, getMonthName, yearFromDate, convertTodoDates,
-    getRangeDays, isNotEmpty, typeEquals, compareByDate, monthFromDate,
-    log, anyTrue, different, initDate, nDaysFromNow
-} from '../../../utils/utils';  
+import { getDayName, getDatesRange, getTagsFromItems, getMonthName, isNotEmpty, compareByDate } from '../../../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, last, isEmpty, adjust,and, contains, where, concat, reverse,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any, always, ifElse,
-    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass, applyTo
+    isNil, compose, last, isEmpty, concat, reverse,
+    map, flatten, prop, all, any, always, ifElse,
+    values
 } from 'ramda';
-import { ProjectLink } from '../../Project/ProjectLink';
-import { filter } from 'lodash'; 
 import { CalendarDay } from '../../../Components/CalendarDay';
 import { Hint } from './../Today'; 
-import { updateCalendars } from '../../Calendar';
-import { isDate, isArray, isArrayOfTodos, isNotNil, isString, isTodo, isProject } from '../../../utils/isSomething';
-import { assert } from '../../../utils/assert';
+import { isDate, isTodo, isProject } from '../../../utils/isSomething';
 import { globalErrorHandler } from '../../../utils/globalErrorHandler';
-import { timeOfTheDay, keyFromDate, addMonths, inPast } from '../../../utils/time';
-import { repeat } from '../../RepeatPopup';
-import { isDev } from '../../../utils/isDev';
-import { getSameDayEventElement } from '../../../utils/getCalendarEventElement';
 import { objectsToHashTableByDate } from '../../../utils/objectsToHashTableByDate';
 import { CalendarMonth } from '../../CalendarMonth';
 import { CalendarWeek } from '../../CalendarWeek';

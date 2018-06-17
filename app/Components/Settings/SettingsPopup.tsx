@@ -3,7 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { Calendar, Area, Project, Todo, section } from '../../types';
 import { SimplePopup } from '../SimplePopup';
 import { Settings, SettingsProps } from './settings';
 

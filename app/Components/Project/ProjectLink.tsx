@@ -5,19 +5,18 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { Component } from "react"; 
 import Popover from 'material-ui/Popover';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import { Todo, Project, Category, Store } from '../../types';
-import { byNotDeleted, byCompleted, attachDispatchToProps, daysLeftMark } from '../../utils/utils'; 
+import { Project, Category } from '../../types';
+import { daysLeftMark } from '../../utils/utils'; 
 import { DueDate } from '../TodoInput/DueDate';
 import { Checkbox } from '../TodoInput/Checkbox';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo'; 
-import { contains, isNil, allPass, not, isEmpty, defaultTo } from 'ramda';
+import { contains, isNil, not, isEmpty, defaultTo } from 'ramda';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
 import { uppercase } from '../../utils/uppercase'; 
-import { isDate, isString, isNotNil } from '../../utils/isSomething';
+import { isDate, isNotNil } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
-import { Provider, connect } from "react-redux";
 
 
 interface ProjectLinkProps{

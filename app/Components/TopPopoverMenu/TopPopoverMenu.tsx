@@ -1,31 +1,11 @@
 import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import IconMenu from 'material-ui/IconMenu'; 
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { 
-    attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
-    byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, 
-    anyTrue
-} from "../../utils/utils";  
-import { ipcRenderer } from 'electron';
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import Plus from 'material-ui/svg-icons/content/add';  
 import { Todo, Project, Area, Category, Store } from '../../types';
-import { allPass, isNil, not, flatten, contains, isEmpty } from 'ramda';
-import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
-import { googleAnalytics } from '../../analytics';
-import { isArrayOfStrings, isString } from '../../utils/isSomething';
-import { isDev } from '../../utils/isDev';
+import {  isEmpty } from 'ramda';
 import { SearchInput } from './../Search/SearchInput';
 import Popover from 'material-ui/Popover';
-import ShowMenu from 'material-ui/svg-icons/navigation/unfold-more';  
-import { uppercase } from '../../utils/uppercase';
 import { ToggleTopMenuButton } from './ToggleTopMenuButton';
 import { CategoryPicker } from './CategoryPicker';
 import { StaticAreasList } from './StaticAreasList';
@@ -183,7 +163,8 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                                     maxHeight:`${window.innerHeight*0.7}px`,
                                     WebkitUserSelect:"none",   
                                     backgroundColor:"rgb(248, 248, 248)",
-                                    paddingBottom:"5px"  
+                                    paddingBottom:"5px",  
+                                    overflowX:"hidden"
                                 }}      
                             >   
                             {

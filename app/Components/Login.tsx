@@ -1,9 +1,9 @@
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { isNil, isEmpty, prop, when, allPass, ifElse } from 'ramda';
+import { isNil, isEmpty, prop, when, ifElse } from 'ramda';
 import { action, actionStartSync, actionSetKey, actionEncryptDatabase, actionEraseDatabase } from '../types';
-import { isNotEmpty, nDaysFromNow } from '../utils/utils';
+import { nDaysFromNow } from '../utils/utils';
 import { isNotNil } from '../utils/isSomething';
 import axios from 'axios';
 import { emailToUsername } from '../utils/emailToUsername';
@@ -11,14 +11,12 @@ import { server } from '../utils/couchHost';
 import { getToken } from '../utils/getToken';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
-import { isDev } from '../utils/isDev';
 import { encryptKey, decryptKey, generateSecretKey } from '../utils/crypto/crypto';
 import { LoginForm } from './LoginForm';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 const remote = require('electron').remote;
 const session = remote.session;
 
-//let decrypt = when(allPass([isNotNil, isNotEmpty]),decryptKey(password));
 
 let switchAccount = ([retrieved,requested]) => isNotNil(retrieved) && isNotNil(requested) && retrieved!==requested;
         

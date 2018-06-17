@@ -2,15 +2,12 @@ import '../../assets/styles.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom';  
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import { ipcRenderer } from 'electron';
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import { Todo, Project, RawDraftContentState } from '../../types';
-import { getTagsFromItems, daysLeftMark, getMonthName, different } from '../../utils/utils';
+import { Todo, Project } from '../../types';
+import { getTagsFromItems, daysLeftMark, getMonthName } from '../../utils/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
-import Checked from 'material-ui/svg-icons/navigation/check';
 import { DeadlineCalendar } from '../ThingsCalendar'; 
 import { isNil, isEmpty, not, compose } from 'ramda';
 import { Tags } from '../Tags';
@@ -18,18 +15,9 @@ import { TagsPopup } from '../TodoInput/TagsPopup';
 import AutosizeInput from 'react-input-autosize';
 import {shell} from 'electron'; 
 import Editor from 'draft-js-plugins-editor';
-import {
-    convertToRaw,
-    convertFromRaw,
-    CompositeDecorator,
-    ContentState,
-    EditorState,
-    RichUtils
-} from 'draft-js';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
-import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
-import { getTime, setTime } from '../../utils/time';
+import { noteToState } from '../../utils/draftUtils';
 
 
 

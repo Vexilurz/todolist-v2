@@ -10,7 +10,6 @@ import DayPicker from 'react-day-picker';
 import BusinessCase from 'material-ui/svg-icons/content/archive';  
 import { Store, Todo } from './../types';  
 import { isNil, not, merge, compose, prop, ifElse } from 'ramda';
-import * as Rx from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Rx';
 import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';

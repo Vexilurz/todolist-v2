@@ -2,12 +2,8 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import { equals } from 'ramda';
-import { ipcRenderer } from 'electron'; 
 import { Component } from "react";   
-import { getMonthName, attachDispatchToProps } from '../../utils/utils'; 
-import { Todo, Store } from '../../types';
-import { SimplePopup } from '../SimplePopup';
+import { Todo } from '../../types';
 import { OptionsPopup } from '../OptionsPopup';
 
 

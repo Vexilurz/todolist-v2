@@ -1,18 +1,12 @@
 import { defaultConfig } from './defaultConfig';
-import { checkAuthenticated } from './utils/checkAuthenticated';
 import { refreshReminders } from './utils/reminderUtils';
 import { objectsReducer } from './objectsReducer';
 import { stateReducer } from './stateReducer';
 import { Reducer, Store, action, Config } from "./types";
-import { prop, ifElse, compose, not, when, identity, contains, keys, equals, pick, difference, isEmpty } from 'ramda';
-import { typeEquals, wrapArray, turnedOn, turnedOff } from "./utils/utils";
-import { isString } from './utils/isSomething';
+import { prop, ifElse, compose, not, when, keys, equals, pick } from 'ramda';
+import { typeEquals, wrapArray } from "./utils/utils";
 import { updateDatabase } from './database/updateDatabase';
 import { requestFromMain } from './utils/requestFromMain';
-import { isDev } from './utils/isDev';
-import { ipcRenderer } from 'electron';
-import { uppercase } from './utils/uppercase';
-import { getAmounts } from './utils/getAmounts';
 
 
  

@@ -17,9 +17,8 @@ import { createStore } from "redux";
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import List from 'material-ui/svg-icons/action/list';
 import { 
-    cond, isNil, not, defaultTo, map, isEmpty, when, path,
-    uniq, remove, contains, append, adjust, complement, identity,
-    compose, flatten, concat, prop, equals, evolve, allPass, 
+    cond, isNil, not, defaultTo, isEmpty, uniq, remove, 
+    compose, flatten, prop, equals, evolve, allPass, 
     ifElse, merge
 } from 'ramda';
 import Popover from 'material-ui/Popover';
@@ -28,8 +27,6 @@ import Layers from 'material-ui/svg-icons/maps/layers';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import Chip from 'material-ui/Chip';
 import DayPicker from 'react-day-picker'; 
@@ -41,7 +38,7 @@ import { insideTargetArea } from './utils/insideTargetArea';
 import { chooseIcon } from './utils/chooseIcon';
 import { Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { isString, isDate, isProject, isArea, isToday } from './utils/isSomething';
+import { isDate, isProject, isArea, isToday } from './utils/isSomething';
 import { byNotDeleted, byNotCompleted, attachDispatchToProps, isNotEmpty, typeEquals } from './utils/utils';
 import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
@@ -53,19 +50,9 @@ import { stringToLength } from './utils/stringToLength';
 import Editor from 'draft-js-plugins-editor';
 import { shell } from 'electron'; 
 import { Provider, connect } from "react-redux";
-import {
-    convertToRaw,
-    convertFromRaw,
-    CompositeDecorator,
-    ContentState,
-    EditorState,
-    RichUtils
-} from 'draft-js';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
-import { 
-    noteToState, noteFromState, 
-} from './utils/draftUtils';
+import { noteToState, noteFromState } from './utils/draftUtils';
 import { Todo, ChecklistItem, Project, Area, Category, Config } from './types';
 import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
 import { generateLayout } from './Components/Area/generateLayout';
@@ -1588,11 +1575,10 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 >    
                     <AutoresizableText
                         text={a.name}
-                        width={200}
                         placeholder="New Area"
                         fontSize={14}
+                        fontWeight={"bolder"}
                         style={{}}
-                        offset={45} 
                         placeholderStyle={{}}
                     />
                 </div>  
@@ -1682,11 +1668,10 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 >    
                     <AutoresizableText
                         text={p.name}
-                        width={200}
                         placeholder="New Project"
                         fontSize={14}
                         style={{}}
-                        offset={45} 
+                        fontWeight={'normal'} 
                         placeholderStyle={{}}
                     />
                 </div>     
@@ -1708,12 +1693,12 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
         let {close} = this.props;
         this.subscriptions.push(
             Observable
-                    .fromEvent(document.body,"click")
-                    .subscribe((event:any) => 
-                        insideTargetArea(null,this.ref,event.clientX,event.clientY) ? 
-                        null :
-                        close() 
-                    ) 
+            .fromEvent(document.body,"click")
+            .subscribe((event:any) => 
+                insideTargetArea(null,this.ref,event.clientX,event.clientY) ? 
+                null :
+                close() 
+            ) 
         );  
     }
 

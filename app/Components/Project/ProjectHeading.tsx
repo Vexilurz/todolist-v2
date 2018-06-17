@@ -5,13 +5,11 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { Component } from "react"; 
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
-import TrashMany from 'material-ui/svg-icons/content/delete-sweep';
 import { TextField } from 'material-ui';
 import { Heading } from '../../types'; 
-import { isEmpty, isNil, equals, complement, when, prop } from 'ramda';
+import { isEmpty, when, prop } from 'ramda';
 import { uppercase } from '../../utils/uppercase';
 import { isFunction, isNotNil } from '../../utils/isSomething'; 
-let notEquals = complement(equals);
 import { stopPropagation } from '../../utils/stopPropagation';
 
 

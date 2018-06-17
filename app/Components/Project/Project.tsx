@@ -2,22 +2,17 @@ import '../../assets/styles.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
-import { Todo, Project, Heading, LayoutItem, Area, RawDraftContentState, Category } from '../../types'; 
+import { Todo, Project, Heading, LayoutItem, Area, Category } from '../../types'; 
 import { debounce } from 'lodash';
-import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty, byCompleted } from '../../utils/utils'; 
+import { byNotCompleted, byTags, removeHeading, isNotEmpty, byCompleted } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { 
-    adjust, allPass, uniq, isEmpty, not, isNil, map, prop, takeWhile, splitAt, groupBy, complement,
-    compose, defaultTo, ifElse, all, contains, findIndex, equals, last, reject, when, identity, anyPass 
-} from 'ramda';
-import { filter } from 'lodash';
-import { bySomeday, isProject, isTodo, isString, isDate, isNotNil, isHeading } from '../../utils/isSomething';
+import { adjust, uniq, isNil, prop, takeWhile, splitAt, complement, compose, ifElse, equals, last, anyPass } from 'ramda';
+import { bySomeday, isTodo, isString, isNotNil, isHeading } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
 import { isDev } from '../../utils/isDev';
 import { noteFromState } from '../../utils/draftUtils';
-import { TodoInput } from '../TodoInput/TodoInput';
 import { ToggleScheduledButton } from './ToggleScheduledButton';
 import { ToggleCompletedButton } from './ToggleCompletedButton';
 import { TodosList } from '../TodosList';
@@ -107,10 +102,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
             let updatedLayout = adjust(() => ({...layout[idx] as Heading, title:newValue}), idx, layout);
             
-            this.props.dispatch({
-                type:"updateProject", 
-                load:{...this.props.project, layout:updatedLayout}
-            });
+            this.props.dispatch({type:"updateProject", load:{...this.props.project, layout:updatedLayout}});
         },
         250
     ); 

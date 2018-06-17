@@ -7,7 +7,8 @@ import { Component } from 'react';
 import { getCompletedWhen, generateDropStyle } from '../utils/utils';  
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { TodoInput } from './TodoInput/TodoInput';
-import { isNil, isEmpty, findIndex, cond, find,
+import { 
+    isNil, isEmpty, findIndex, cond, find,
     compose, map, contains, not, equals, all, 
     intersection, path, prop, adjust, reject, allPass
 } from 'ramda';

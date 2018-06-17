@@ -4,7 +4,7 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { Calendar, Area, Project, Todo, section } from '../../types';
+import { Calendar } from '../../types';
 import { not, ifElse, when } from 'ramda';
 import { Checkbox } from '../TodoInput/Checkbox';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';

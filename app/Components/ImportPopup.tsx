@@ -2,14 +2,12 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import { equals, isNil, prop, contains } from 'ramda';
-import { ipcRenderer } from 'electron'; 
+import { prop, contains } from 'ramda'; 
 import { Component } from "react";   
-import { getMonthName, attachDispatchToProps } from './../utils/utils'; 
-import { Todo, Store, Databases, ImportActionLoad } from './../types';
-import { SimplePopup } from './SimplePopup';
+import { attachDispatchToProps } from './../utils/utils'; 
+import { Store, Databases } from './../types';
 import { OptionsPopup } from './OptionsPopup';
-import { Provider, connect } from "react-redux";
+import { connect } from "react-redux";
 import { filter, debounce } from 'lodash';
 
 

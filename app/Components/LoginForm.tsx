@@ -1,14 +1,12 @@
-import Refresh from 'material-ui/svg-icons/navigation/refresh';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse, prop } from 'ramda';
+import { isNil, isEmpty, path, defaultTo, ifElse, prop } from 'ramda';
 import axios from 'axios';
 import { emailToUsername } from '../utils/emailToUsername';
 import { host } from '../utils/couchHost';
 import { validateEmail } from '../utils/validateEmail';
-import { validatePassword, getPasswordErrorMessage } from '../utils/validatePassword';
+import { validatePassword } from '../utils/validatePassword';
 import { LoginFormInput  } from './LoginFormInput';
 import { getToken } from '../utils/getToken';
 import RefreshIndicator from 'material-ui/RefreshIndicator';

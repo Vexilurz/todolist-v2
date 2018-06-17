@@ -4,15 +4,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';
 import { Component } from "react";  
 import Checked from 'material-ui/svg-icons/navigation/check';
-import { 
-    daysLeftMark, getMonthName, getCompletedWhen, different, 
-    isNotEmpty, log, anyTrue, attachDispatchToProps 
-} from '../../utils/utils'; 
-import {  
-    uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
-    equals, any, complement, compose, defaultTo, path, prop, always,
-    identity, when
-} from 'ramda';
 import 'draft-js/dist/Draft.css';
 
 interface CheckboxProps{

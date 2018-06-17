@@ -3,34 +3,18 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
-import IconButton from 'material-ui/IconButton'; 
-import { Project, Area, Todo, Category } from '../../types';
+import { Project, Area, Category } from '../../types';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
-import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
-import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
-import { byNotCompleted, byNotDeleted, typeEquals, different, isNotEmpty } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals, isNotEmpty } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { ExpandableList } from '../../Components/ExpandableList';
-import { 
-    uniq, allPass, remove, reject, slice, prop, flatten,
-    isEmpty, contains, assoc, isNil, not, map, concat, ifElse, 
-    addIndex, compose, cond, defaultTo, last, insertAll, when
-} from 'ramda'; 
-import { filter } from 'lodash';
+import { allPass, isEmpty, compose, cond, defaultTo, when } from 'ramda'; 
 import { AutoresizableText } from '../AutoresizableText';
-import { assert } from '../../utils/assert';
-import { isArea, isProject, isNotArray, isNotNil, isArray } from '../../utils/isSomething';
-import { arrayMove } from '../../utils/arrayMove';
-import { SortableContainer } from '../CustomSortableContainer';
-import { isDev } from '../../utils/isDev';
+import { isArea, isProject, isArray } from '../../utils/isSomething';
 import { groupProjectsByArea } from '../Area/groupProjectsByArea';
 import { generateLayout } from '../Area/generateLayout';
-import { uppercase } from '../../utils/uppercase';
-import { ipcRenderer } from 'electron';
 import { Separator } from './Separator';
 import Checked from 'material-ui/svg-icons/navigation/check';
-
-const isSeparator = (item) => item.type==="separator"; 
 
 
 
@@ -260,6 +244,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 id={area._id} 
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{  
+                    overflow:"hidden",
                     borderRadius:selected ? "5px" : "0px", 
                     backgroundColor:selected ? "rgba(228,230,233,1)" : "",  
                     height:"20px", 
@@ -270,11 +255,11 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     alignItems:"center" 
                 }}
             >      
-                <NewAreaIcon style={{color:"rgba(109, 109, 109, 0.7)", width:"18px", height:"18px"}}/> 
+                <div><NewAreaIcon style={{color:"rgba(109, 109, 109, 0.7)", width:"18px", height:"18px"}}/></div> 
 
                 <div style={{ 
                     display:'flex',
-                    width:"100%",
+                    width:"90%",
                     fontFamily:"sans-serif",
                     fontSize:"15px",    
                     cursor:"default", 
@@ -285,10 +270,9 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}>  
                     <AutoresizableText
                         text={area.name}
-                        width={1}
                         placeholder="New Area" 
                         fontSize={15}
-                        offset={45} 
+                        fontWeight="normal"
                         style={{}}
                         placeholderStyle={{}}
                     />
@@ -349,6 +333,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                 id={this.props.project._id}
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{     
+                    overflow:"hidden",
                     height:"20px",  
                     paddingBottom:"3px",
                     paddingTop:"3px",
@@ -395,7 +380,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     <div   
                         id = {this.props.project._id}   
                         style={{  
-                            width:"100%",
+                            width:"90%",
                             paddingLeft:"5px",
                             display:"flex",
                             fontFamily: "sans-serif",
@@ -407,11 +392,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     >    
                         <AutoresizableText
                             text={project.name}
-                            width={1}
                             placeholder="New Project"
+                            fontWeight="normal"
                             fontSize={15}
                             style={{}}
-                            offset={45} 
                             placeholderStyle={{}}
                         />
                         {

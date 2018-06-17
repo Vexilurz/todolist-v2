@@ -1,7 +1,6 @@
 import 'react-tippy/dist/tippy.css'
 import '../../assets/styles.css';  
 import '../../assets/calendarStyle.css';  
-import { debounce } from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';   
 import { Component } from "react";  
@@ -12,14 +11,6 @@ import { TodoTags } from './TodoTags';
 import { not } from 'ramda';
 import {shell} from 'electron'; 
 import Editor from 'draft-js-plugins-editor';
-import {
-    convertToRaw,
-    convertFromRaw,
-    CompositeDecorator,
-    ContentState,
-    EditorState,
-    RichUtils
-} from 'draft-js';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
 

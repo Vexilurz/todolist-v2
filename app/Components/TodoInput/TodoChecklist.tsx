@@ -12,39 +12,7 @@ import { generateId } from '../../utils/generateId';
 import { ChecklistItem } from '../../types';
 import TextareaAutosize from 'react-autosize-textarea';
 import { different } from '../../utils/utils';
-import { throttle } from 'lodash';
 
-/*
-let shouldUpdateChecklist = (
-    checklistBefore:ChecklistItem[],
-    checklistAfter:ChecklistItem[]
-) : boolean => {
-
-    let should = false;
-
-    if(checklistBefore.length!==checklistAfter.length){
-       should = true; 
-       return should; 
-    }
-
-
-    for(let i=0; i<checklistBefore.length; i++){
-        let before = checklistBefore[i];
-        let after = checklistAfter[i];
-
-        if(before.checked!==after.checked){
-           should = true; 
-        }else if(before.idx!==after.idx){
-           should = true; 
-        }else if(before.key!==after.key){
-           should = true; 
-        }
-    }
-
-    
-    return should;
-};
-*/
 
 
 interface ChecklistProps{

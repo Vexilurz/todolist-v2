@@ -3,7 +3,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
 import { Category } from '../../types';
-import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Chip from 'material-ui/Chip';
 import { chooseIcon } from '../../utils/chooseIcon';
 

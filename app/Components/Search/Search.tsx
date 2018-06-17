@@ -2,25 +2,15 @@ import '../../assets/styles.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';   
 import { Component } from "react";  
-import { Provider, connect } from "react-redux";
-let uniqid = require("uniqid");  
+import { connect } from "react-redux";
 import * as Waypoint from 'react-waypoint';
 import {  
-    daysLeftMark, 
-    generateTagElement, 
-    attachDispatchToProps, 
-    byNotDeleted, 
-    findAttachedProject, 
+    attachDispatchToProps,  
     getTagsFromItems,
-    byTags,
-    isNotEmpty,
-    different
+    byTags
 } from '../../utils/utils'; 
-import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
-import { 
-    reject, allPass, isNil, not, isEmpty, contains, flatten, prop, identity,
-    compose, any, intersection, defaultTo, all, evolve, map, ifElse 
-} from 'ramda';
+import { Todo, Project, Store } from '../../types';
+import { isEmpty, flatten, prop, identity, compose, defaultTo, evolve, ifElse } from 'ramda';
 import { TodoInput } from './../TodoInput/TodoInput';
 import { Tags } from './../Tags';
 import { chooseIcon } from '../../utils/chooseIcon';
@@ -140,7 +130,6 @@ export class Search extends Component<SearchProps,SearchState>{
 
 
     render(){
-        let emptyTodos = compose(isEmpty, prop('todos'));
         let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props;         
         let suggestions = getSuggestions(todos,projects,areas,this.props.searchQuery,this.state.limit);
         let selectedTodos = flatten([suggestions.detached,suggestions.attached.map(i => i.todos)]);

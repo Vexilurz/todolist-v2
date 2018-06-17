@@ -8,7 +8,6 @@ import { ipcRenderer } from 'electron';
 import { cond, isNil, defaultTo, isEmpty, compose, prop, ifElse, identity } from 'ramda';
 import Clear from 'material-ui/svg-icons/content/clear';
 import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Rx';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { chooseIcon } from './utils/chooseIcon';
@@ -22,7 +21,7 @@ injectTapEventPlugin();
 
 
 
-window.onerror = (msg, url, lineNo, columnNo, error) => {
+window.onerror = (msg:any, url, lineNo, columnNo, error) => {
     let string = msg.toLowerCase();
     var message = [ 
         'Notification Component ',

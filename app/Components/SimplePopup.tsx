@@ -3,13 +3,8 @@ import '../assets/calendarStyle.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import Popover from 'material-ui/Popover';
-import { Transition } from 'react-transition-group';
-import Restore from 'material-ui/svg-icons/navigation/refresh'; 
-import { uniq, compose, contains, allPass, isNil, not, isEmpty } from 'ramda';
+import { not } from 'ramda';
 import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';
  

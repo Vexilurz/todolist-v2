@@ -247,6 +247,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }
     
 
+
     constructor(props){
         super(props);
         this.subscriptions=[];
@@ -267,13 +268,16 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }
     
 
+
     onError = (error) => globalErrorHandler(error); 
+
 
 
     componentDidMount(){ 
         this.init(); //Initialize event based Observables.
     }  
  
+
 
     componentWillUnmount(){
         this.initial.initialRect=undefined; 
@@ -282,9 +286,11 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }   
     
 
+
     init = () => {
         let { scrollableContainer, shouldCancelStart, items } = this.props;
         let dragStartThreshold = 5; 
+
 
 
         let byExceedThreshold = (event:any) => {
@@ -298,6 +304,13 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             return not(canStartDrag); //skipWhile -> Skip emitted items from source until provided expression is false...    
         };
     
+        
+
+        let insideWindow = event => {
+            return (event.clientX > 0 && event.clientX < window.innerWidth) && (event.clientY > 0 && event.clientY < window.innerHeight);
+        };
+
+
     
         this.subscriptions.push(
             Observable  
@@ -314,9 +327,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                     if(cancel){
                         return Observable.of();
                     }else{
-                        event.preventDefault()
+                        event.preventDefault();
                         return Observable 
                                 .fromEvent(document,"mousemove")
+                                .filter(insideWindow)
                                 .skipWhile(byExceedThreshold)
                                 .takeUntil(
                                     Observable
@@ -330,6 +344,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 .subscribe(this.onDragMove, this.onError)
         );
     };
+
 
     
     onDragStart = (event:any) : void => {
@@ -363,6 +378,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
        //Invoke supplied with props onSortStart function.
        onSortStart(initialIndex,event); 
     };
+
 
 
     onDragEnd = (event:any) => {
@@ -412,8 +428,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         };
     };
   
+
  
     onDragMove = (event:any) : void => { 
+        console.log(event)
         let {scrollableContainer,items,onSortMove,decorators} = this.props; 
         let {initialIndex,initialX,initialY,initialRect} = this.initial;
         
@@ -451,6 +469,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     };
     
 
+
     shouldDecorate = (event:any) : Decorator => { 
         let {decorators} = this.props;
         let x = event.clientX;
@@ -471,6 +490,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             ({area, decorator, id}) => insideTargetArea(null,area,x,y,addMargin)
         );
     }; 
+
 
 
     initDecorator = (target:Decorator) : void => {
@@ -509,6 +529,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }; 
 
 
+
     pause = () => {
         //1) Hide clone of selected item.
         hideElement(this.cloned);
@@ -525,6 +546,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     };
      
 
+
     resume = () => {
         //Show clone of selected item.
         showElement(this.cloned); 
@@ -533,6 +555,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         //Show placeholder.
         this.setState({showPlaceholder:true});         
     }; 
+
 
 
     suspendDecorator = () => { 
@@ -548,6 +571,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }; 
 
 
+
     animateScroll = (event:any) => {
         let container = this.selectScrollableContainer(event);
         if(isNil(container)){ 
@@ -557,6 +581,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.setScrollDirection(container); 
         this.performScrolling(container); 
     };   
+
 
 
     selectScrollableContainer = (event:any) : HTMLElement => {
@@ -570,6 +595,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         return container;  
     };   
     
+
 
     setScrollDirection = (container:HTMLElement) : void => {
         let {scrollTop, scrollHeight} = container;
@@ -598,6 +624,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                       null;              
     };  
     
+
 
     performScrolling = (container:HTMLElement) => {
         if(isNil(container) || isNil(this.scroll)){ return } 
@@ -637,6 +664,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     };
  
 
+
     getCurrentIndex = (event:any) : number => {
         let { initialIndex } = this.initial;
         
@@ -659,6 +687,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     };
 
 
+
     animateClone = (deltaX:number,deltaY:number) => { 
         let { lock } = this.props;
         let x = lock ? 0 : deltaX;
@@ -666,6 +695,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.cloned.style[`transform`] = `translate3d(${x}px,${deltaY}px, 0)`;
     };
     
+
 
     animateNodes = (event, direction:number) => {
         let {initialIndex, initialX, initialY, initialRect} = this.initial;
@@ -710,6 +740,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     };  
    
 
+
     updatePlaceholder = () => {
         let placeholderOffset = 0;
         let {initialIndex, initialX, initialY, initialRect} = this.initial;
@@ -737,12 +768,14 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     };
 
 
+
     animateDecorator = (deltaX:number,deltaY:number) => { 
         if(this.decorator){
            let {decorator} = this.decorator; 
            decorator.style[`transform`] = `translate3d(${deltaX}px,${deltaY}px, 0)`;
         }
     }; 
+
 
     
     getNodesToBeAnimated = () : HTMLElement[] => {
@@ -751,6 +784,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let selectedNodesIds = this.selected.map( node => node.id );
         return getNodes(this.ref).filter((node:any) => !contains(node.id)(selectedNodesIds));
     };
+
 
 
     indexFromClick = (event:any) : number => {
@@ -768,10 +802,12 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     };   
 
 
+
     inside = (event:any) : boolean => {
        let inside = this.indexFromClick(event)!==-1;
        return inside; 
     };
+
 
     
     render(){   
@@ -795,10 +831,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                     >    
                     </div> 
                 }  
-                <div  
-                    ref={e => {this.ref=e;}} 
-                    style={{display:"flex", flexDirection:"column"}}   
-                >    
+                <div ref={e => {this.ref=e;}} style={{display:"flex",flexDirection:"column"}}>    
                     {this.props.children}    
                 </div>
         </div>

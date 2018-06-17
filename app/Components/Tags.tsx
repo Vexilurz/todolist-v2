@@ -2,19 +2,10 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';    
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
-import RaisedButton from 'material-ui/RaisedButton';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import CircularProgress from 'material-ui/CircularProgress'; 
 import { Component } from "react"; 
-import { createStore, combineReducers } from "redux"; 
-import DayPicker from 'react-day-picker';
-import { 
-    append, prepend, contains, not, isEmpty, intersection, compose, equals, 
-    all, reject, prop, when, always 
-} from 'ramda';
+import { contains, not, isEmpty, compose, equals, all, reject, prop, when, always } from 'ramda';
 import { Subscription } from 'rxjs/Rx';
 import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
 
 interface TagsProps{
     selectTags:(tags:string[]) => void,

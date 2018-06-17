@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react";  
 import Clear from 'material-ui/svg-icons/content/clear';
-import { compose, uniq, flatten, concat, isNil, not, prop, isEmpty } from 'ramda';
+import { isEmpty } from 'ramda';
 import { uppercase } from '../../utils/uppercase';
 import AutosizeInput from 'react-input-autosize';
 

@@ -4,12 +4,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import Clear from 'material-ui/svg-icons/content/clear';
-import { Calendar, Area, Project, Todo, section } from '../../types';
-import { 
-    remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, prop,
-    contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when
-} from 'ramda';
-import { isArrayOfTodos } from '../../utils/isSomething';
+import { Todo } from '../../types';
+import { remove, compose, map, findIndex, prop, contains, flatten, uniq, concat } from 'ramda';
 import { filter } from 'lodash';
 import { uppercase } from '../../utils/uppercase';
 import { defaultTags } from './../../defaultTags';

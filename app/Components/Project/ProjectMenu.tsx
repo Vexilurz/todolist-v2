@@ -4,21 +4,17 @@ import * as ReactDOM from 'react-dom';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { Component } from "react"; 
 import { connect } from "react-redux";
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
-import ShareIcon from 'material-ui/svg-icons/social/share';
 import Show from 'material-ui/svg-icons/action/visibility';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { Category, Todo, Project, Heading, LayoutItem, Store } from '../../types';
-import { attachDispatchToProps, createHeading, byNotCompleted, byNotDeleted } from '../../utils/utils';
+import { attachDispatchToProps, createHeading, byNotDeleted } from '../../utils/utils';
 import { contains, not, isNil, isEmpty, remove, prop, compose, allPass, defaultTo } from 'ramda';
 import { filter } from 'lodash';
-import { assert } from '../../utils/assert';
 import { generateId } from '../../utils/generateId';
 import { uppercase } from '../../utils/uppercase';
 import { isString, isHeading, isNotNil } from '../../utils/isSomething';
@@ -277,20 +273,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Add heading 
                         </div>     
                     </div>
-                    {
-                    /*
-                    <div  
-                        onClick={this.onMove} 
-                        className={"tagItem"} 
-                        style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
-                    >   
-                        <Arrow style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Move 
-                        </div>     
-                    </div>
-                    */
-                    }
                     <div style={{border:"1px solid rgba(200,200,200,0.5)",marginTop: "5px",marginBottom: "5px"}}></div>
                     {
                         <div  
@@ -404,20 +386,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Delete project  
                         </div>     
                     </div>
-                    {
-                    /*    
-                    <div  
-                        onClick={this.onShare} 
-                        className={"tagItem"} 
-                        style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
-                    >      
-                        <ShareIcon style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Share
-                        </div>     
-                    </div>
-                    */
-                    }
             </div> 
         </Popover> 
     }

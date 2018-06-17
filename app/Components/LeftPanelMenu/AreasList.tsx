@@ -492,6 +492,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     backgroundColor:selected ? "rgba(228,230,233,1)" : "",  
                     height:"25px", 
                     display:"flex",  
+                    overflow:"hidden",
                     alignItems:"center" 
                 }}
             >      
@@ -513,7 +514,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     <NewAreaIcon style={{width:"20px",height:"20px"}}/> 
                 </IconButton>  
                 <div style={{ 
-                    width:"100%",
+                    width:"90%",
                     fontFamily:"sans-serif",
                     fontSize:"15px",    
                     cursor:"default", 
@@ -524,10 +525,9 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}>  
                     <AutoresizableText
                         text={area.name}
-                        width={this.props.leftPanelWidth}
                         placeholder="New Area" 
                         fontSize={15}
-                        offset={45} 
+                        fontWeight="normal"
                         style={{}}
                         placeholderStyle={{}}
                     />
@@ -639,7 +639,8 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     height:"25px",  
                     paddingLeft:"4px",   
                     display:"flex",
-                    alignItems:"center"  
+                    alignItems:"center",
+                    overflow:"hidden"
                 }} 
             >     
                     <div style={{    
@@ -685,7 +686,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     <div   
                         id = {this.props.project._id}   
                         style={{  
-                            width:"100%",
+                            width:"90%",
                             paddingLeft:"5px",
                             fontFamily: "sans-serif",
                             fontSize:`15px`,  
@@ -696,11 +697,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     >    
                         <AutoresizableText
                             text={project.name}
-                            width={this.props.leftPanelWidth}
                             placeholder="New Project"
                             fontSize={15}
+                            fontWeight="normal"
                             style={{}}
-                            offset={45} 
                             placeholderStyle={{}}
                         />
                     </div>    

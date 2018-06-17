@@ -4,24 +4,25 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Category, Todo, Project, Heading, LayoutItem, Area } from '../../types'; 
-import { generateDropStyle, hideChildrens, removeHeading, typeEquals } from '../../utils/utils'; 
+import { generateDropStyle, removeHeading, typeEquals } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { 
-    isEmpty, isNil, not, uniq, contains, drop, 
-    map, compose, adjust, findIndex, cond, prepend, equals, lt, lte, add,
-    takeWhile, splitAt, insertAll, remove, last, prop, when, reject, ifElse 
+    isNil, contains, drop, map, compose, adjust, findIndex, cond, 
+    prepend, equals, lt, lte, add, takeWhile, splitAt, insertAll, 
+    last, prop, when, reject, ifElse 
 } from 'ramda';
 import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
 import { assert } from '../../utils/assert';
-import { isTodo, isString, isHeading, isArrayOfTodos, isCategory, isArea, isProject, isNotNil } from '../../utils/isSomething';
+import { isTodo, isString, isHeading, isArrayOfTodos, isCategory, isProject, isNotNil } from '../../utils/isSomething';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
+
 
 
 interface ProjectBodyProps{ 
@@ -70,8 +71,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     }  
     
     
-
-    getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
+ 
+    getElement = (value:Heading | Todo) : JSX.Element => { 
         let id = prop('_id',value);
         return cond([
             [
@@ -100,25 +101,40 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             ],
             [
                 typeEquals("heading"), 
-                (value:Heading) => <div  
-                    id={id}  
-                    key={`${id}-heading`} 
-                    style={{
-                        position:"relative", 
-                        paddingBottom:"10px", 
-                        paddingTop:"5px",    
-                        UserSelect:"none",  
-                        WebkitUserSelect:"none"    
-                    } as any}               
-                > 
-                    <ProjectHeading   
-                        heading={value as Heading}
-                        rootRef={this.props.rootRef} 
-                        onChange={this.props.updateHeading}
-                        onRemoveHeading={this.props.removeHeading}
-                        onRemoveHeadingWithTasks={this.props.removeHeadingWithTasks}
-                    /> 
+                (value:Heading) => <div  key={`${id}-heading`}>
+                    <div  
+                        id={id}  
+                        style={{
+                            position:"relative", 
+                            //paddingBottom:"10px", 
+                            paddingTop:"5px",    
+                            UserSelect:"none",  
+                            WebkitUserSelect:"none"    
+                        } as any}               
+                    > 
+                        <ProjectHeading   
+                            heading={value as Heading}
+                            rootRef={this.props.rootRef} 
+                            onChange={this.props.updateHeading}
+                            onRemoveHeading={this.props.removeHeading}
+                            onRemoveHeadingWithTasks={this.props.removeHeadingWithTasks}
+                        /> 
+                    </div> 
+                    <div className={`no-print`}>  
+                        <TodoCreationForm  
+                            dispatch={this.props.dispatch}  
+                            selectedTodo={this.props.selectedTodo}
+                            selectedCategory={this.props.selectedCategory as any} 
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId} 
+                            todos={this.props.items.filter(isTodo) as Todo[]} 
+                            projects={this.props.projects}
+                            rootRef={this.props.rootRef} 
+                            todo={generateEmptyTodo(generateId(),"project",0) as any} 
+                        />  
+                    </div> 
                 </div> 
+
             ],
             [ 
                 () => true, 
@@ -223,7 +239,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         
 
-    onSortStart = (oldIndex:number, event:any) : void => {
+    onSortStart = (oldIndex:number) : void => {
         let {dispatch, items} = this.props;
         let item = items[oldIndex];
 
@@ -235,15 +251,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     }; 
     
 
-    
-    onSortMove = (oldIndex:number, event) : void => {}; 
-
-
 
     onDropMany = (event:any,heading:Heading,todos:Todo[]) => {
         if(isDev()){
-            assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
-            assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
+           assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
+           assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
         }
 
         let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook, filters } = this.props;
@@ -270,10 +282,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
             dispatch({
                 type:"multiple",
-                load:[
-                    {type:"updateProjects",load:updatedProjects},
-                    {type:"updateTodos",load:updatedTodos}
-                ]
+                load:[{type:"updateProjects",load:updatedProjects},{type:"updateTodos",load:updatedTodos}]
             }); 
         }else if(isProject(project)){
 
@@ -283,11 +292,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 load:adjust(
                     (p:Project) => ({ 
                         ...p, 
-                        layout:[ 
-                            ...project.layout, 
-                            heading, 
-                            ...todos.map((todo:Todo) => todo._id) 
-                        ]   
+                        layout:[...project.layout, heading, ...todos.map((todo:Todo) => todo._id)]   
                     }),
                     idx, 
                     updatedProjects
@@ -411,12 +416,12 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 scrollableContainer={this.props.rootRef}
                 selectElements={this.selectElements}  
                 onSortStart={this.onSortStart} 
-                onSortMove={this.onSortMove}
+                onSortMove={(oldIndex:number, event) : void => {}}
                 onSortEnd={this.onSortEnd}
                 shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
                 decorators={decorators}  
             >   
-                {this.props.items.map((item,index) => this.getElement(item,index))}
+                {this.props.items.map(item => this.getElement(item))}
             </SortableContainer> 
         </div> 
     }

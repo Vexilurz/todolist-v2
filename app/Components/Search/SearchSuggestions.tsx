@@ -1,62 +1,17 @@
 import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';   
-import { ipcRenderer } from 'electron'; 
-import IconButton from 'material-ui/IconButton';  
 import { Component } from "react";  
-import { Provider, connect } from "react-redux";
-import Chip from 'material-ui/Chip';  
-import Star from 'material-ui/svg-icons/toggle/star';
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/content/archive';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import Checked from 'material-ui/svg-icons/navigation/check';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Plus from 'material-ui/svg-icons/content/add'; 
-import Trash from 'material-ui/svg-icons/action/delete';
+import { connect } from "react-redux";
 import SearchIcon from 'material-ui/svg-icons/action/search'; 
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Calendar from 'material-ui/svg-icons/action/date-range';
-import Logbook from 'material-ui/svg-icons/av/library-books';
-import Clear from 'material-ui/svg-icons/content/clear';
-import List from 'material-ui/svg-icons/action/list';
-import Reorder from 'material-ui/svg-icons/action/reorder';  
-let uniqid = require("uniqid");  
-import * as Waypoint from 'react-waypoint';
-import Popover from 'material-ui/Popover';
-import {  
-    daysLeftMark, generateTagElement, attachDispatchToProps, 
-    byNotDeleted, findAttachedProject,
-    getTagsFromItems, byTags, typeEquals, isNotEmpty, different
-} from '../../utils/utils'; 
-import { 
-    Category, ChecklistItem, Todo, ObjectType, 
-    Area, Project, Heading, Store, action 
-} from '../../types';
-import { 
-    values, allPass, isNil, not, isEmpty, contains, flatten, prop, 
-    compose, any, intersection, defaultTo, all, cond, always, toLower 
-} from 'ramda';
-import { filter } from 'lodash'; 
-import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
+import { attachDispatchToProps, getTagsFromItems, different } from '../../utils/utils'; 
+import { Category, Todo, Area, Project, Store } from '../../types';
+import { isEmpty, flatten, defaultTo, toLower } from 'ramda';
 import PieChart from 'react-minimal-pie-chart';
-import { TodoInput } from './../TodoInput/TodoInput';
-import { Tags } from './../Tags';
-import { isArray, isString, isDate, isNotDate, isCategory, isNotNil } from '../../utils/isSomething';
+import { isNotNil } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
-import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
-import { isDev } from '../../utils/isDev';
-import { assert } from '../../utils/assert';
 import { sortByCompletedOrNot } from './sortByCompletedOrNot';
-import { getProjectHeading } from './getProjectHeading';
 import { getQuickFindSuggestions } from './getQuickFindSuggestions';
 import { locateItem } from './locateItem'; 
 import { getSearchItemType } from './getSearchItemType';
@@ -64,7 +19,6 @@ import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { Checkbox } from '../TodoInput/Checkbox';
 import { uppercase } from '../../utils/uppercase';
 import { AutoresizableText } from '../../Components/AutoresizableText';
-import Truncate from 'react-truncate';
 
 let ContinueSearchButton = (onClick:(e) => void, show:boolean) => !show ? null :
 <div 
@@ -132,11 +86,10 @@ let SearchAppearances = (indicators:{
         <div style={{width:"170px", paddingLeft:"7px"}}>
             <AutoresizableText
                 text={uppercase(todo.title)}
-                width={0}
                 placeholder=""
+                fontWeight="normal"
                 fontSize={15}
                 style={{}}
-                offset={0} 
                 placeholderStyle={{}}
             />
         </div>
@@ -189,11 +142,10 @@ let SearchAppearances = (indicators:{
             <div style={{width:"170px", paddingLeft:"5px", paddingRight:"5px"}}>
                 <AutoresizableText
                     text={uppercase(project.name)}
-                    width={0}
                     placeholder=""
                     fontSize={15}
+                    fontWeight="normal"
                     style={{}}
-                    offset={0} 
                     placeholderStyle={{}}
                 />
             </div>
@@ -215,11 +167,10 @@ let SearchAppearances = (indicators:{
         <div style={{width:"170px", fontWeight:"bold", paddingLeft:"2px", paddingRight:"5px"}}>
             <AutoresizableText
                 text={uppercase(area.name)}
-                width={0}
                 placeholder=""
+                fontWeight="normal"
                 fontSize={15}
                 style={{}}
-                offset={0} 
                 placeholderStyle={{}}
             />
         </div>
@@ -240,11 +191,10 @@ let SearchAppearances = (indicators:{
         <div style={{width:"170px",paddingLeft:"2px",paddingRight:"5px"}}>
             <AutoresizableText
                 text={uppercase(tag)} 
-                width={0}
                 placeholder="" 
+                fontWeight="normal"
                 fontSize={15}
                 style={{}}
-                offset={0} 
                 placeholderStyle={{}}
             />
         </div>
@@ -304,7 +254,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
         this.limitReached = false; 
         this.state = {limit:this.initialLimit}; 
     }
-
+ 
 
 
     componentWillReceiveProps(nextProps:SearchSuggestionsProps){

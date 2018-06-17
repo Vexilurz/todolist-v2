@@ -1,8 +1,7 @@
-import { cond, isNil, always, allPass, equals } from 'ramda';
+import { cond, isNil, always, allPass } from 'ramda';
 import { typeEquals } from '../../utils/utils';
 import { action, Todo, Category, Project, Area } from '../../types';
 import { isString, isCategory, isNotNil } from '../../utils/isSomething';
-import { getSearchItemType } from './getSearchItemType';
 
 
 
