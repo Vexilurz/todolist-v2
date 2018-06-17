@@ -60,7 +60,52 @@ interface ProjectBodyProps{
   
 
  
-interface ProjectBodyState{} 
+interface ProjectBodyState{
+    sorting:boolean
+} 
+
+
+let insertEmpty = (items:(Todo|Heading)[]) : (Todo|Heading)[] => {
+    let lastHeading = undefined;
+    let result = [];
+
+    for(let i=0; i<items.length; i++){
+        let item = items[i];
+        let nextItem = items[i+1];
+
+        if(isHeading(item)){
+           lastHeading={...item}; 
+        }
+
+        if(
+            isTodo(item) && 
+            isNotNil(lastHeading) && 
+            (isHeading(nextItem) || isNil(nextItem))
+        ){
+            let empty = {type:"creation",heading:lastHeading,_id:generateId()};
+            result.push(item);
+            result.push(empty);
+        }else if(
+            isHeading(item) && 
+            isHeading(nextItem)
+        ){
+            let empty = {type:"creation",heading:lastHeading,_id:generateId()};
+            result.push(item);
+            result.push(empty);
+        }else if(
+            isHeading(item) && 
+            isNil(nextItem)
+        ){
+            let empty = {type:"creation",heading:lastHeading,_id:generateId()};
+            result.push(item);
+            result.push(empty);
+        }else{
+            result.push(item);
+        }
+    }
+
+    return result;
+};
 
 
  
@@ -68,11 +113,14 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     constructor(props){
         super(props);
+        this.state={
+            sorting:false
+        }
     }  
     
     
  
-    getElement = (value:Heading | Todo) : JSX.Element => { 
+    getElement = (value:Heading | Todo | any) : JSX.Element => { 
         let id = prop('_id',value);
         return cond([
             [
@@ -101,9 +149,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             ],
             [
                 typeEquals("heading"), 
-                (value:Heading) => <div  key={`${id}-heading`}>
+                (value:Heading) => <div id={id} key={`${id}-heading`}>
                     <div  
-                        id={id}  
                         style={{
                             position:"relative", 
                             //paddingBottom:"10px", 
@@ -120,7 +167,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             onRemoveHeadingWithTasks={this.props.removeHeadingWithTasks}
                         /> 
                     </div> 
-                    <div className={`no-print`}>  
+                </div> 
+            ],
+            [
+                typeEquals("creation"), 
+                ({heading,_id}) => {
+                    let empty = generateEmptyTodo(_id,"project",0) as any;
+                    return <div id={_id} key={`key-${_id}`} style={{display:this.state.sorting ? 'none' : 'block'}} className={`no-print`}>  
                         <TodoCreationForm  
                             dispatch={this.props.dispatch}  
                             selectedTodo={this.props.selectedTodo}
@@ -130,28 +183,28 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             todos={this.props.items.filter(isTodo) as Todo[]} 
                             projects={this.props.projects}
                             rootRef={this.props.rootRef} 
-                            todo={generateEmptyTodo(generateId(),"project",0) as any} 
-                        />  
+                            todo={empty} 
+                            targetHeading={heading}
+                        />   
                     </div> 
-                </div> 
-
+                }
             ],
             [ 
-                () => true, 
-                () => null 
+                () => true, () => null 
             ]
         ])(value);
     };
 
 
 
-    shouldCancelStart = (e) => {
+    shouldCancelStart = (e,item) => {
+        if(item && item.type==="creation"){ return true; }
+
         let nodes = [].slice.call(e.path);
         for(let i=0; i<nodes.length; i++){
-            if(nodes[i].preventDrag){ 
-               return true; 
-            }
+            if(nodes[i].preventDrag){ return true; }
         }
+
         return false; 
     };
 
@@ -243,6 +296,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let {dispatch, items} = this.props;
         let item = items[oldIndex];
 
+        this.setState({sorting:true});
+
         if(isDev()){
            assert(isString(item.type), `item is Nil. incorrect index. onSortStart. ProjectBody.`);
         }
@@ -304,14 +359,15 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
  
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-        let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId,filters} = this.props;
+        let {moveCompletedItemsToLogbook,dispatch,projects,filters} = this.props;
         let leftpanel = document.getElementById("leftpanel");
         let actions = [{type:"dragged",load:null}];
 
+        this.setState({sorting:false});
+
         let x = event.clientX;  
         let y = event.clientY;  
-
-        let items = this.props.items; // subset of layout, but maybe a full set
+        let items = insertEmpty(this.props.items); // subset of layout, but maybe a full set
 
         // dragged item -> ( heading + todos  |  todo )
         let selectedItems = compose(
@@ -386,16 +442,16 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return selected; 
     };   
 
-
+    
     
     render(){  
         let {selectedCategory} = this.props;
-        let empty = generateEmptyTodo(generateId(),"project",0);
         let decorators = [{
             area:document.getElementById("leftpanel"),
             decorator:generateDropStyle("nested"),
             id:"default"
-        }];    
+        }];  
+        let sortableItems = insertEmpty(this.props.items);
             
         return <div className="unselectable">   
             <div className={`no-print`}>  
@@ -408,20 +464,20 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     todos={this.props.items.filter(isTodo) as Todo[]} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef} 
-                    todo={empty as any} 
+                    todo={generateEmptyTodo(generateId(),"project",0) as any} 
                 />  
-            </div>   
+            </div> 
             <SortableContainer
-                items={this.props.items} 
+                items={/*this.props.items*/sortableItems} 
                 scrollableContainer={this.props.rootRef}
                 selectElements={this.selectElements}  
                 onSortStart={this.onSortStart} 
                 onSortMove={(oldIndex:number, event) : void => {}}
                 onSortEnd={this.onSortEnd}
-                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+                shouldCancelStart={(event:any,item) => this.shouldCancelStart(event,item)}  
                 decorators={decorators}  
             >   
-                {this.props.items.map(item => this.getElement(item))}
+                {/*this.props.items*/sortableItems.map(item => this.getElement(item))}
             </SortableContainer> 
         </div> 
     }

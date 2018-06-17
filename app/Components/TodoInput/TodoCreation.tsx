@@ -10,7 +10,7 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import List from 'material-ui/svg-icons/action/list';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import { isNotEmpty } from '../../utils/utils'; 
-import { Todo, Project, ChecklistItem, Category } from '../../types';
+import { Todo, Project, ChecklistItem, Category, Heading } from '../../types';
 import { TagsPopup } from './TagsPopup';
 import { uniq, isEmpty, isNil, not, remove, path, compose } from 'ramda';
 import { Subscription } from 'rxjs/Rx';
@@ -23,7 +23,7 @@ import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
-import { isDate, isToday } from '../../utils/isSomething';
+import { isDate, isToday, isNotNil } from '../../utils/isSomething';
 import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
 import { getTime, setTime } from '../../utils/time';
   
@@ -62,7 +62,8 @@ export interface TodoCreationFormProps{
     todos:Todo[],
     projects:Project[], 
     todo:Todo,  
-    rootRef:HTMLElement
+    rootRef:HTMLElement,
+    targetHeading?:Heading
 }    
  
   
@@ -74,6 +75,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     inputRef:HTMLElement; 
     subscriptions:Subscription[]; 
  
+
+
     constructor(props){
         super(props);  
 
@@ -261,16 +264,19 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
         let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
     
-        if(not(isEmpty(todos))){ 
+        if(isNotEmpty(todos)){ 
            todo.priority = todos[0].priority - 1; 
         }   
         
         actions.push({type:"addTodo", load:todo}); 
 
         if(selectedCategory==="project"){ 
-            actions.push({type:"attachTodoToProject", load:{ projectId:selectedProjectId, todoId:todo._id }});    
+            actions.push({
+               type:"attachTodoToProject", 
+               load:{ projectId:selectedProjectId, todoId:todo._id, targetHeading:this.props.targetHeading }
+            });  
         }else if(selectedCategory==="area"){
-            actions.push({type:"attachTodoToArea", load:{ areaId:selectedAreaId, todoId:todo._id }});  
+           actions.push({type:"attachTodoToArea", load:{ areaId:selectedAreaId, todoId:todo._id }});  
         }
 
         dispatch({type:"multiple",load:actions}); 
@@ -521,18 +527,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     render(){  
         let {selectedCategory,rootRef} = this.props; 
         let {
-           open, deleted, attachedDate, title, attachedTags, deadline, 
-           showChecklist, completedWhen, checklist, showTags, category, 
-           completedSet, showDateCalendar, showTagsSelection   
+           open, attachedDate, title, attachedTags, deadline, 
+           showChecklist, checklist, showTags, category, showDateCalendar  
         } = this.state;
-
-        let attachedDateToday = isToday(attachedDate);
-        let deadlineToday = isToday(deadline); 
-        let todayCategory : boolean = attachedDateToday || deadlineToday;
-        
-        let daysLeft = 0;
         let flagColor = "rgba(100,100,100,0.7)";
-        let canRepeat = false; 
  
         return <div     
             onKeyDown={this.onWindowEnterPress}  
@@ -643,7 +641,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     }
                 }}
                 onRemoveUpcomingLabel={() => {
-                    let {selectedCategory, todo, dispatch} = this.props;
+                    let {selectedCategory} = this.props;
                     let {attachedDate} = this.state;
                     if(selectedCategory==="today" && isToday(attachedDate)){ return }
 
@@ -654,7 +652,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                      }
                 }}
                 onRemoveSomedayLabel={() => {
-                    let {selectedCategory, todo, dispatch} = this.props;
+                    let {selectedCategory} = this.props;
                     if(selectedCategory==="someday"){ return }
                     this.setState({category:selectedCategory, attachedDate:null});
                 }}

@@ -1,4 +1,4 @@
-import { Project, Area, Todo, Calendar, Store, action } from './types';
+import { Project, Area, Todo, Calendar, Store, action, Heading } from './types';
 import { ipcRenderer } from 'electron';
 import { 
     byNotDeleted, typeEquals, convertTodoDates, compareByDate
@@ -6,10 +6,11 @@ import {
 import { 
     adjust, cond, isEmpty, contains, remove, uniq, assoc, reverse, 
     findIndex, splitAt, last, assocPath, isNil, and, compose, add, 
-    reject, map, when, find, prop, ifElse, identity, path,  defaultTo  
+    reject, map, when, find, prop, ifElse, identity, path,  defaultTo,
+    insert  
 } from 'ramda'; 
 import { filter } from 'lodash';
-import { isString, isDate } from './utils/isSomething';
+import { isString, isDate, isHeading, isTodo } from './utils/isSomething';
 import { moveReminderFromPast } from './utils/getData';
 
 
@@ -417,13 +418,30 @@ export let objectsReducer = (state:Store, action:action) : Store => {
             [
                 typeEquals("attachTodoToProject"),
 
-                (action:{type:string, load:{projectId:string,todoId:string}}) : Store => {
-
+                (action:{type:string, load:{projectId:string,todoId:string,targetHeading?:Heading}}) : Store => {
+                    let targetHeading = action.load.targetHeading;
                     let idx = state.projects.findIndex((p:Project) => p._id===action.load.projectId);
-
-                    let project : Project = {...state.projects[idx]};  
-
-                    project.layout = uniq([action.load.todoId, ...project.layout]);
+                    let project : Project = {...state.projects[idx]}; 
+                    
+                    if(isNil(project)){ return state }
+                    
+                    if(isNil(targetHeading)){
+                        project.layout = uniq([action.load.todoId, ...project.layout]);
+                    }else{
+                        let headingIndex = project.layout.findIndex((item:any) => isHeading(item) ? item._id===targetHeading._id : false);
+                        if(headingIndex===-1){
+                            return state; 
+                        }else{
+                            let counter = headingIndex+1;
+                            for(let i=headingIndex+1; i<project.layout.length; i++){
+                                let item = project.layout[i];
+                                if(isTodo(item)){ counter+=1; }
+                                else{ break; }
+                            } 
+                            project.layout = insert(counter, action.load.todoId, project.layout);
+                            project.layout = uniq(project.layout);
+                        }
+                    }
 
                     return {...state,projects:adjust(() => project, idx, state.projects)};
                 }

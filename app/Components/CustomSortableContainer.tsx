@@ -351,6 +351,9 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
        let { selectElements, items, onSortStart } = this.props; 
        let initialIndex = this.initial.initialIndex;
 
+       //Invoke supplied with props onSortStart function.
+       onSortStart(initialIndex,event); 
+
        let nodes = getNodes(this.ref);
 
        //Select elements from array of supplied items based on supplied function and 
@@ -375,8 +378,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
        //Initialize placeholder
        this.setState({showPlaceholder:true,placeholderHeight:initialRect.height});
 
-       //Invoke supplied with props onSortStart function.
-       onSortStart(initialIndex,event); 
+       
     };
 
 
