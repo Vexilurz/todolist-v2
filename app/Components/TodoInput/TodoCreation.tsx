@@ -63,6 +63,7 @@ export interface TodoCreationFormProps{
     projects:Project[], 
     todo:Todo,  
     rootRef:HTMLElement,
+    hideOffsetTop?:boolean,
     targetHeading?:Heading
 }    
  
@@ -525,7 +526,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
   
 
     render(){  
-        let {selectedCategory,rootRef} = this.props; 
+        let {selectedCategory,rootRef,hideOffsetTop} = this.props; 
         let {
            open, attachedDate, title, attachedTags, deadline, 
            showChecklist, checklist, showTags, category, showDateCalendar  
@@ -536,7 +537,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             onKeyDown={this.onWindowEnterPress}  
             onContextMenu={this.onRightClickMenu} 
             style={{    
-                marginTop:"10px", 
+                marginTop:hideOffsetTop ? "0px" : "10px", 
                 marginBottom:open ? "10px":"0px",  
                 backgroundColor:"rgba(255,255,255,1)",  
                 width:"100%",   

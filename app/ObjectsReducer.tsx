@@ -10,7 +10,7 @@ import {
     insert  
 } from 'ramda'; 
 import { filter } from 'lodash';
-import { isString, isDate, isHeading, isTodo } from './utils/isSomething';
+import { isString, isDate, isHeading, isTodo, isNotNil } from './utils/isSomething';
 import { moveReminderFromPast } from './utils/getData';
 
 
@@ -192,9 +192,9 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                            return false; 
                         }
                     };
+ 
 
-
-
+                    let shouldRemoveSelectedItem = true;
                     let compareByAttachedDate = compareByDate((todo:Todo) => todo.attachedDate);
                     let todo : Todo = action.load;
                     let group = prop('group', todo);
@@ -208,7 +208,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let [todosToUpdate, todosToRemove] : Todo[][] = compose(
                         (todos:Todo[]) => compose( 
                             (idx:number) => splitAt(idx)(todos), 
-                            add(1),
+                            when(() => !shouldRemoveSelectedItem, add(1)),
                             findIndex((t:Todo) => t._id===todo._id) 
                         )(todos), 
                         reverse, //from past -> to future
@@ -432,13 +432,22 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         if(headingIndex===-1){
                             return state; 
                         }else{
-                            let counter = headingIndex+1;
+                            let nextHeadingIndex = null;
+
                             for(let i=headingIndex+1; i<project.layout.length; i++){
                                 let item = project.layout[i];
-                                if(isTodo(item)){ counter+=1; }
-                                else{ break; }
+                                if(isHeading(item)){
+                                   nextHeadingIndex=i;
+                                   break;
+                                }
                             } 
-                            project.layout = insert(counter, action.load.todoId, project.layout);
+
+                            if(isNotNil(nextHeadingIndex)){
+                                project.layout = insert(nextHeadingIndex, action.load.todoId, project.layout);
+                            }else{
+                                project.layout = insert(project.layout.length, action.load.todoId, project.layout);
+                            }
+
                             project.layout = uniq(project.layout);
                         }
                     }

@@ -80,11 +80,11 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 justifyContent:"space-between", 
                 WebkitUserSelect: "none"
             }} 
-        >      
+        >       
             <div style={{width:"100%",paddingLeft:"10px",WebkitUserSelect:"none"}}>  
                 <div style={{display:"flex",cursor:"default"}}>  
                     <TextField     
-                        autoFocus={true}
+                        //autoFocus={true}
                         ref={(e) => {this.inputRef=e;}} 
                         hintText="Heading"      
                         id={`${heading._id}-input`} 

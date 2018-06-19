@@ -648,11 +648,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             <PieChart 
                                 animate={false}    
                                 totalValue={totalValue}
-                                data={[{     
-                                    value:currentValue,   
-                                    key:1,    
-                                    color:"rgba(159, 159, 159, 1)" 
-                                }]}    
+                                data={[{value:currentValue,key:1,color:"rgba(159, 159, 159, 1)"}]}    
                                 style={{   
                                     color:"rgba(159, 159, 159, 1)",
                                     width:12,   
@@ -681,6 +677,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             text={project.name}
                             placeholder="New Project"
                             fontSize={15}
+                            offset={2}
                             fontWeight="normal"
                             style={{}}
                             placeholderStyle={{}} 

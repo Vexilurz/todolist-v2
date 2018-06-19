@@ -4,13 +4,13 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Category, Todo, Project, Heading, LayoutItem, Area } from '../../types'; 
-import { generateDropStyle, removeHeading, typeEquals } from '../../utils/utils'; 
+import { generateDropStyle, removeHeading, typeEquals, log } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { 
     isNil, contains, drop, map, compose, adjust, findIndex, cond, 
     prepend, equals, lt, lte, add, takeWhile, splitAt, insertAll, 
-    last, prop, when, reject, ifElse 
+    last, prop, when, reject, ifElse, path 
 } from 'ramda';
 import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
@@ -60,9 +60,7 @@ interface ProjectBodyProps{
   
 
  
-interface ProjectBodyState{
-    sorting:boolean
-} 
+interface ProjectBodyState{} 
 
 
 let insertEmpty = (items:(Todo|Heading)[]) : (Todo|Heading)[] => {
@@ -82,21 +80,24 @@ let insertEmpty = (items:(Todo|Heading)[]) : (Todo|Heading)[] => {
             isNotNil(lastHeading) && 
             (isHeading(nextItem) || isNil(nextItem))
         ){
-            let empty = {type:"creation",heading:lastHeading,_id:generateId()};
+            let _id = generateId();
+            let empty = {type:"creation",heading:lastHeading,_id:`id-${i}`,empty:generateEmptyTodo(_id,"project",0)};
             result.push(item);
             result.push(empty);
         }else if(
             isHeading(item) && 
             isHeading(nextItem)
         ){
-            let empty = {type:"creation",heading:lastHeading,_id:generateId()};
+            let _id = generateId();
+            let empty = {type:"creation",heading:lastHeading,_id:`id-${i}`,empty:generateEmptyTodo(_id,"project",0)};
             result.push(item);
             result.push(empty);
         }else if(
             isHeading(item) && 
             isNil(nextItem)
         ){
-            let empty = {type:"creation",heading:lastHeading,_id:generateId()};
+            let _id = generateId();
+            let empty = {type:"creation",heading:lastHeading,_id:`id-${i}`,empty:generateEmptyTodo(_id,"project",0)};
             result.push(item);
             result.push(empty);
         }else{
@@ -110,29 +111,29 @@ let insertEmpty = (items:(Todo|Heading)[]) : (Todo|Heading)[] => {
 
  
 export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
+    currentScroll:number 
+
+
 
     constructor(props){
         super(props);
-        this.state={
-            sorting:false
-        }
+        this.state={}
     }  
     
     
  
     getElement = (value:Heading | Todo | any) : JSX.Element => { 
-        let id = prop('_id',value);
         return cond([
             [
-                typeEquals("todo"),
+                typeEquals("todo"), 
                 (value:Todo) => <div   
-                    id={id}
-                    key={`${id}-todo`}  
+                    id={value._id}
+                    key={`${value._id}-todo`}  
                     style={{position:"relative",UserSelect:"none",WebkitUserSelect:"none"} as any}
                 >  
                     <TodoInput     
-                        id={id}  
-                        key={id} 
+                        id={value._id}  
+                        key={value._id} 
                         showCompleted={this.props.showCompleted}
                         scrolledTodo={this.props.scrolledTodo}
                         groupTodos={this.props.groupTodos}
@@ -149,11 +150,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             ],
             [
                 typeEquals("heading"), 
-                (value:Heading) => <div id={id} key={`${id}-heading`}>
+                (value:Heading) => <div id={value._id} key={`${value._id}-heading`}>
                     <div  
                         style={{
                             position:"relative", 
-                            //paddingBottom:"10px", 
+                            paddingBottom:"10px", 
                             paddingTop:"5px",    
                             UserSelect:"none",  
                             WebkitUserSelect:"none"    
@@ -170,10 +171,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 </div> 
             ],
             [
-                typeEquals("creation"), 
-                ({heading,_id}) => {
-                    let empty = generateEmptyTodo(_id,"project",0) as any;
-                    return <div id={_id} key={`key-${_id}`} style={{display:this.state.sorting ? 'none' : 'block'}} className={`no-print`}>  
+                typeEquals("creation"),  
+                ({heading,_id,empty}) => {
+                    return <div id={_id} key={`key-${_id}`} className={`no-print`}>  
                         <TodoCreationForm  
                             dispatch={this.props.dispatch}  
                             selectedTodo={this.props.selectedTodo}
@@ -184,18 +184,17 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             projects={this.props.projects}
                             rootRef={this.props.rootRef} 
                             todo={empty} 
+                            hideOffsetTop={true}
                             targetHeading={heading}
                         />   
                     </div> 
                 }
             ],
-            [ 
-                () => true, () => null 
-            ]
+            [  () => true, () => null  ]
         ])(value);
     };
 
-
+    
 
     shouldCancelStart = (e,item) => {
         if(item && item.type==="creation"){ return true; }
@@ -211,10 +210,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
     changeOrder = (oldIndex:number,newIndex:number) => { 
-        let {items,project} = this.props;
+        let {project,items} = this.props;
         let from = items[oldIndex];
         let to = items[newIndex];
-        let layout = [...project.layout];
+        let layout = [...project.layout]; 
 
         let fromIndex = layout.findIndex((item:any) => {
             if(isTodo(from)){ 
@@ -239,7 +238,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     
     changeHeadingsOrder = (oldIndex:number,newIndex:number) => {
-        let {items,project,updateLayoutOrder} = this.props;
+        let {project,updateLayoutOrder,items} = this.props;
         let layout = [...project.layout];
         let from : Heading = items[oldIndex] as Heading;
         
@@ -256,13 +255,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             splitAt(oldIndex+1)
         )(items);
 
-
         if(data.length===1){
            this.changeOrder(oldIndex,newIndex);
            return; 
         }
 
-        
         let toLayoutIndex : number = compose(
             ifElse(
                 lte(items.length),
@@ -276,27 +273,20 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             when(lt(oldIndex),add(data.length))
         )(newIndex); 
         
-
         compose( 
             updateLayoutOrder,
             reject(isNil),
             insertAll(toLayoutIndex,data), 
-            map( 
-                when(
-                    (item) => contains(item,data), 
-                    () => undefined
-                ) 
-            )
+            map(when((item) => contains(item,data),() => undefined))
         )(layout);
     };
 
         
 
     onSortStart = (oldIndex:number) : void => {
-        let {dispatch, items} = this.props;
-        let item = items[oldIndex];
-
-        this.setState({sorting:true});
+        let {dispatch} = this.props;
+        let sortableItems = insertEmpty(this.props.items);
+        let item = sortableItems[oldIndex];
 
         if(isDev()){
            assert(isString(item.type), `item is Nil. incorrect index. onSortStart. ProjectBody.`);
@@ -356,27 +346,34 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
     };
     
+
+    componentWillReceiveProps(nextProps){
+        if(this.currentScroll && this.props.rootRef){
+           this.props.rootRef.scrollTop = this.currentScroll;
+           this.currentScroll = null;
+        }
+    }
  
 
-    onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
+    onSortEnd = (oldIndex:number, newIndex:number, event, item, above) : void => {
         let {moveCompletedItemsToLogbook,dispatch,projects,filters} = this.props;
         let leftpanel = document.getElementById("leftpanel");
         let actions = [{type:"dragged",load:null}];
-
-        this.setState({sorting:false});
-
         let x = event.clientX;  
         let y = event.clientY;  
-        let items = insertEmpty(this.props.items); // subset of layout, but maybe a full set
+        let items = this.props.items;
+        let fromIndex = items.findIndex(i=> i._id===item._id);
+        let toIndex = above.map(id => items.find(i => i['_id']===id)).filter(isNotNil).length;
 
         // dragged item -> ( heading + todos  |  todo )
         let selectedItems = compose(
-            map(index => items[index]),
-            (items) => this.selectElements(oldIndex,items)
+            map(index => items[index]), 
+            items => this.selectElements(fromIndex,items)
         )(items);
 
+
         // dragged item -> ( todo | heading )
-        let draggedTodo : (Todo | Heading) = items[oldIndex]; 
+        let draggedTodo : (Todo | Heading) = items[fromIndex]; 
 
         if(insideTargetArea(null,leftpanel,x,y)){
 
@@ -390,32 +387,31 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     filters
                 }); 
 
-                if(updated.projects){
-                   actions.push({type:"updateProjects", load:updated.projects});
-                }
+                if(updated.projects){ actions.push({type:"updateProjects", load:updated.projects}); }
                 
-                if(updated.todo){
-                   actions.push({type:"updateTodo", load:updated.todo});
-                }
+                if(updated.todo){ actions.push({type:"updateTodo", load:updated.todo}); }
 
             }else if(isHeading(draggedTodo as Heading)){
-
                 let heading = selectedItems[0];
-                let todos = drop(1,selectedItems);
-                this.onDropMany(event,heading,todos);  
+                let todos = compose(reject(typeEquals('creation'),drop(1)))(selectedItems);
+                this.onDropMany(event,heading,todos); 
             };
 
-        }else{  
+        }else{   
+
             if(isTodo(draggedTodo)){
 
-               this.changeOrder(oldIndex,newIndex); 
+               this.changeOrder(fromIndex,toIndex);
+
             }else if(isHeading(draggedTodo as Heading)){
 
-               this.changeHeadingsOrder(oldIndex,newIndex); 
+               this.changeHeadingsOrder(fromIndex,toIndex); 
             }
         };    
 
-        dispatch({type:"multiple",load:actions}); 
+        this.currentScroll = this.props.rootRef.scrollTop;
+
+        dispatch({type:"multiple",load:actions});
     };
      
 
@@ -429,16 +425,21 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
 
         if(isHeading(item)){   
-            for(let i=index+1; i<items.length; i++){
+            for(let i=index+1; i<items.length; i++){ 
                 let item = items[i];
 
-                if(isNil(item)){ break; } 
-                else{
-                    if(item.type==="todo"){ selected.push(i); }
-                    else{ break; }  
+                if(isNil(item)){ 
+                    break; 
+                }else{
+                    if(item.type==="todo" || item.type==="creation"){ 
+                       selected.push(i); 
+                    }else{ 
+                       break; 
+                    }  
                 }
             }   
-        } 
+        }
+
         return selected; 
     };   
 
@@ -446,12 +447,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
     render(){  
         let {selectedCategory} = this.props;
-        let decorators = [{
-            area:document.getElementById("leftpanel"),
-            decorator:generateDropStyle("nested"),
-            id:"default"
-        }];  
+        let decorators = [{area:document.getElementById("leftpanel"), decorator:generateDropStyle("nested"), id:"default"}];  
         let sortableItems = insertEmpty(this.props.items);
+        let empty = generateEmptyTodo(generateId(),"project",0) as any;
+
+
             
         return <div className="unselectable">   
             <div className={`no-print`}>  
@@ -464,21 +464,21 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     todos={this.props.items.filter(isTodo) as Todo[]} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef} 
-                    todo={generateEmptyTodo(generateId(),"project",0) as any} 
+                    todo={empty} 
                 />  
             </div> 
-            <SortableContainer
-                items={/*this.props.items*/sortableItems} 
-                scrollableContainer={this.props.rootRef}
-                selectElements={this.selectElements}  
-                onSortStart={this.onSortStart} 
-                onSortMove={(oldIndex:number, event) : void => {}}
-                onSortEnd={this.onSortEnd}
-                shouldCancelStart={(event:any,item) => this.shouldCancelStart(event,item)}  
-                decorators={decorators}  
-            >   
-                {/*this.props.items*/sortableItems.map(item => this.getElement(item))}
-            </SortableContainer> 
+                <SortableContainer
+                    items={sortableItems} 
+                    scrollableContainer={this.props.rootRef} 
+                    selectElements={this.selectElements}  
+                    onSortStart={this.onSortStart} 
+                    onSortMove={(oldIndex:number, event) : void => {}}
+                    onSortEnd={this.onSortEnd}
+                    shouldCancelStart={(event:any,item) => this.shouldCancelStart(event,item)}  
+                    decorators={decorators}  
+                >   
+                    {sortableItems.map(this.getElement)}
+                </SortableContainer> 
         </div> 
     }
 } 

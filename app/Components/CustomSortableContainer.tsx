@@ -213,7 +213,7 @@ interface SortableContainerProps{
     selectElements:(index:number,items:any[]) => number[],
     shouldCancelStart:(event:any,item:any) => boolean, 
     onSortStart:(oldIndex:number,event:any) => void,  
-    onSortEnd:(oldIndex:number,newIndex:number,event:any,item?:any) => void,
+    onSortEnd:any, //(oldIndex:number,newIndex:number,event:any,item?:any) => void,
     onSortMove:(oldIndex:number,event:any) => void,
     decorators:Decorator[],
     lock?:boolean,
@@ -322,7 +322,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                     this.initial.initialY = event.clientY;
                 })
                 .exhaustMap((event) => {
-                    let cancel = shouldCancelStart(event,items[this.initial.initialIndex]);
+                    let cancel = shouldCancelStart(event,this.props.items[this.initial.initialIndex]);
                     
                     if(cancel){
                         return Observable.of();
@@ -392,8 +392,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
         this.setState({showPlaceholder:false}); //Hide placeholder
 
-        let {items} = this.props;
-        let newIndex = this.getCurrentIndex(event); 
+        let {newIndex,above} = this.getCurrentIndex(event); 
         let nodes = this.getNodesToBeAnimated();
 
         this.suspendDecorator(); //If decorator exists remove it from DOM tree
@@ -418,7 +417,8 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             this.initial.initialIndex,
             newIndex, 
             event,
-            items[this.initial.initialIndex] 
+            this.props.items[this.initial.initialIndex],
+            above 
         );  
 
         //Set initial dragging parameters to initial state - means dragging is not started yet.
@@ -433,7 +433,6 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
  
     onDragMove = (event:any) : void => { 
-        console.log(event)
         let {scrollableContainer,items,onSortMove,decorators} = this.props; 
         let {initialIndex,initialX,initialY,initialRect} = this.initial;
         
@@ -618,7 +617,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                          scrollTop > 0;
                       
         //prevent autoscroll if dragged item height bigger than container height.                 
-        let preventScroll : boolean = cloneClientRect.height>=containerClientRect.height;
+        let preventScroll : boolean = cloneClientRect.height>=(containerClientRect.height*0.7);
 
         this.scroll = preventScroll ? null :
                       scrollDown ? "down" : 
@@ -667,10 +666,16 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
  
 
 
-    getCurrentIndex = (event:any) : number => {
+    getCurrentIndex = (event:any) :  {
+        newIndex:number,
+        above:string[]
+    } => {
         let { initialIndex } = this.initial;
         
-        if(isNil(this.cloned)){ return 0 }
+        if(isNil(this.cloned)){ return {
+            newIndex:0,
+            above:[]
+        } }
 
         let { top } = this.cloned.getBoundingClientRect();
         let nodes = this.getNodesToBeAnimated();
@@ -685,7 +690,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             }
         } 
         
-        return above.length;
+        return {
+            newIndex:above.length,
+            above:above.map(el => el['id'])
+        };
     };
 
 
