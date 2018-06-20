@@ -63,6 +63,7 @@ interface ProjectBodyProps{
 interface ProjectBodyState{} 
 
 
+
 let insertEmpty = (items:(Todo|Heading)[]) : (Todo|Heading)[] => {
     let lastHeading = undefined;
     let result = [];
@@ -112,8 +113,6 @@ let insertEmpty = (items:(Todo|Heading)[]) : (Todo|Heading)[] => {
  
 export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     currentScroll:number 
-
-
 
     constructor(props){
         super(props);
@@ -173,7 +172,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             [
                 typeEquals("creation"),  
                 ({heading,_id,empty}) => {
-                    return <div id={_id} key={`key-${_id}`} className={`no-print`}>  
+                    let key = `key-${prop('_id')(heading)}`;
+                    
+                    return <div id={_id} key={key} className={`no-print`}>  
                         <TodoCreationForm  
                             dispatch={this.props.dispatch}  
                             selectedTodo={this.props.selectedTodo}
@@ -306,7 +307,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook, filters } = this.props;
         let selectedProjectIdx = findIndex((p:Project) => p._id===selectedProjectId, projects);
         let { project, category } = findDropTarget(event,projects);
-
         let updatedProjects = adjust(  
             (p:Project) => removeHeading(heading._id,p),
             selectedProjectIdx,
@@ -329,9 +329,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 type:"multiple",
                 load:[{type:"updateProjects",load:updatedProjects},{type:"updateTodos",load:updatedTodos}]
             }); 
-        }else if(isProject(project)){
 
+        }else if(isProject(project)){
             let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
+
             dispatch({ 
                 type:"updateProjects", 
                 load:adjust(
@@ -387,13 +388,18 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     filters
                 }); 
 
-                if(updated.projects){ actions.push({type:"updateProjects", load:updated.projects}); }
+                if(updated.projects){ 
+                    actions.push({type:"updateProjects", load:updated.projects}); 
+                }
                 
-                if(updated.todo){ actions.push({type:"updateTodo", load:updated.todo}); }
+                if(updated.todo){ 
+                    actions.push({type:"updateTodo", load:updated.todo}); 
+                }
 
             }else if(isHeading(draggedTodo as Heading)){
+
                 let heading = selectedItems[0];
-                let todos = compose(reject(typeEquals('creation'),drop(1)))(selectedItems);
+                let todos = compose(reject(typeEquals('creation')), drop(1))(selectedItems);
                 this.onDropMany(event,heading,todos); 
             };
 

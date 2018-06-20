@@ -625,6 +625,7 @@ export let byDeleted = (item:Item) : boolean => {
 };  
 
 
+
 export let byCompleted = (item) : boolean => { 
     if(isDev()){
        assert(isProject(item as Project) || isTodo(item),`item have incorrect type. ${item}. byCompleted`);
@@ -638,7 +639,9 @@ export let byCompleted = (item) : boolean => {
 };  
 
 
-export let byNotCompleted = (item:Project & Todo) : boolean => not(byCompleted(item));
+
+export let byNotCompleted : (item:Project & Todo) => boolean = complement(byCompleted);
+
 
    
 export let byTags = (selectedTags:string[]) => (item:Todo) : boolean => { 

@@ -251,6 +251,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let timeSeconds = Math.round(new Date().getTime() / 1000);
         let actions = [];
 
+        console.log(`add todo ${todo.title} - ${todo._id}`);
 
         googleAnalytics.send(  
             'event', 

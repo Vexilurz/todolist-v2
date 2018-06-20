@@ -7,6 +7,7 @@ import { Todo } from '../../types';
 import { OptionsPopup } from '../OptionsPopup';
 
 
+
 interface ChangeGroupPopupProps{
     dispatch:Function,
     todos:Todo[],
@@ -49,7 +50,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
  
 
 
-    onDeleteSingleItem = (e) => {
+    onDeleteSingleItem = e => {
         let {dispatch} = this.props; 
         let todo = this.getRightClickedTodo();
         dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
@@ -58,7 +59,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
 
 
 
-    onDeleteFutureItems = (e) => {
+    onDeleteFutureItems = e => {
         let {dispatch} = this.props; 
         let todo = this.getRightClickedTodo(); 
         dispatch({type:"removeGroupAfterDate", load:todo});

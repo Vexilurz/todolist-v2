@@ -12,7 +12,7 @@ import Show from 'material-ui/svg-icons/action/visibility';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
 import { Category, Todo, Project, Heading, LayoutItem, Store } from '../../types';
-import { attachDispatchToProps, createHeading, byNotDeleted } from '../../utils/utils';
+import { attachDispatchToProps, createHeading, byNotDeleted, byNotCompleted } from '../../utils/utils';
 import { contains, not, isNil, isEmpty, remove, prop, compose, allPass, defaultTo } from 'ramda';
 import { filter } from 'lodash';
 import { generateId } from '../../utils/generateId';
@@ -54,21 +54,19 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
 
     onDuplicate = (e) => {   
-        let {project,todos} = this.props;
-        let todosIDs = project.layout.filter(isString);
-
+        let todosIDs = this.props.project.layout.filter(isString);
         let relatedTodos = filter(
-            todos, 
+            this.props.todos, 
             allPass([
                 (todo:Todo) => contains( todo._id, todosIDs ),
-                //byNotCompleted,  
+                byNotCompleted,  
                 byNotDeleted   
             ])
-        );
-
+        ); 
+        
         let duplicatedTodos:Todo[] = [];
 
-        let duplicatedLayout:LayoutItem[] = project.layout.map((item) => {
+        let duplicatedLayout:LayoutItem[] = this.props.project.layout.map((item) => {
             if(isString(item)){
                 let todo = relatedTodos.find( todo => todo._id===item );
                 if(todo){
@@ -86,15 +84,13 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             }
         });  
 
-        let duplicate = {...project, _id:generateId(), layout:duplicatedLayout.filter(isNotNil)};
+        let duplicate = {...this.props.project, _id:generateId(), layout:duplicatedLayout.filter(isNotNil)};
+
         delete duplicate["_rev"]; 
 
         this.props.dispatch({
             type:"multiple",
-            load:[
-               {type:"addProject",load:duplicate},
-               {type:"addTodos",load:duplicatedTodos}
-            ]
+            load:[{type:"addProject",load:duplicate},{type:"addTodos",load:duplicatedTodos}]
         }); 
 
         this.closeMenu(); 

@@ -68,7 +68,8 @@ describe(
                         todo, 
                         new Date(),
                         nDaysFromNow(150),
-                        generateId()
+                        generateId(),
+                        null
                     )
                 )
                 .filter(group => !isEmpty(group) && group.length>n);

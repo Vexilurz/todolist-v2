@@ -18,19 +18,15 @@ import { ToggleCompletedButton } from './ToggleCompletedButton';
 import { TodosList } from '../TodosList';
 
 
+
 let byNotFuture = (t:Todo) => isNotNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
 
 let byFuture = complement(byNotFuture);
 
-
 interface ProjectComponentProps{ 
     project:Project,  
     moveCompletedItemsToLogbook:string,
-    indicator:{
-        active:number,
-        completed:number,
-        deleted:number
-    },
+    indicator:{ active:number, completed:number, deleted:number },
     filters:{
         inbox:((todo:Todo) => boolean)[],
         today:((todo:Todo) => boolean)[],
@@ -333,13 +329,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 }
             </div>
             {
-                completedEmpty ? null :
-                !showCompleted ? null :
-                <div style={{
-                    display:"flex", 
-                    flexDirection:"column", 
-                    width:"100%"
-                }}>      
+                completedEmpty || !showCompleted ? null :
+                <div style={{display:"flex", flexDirection:"column", width:"100%"}}>      
                     <TodosList    
                         dispatch={this.props.dispatch}  
                         filters={this.props.filters}

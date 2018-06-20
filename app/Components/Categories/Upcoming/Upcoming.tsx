@@ -90,7 +90,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         if(threshold>=limit.getTime()){
             let newLimit = yearFromDate(limit);
             let actions = [];
-            let extended = extend(newLimit, todos);
+            let extended = extend(newLimit, todos, null);
 
             if(isNotEmpty(extended)){
                actions.push({type:"addTodos", load:extended}); 

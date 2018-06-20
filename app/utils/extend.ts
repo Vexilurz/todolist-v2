@@ -23,7 +23,7 @@ import { isDate, isArrayOfTodos } from './isSomething';
 
 
 
-export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
+export let extend = (limit:Date, todos:Todo[], project:Project) : Todo[] => {
     let compareByAttachedDate = compareByDate((todo:Todo) => todo.attachedDate);
     let groupButNotAfter = compose(anyPass([equals('never'),equals('on')]), path(['group','type']));
 
@@ -42,7 +42,7 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
                         prop('options') 
                     )(group);
                     let start = defaultTo(new Date())(todo.attachedDate);
-                    let todos = repeat(options, todo, start, limit, group._id);
+                    let todos = repeat(options, todo, start, limit, group._id, project);
 
                     if(isDev()){
                         let withStart = [...todos.map(t => t.attachedDate), start];
@@ -52,12 +52,11 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
                             by.length===withStart.length, 
                             `
                             dates repeat. extend. ${options.selectedOption}. 
-                            length : ${withStart.length}; 
-                            by : ${by.length};
+                            length - ${withStart.length}; 
+                            by - ${by.length};
                             `
                         ); 
                     }
-
                     return todos; 
                 },   
                (todos) => todos[0],
@@ -72,7 +71,7 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
     if(isDev()){
        assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. extend.`);
        assert(all(t => isDate(t.attachedDate),repeated),`not all repeated have date. extend.`);
-    }
+    }  
 
     return repeated;
 };

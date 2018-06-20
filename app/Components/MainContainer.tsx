@@ -19,7 +19,7 @@ import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { 
     isNil, contains, not, evolve, map, compose, allPass, 
-    cond, defaultTo, when, concat, append
+    cond, defaultTo, when, concat, append, path, prop
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -38,7 +38,7 @@ import { requestFromMain } from '../utils/requestFromMain';
 import { getData, updateQuickEntryData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
-    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted
+    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, isTodayOrPast
 } from '../utils/utils';
 import { threeDaysLater, inPast, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 import { introListLayout, getIntroList } from '../utils/introList';
@@ -75,8 +75,28 @@ let addIntroList = (projects:Project[],firstLaunch:boolean) =>
 
 
 let addExtendedTodos = (limit:Date, todos:Todo[]) => (actions:action[]) : action[] => {
-    let extended : Todo[] = extend(limit, todos);
-    return when(() => isNotEmpty(extended),append({type:"addTodos", load:extended}))(actions);
+    let projectId = path(['0','group','projectId'])(todos);
+    let project = undefined; 
+
+    if(isString(projectId)){
+       project = this.props.projects.find(p => p._id===projectId);
+    }
+
+    let extended : Todo[] = extend(limit, todos, project);
+
+    return compose(
+        when(() => isNotEmpty(extended), append({type:"addTodos", load:extended})),
+        when(
+            () => isNotNil(project),   
+            actions => [
+                ...actions, 
+                {
+                    type:"updateProject", 
+                    load:{ ...project, layout:[...project.layout,...extended.map(prop('_id'))] }
+                }
+            ]
+        )
+    )(actions);
 };
 
 
@@ -726,14 +746,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     if(isNil(project)){ return null }
 
                                     let ids = project.layout.filter(isString);
-
-                                    let projectFilters = [(t:Todo) => contains(t._id)(ids), byNotDeleted];  
-                                 
+                                    let projectFilters = [
+                                        (t:Todo) => contains(t._id)(ids), 
+                                        byNotDeleted,
+                                        (t:Todo) => isNil(t.group) ? true : isTodayOrPast(t.attachedDate)
+                                    ];  
                                     let selectedTodos = filter(this.props.todos, allPass(projectFilters));
-
-                                    let indicator = defaultTo({completed:0, active:0})(
-                                        this.props.indicators[project._id]
-                                    );
+                                    let indicator = defaultTo({completed:0, active:0})(this.props.indicators[project._id]);
 
                                     return <ProjectComponent  
                                         project={project}

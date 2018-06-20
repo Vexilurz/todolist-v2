@@ -443,7 +443,8 @@ export interface Group{
    _id:string,  
    type:'never'|'on'|'after',
    options?:RepeatOptions,  
-   last?:boolean
+   last?:boolean,
+   projectId?:string 
 }; 
  
 

@@ -27,7 +27,8 @@ let test = (targets : {todo:Todo,options:RepeatOptions}[], limits : Date[]) : vo
                 target.todo,
                 defaultTo(new Date)(target.todo.attachedDate),
                 initial,
-                groupId
+                groupId,
+                null
             );
 
             let repeatsHaveDate = all( t => isDate(t.attachedDate) )(repeats);
@@ -53,7 +54,7 @@ let test = (targets : {todo:Todo,options:RepeatOptions}[], limits : Date[]) : vo
     );
 
     let todos = flatten(groups);
-    let withInitial = extend(initial,todos);
+    let withInitial = extend(initial,todos,null);
 
     let groupOne = groupBy(path(['group','_id']), todos);
     let groupTwo = groupBy(path(['group','_id']), withInitial);
@@ -63,8 +64,8 @@ let test = (targets : {todo:Todo,options:RepeatOptions}[], limits : Date[]) : vo
     let remainingLimits = drop(1)(limits);
     let lastLimit = remainingLimits[remainingLimits.length-1];
 
-    let gradually = remainingLimits.reduce((acc,val) => [...acc, ...extend(val,acc)], todos); 
-    let immediately = [...todos,...extend(lastLimit,todos)];
+    let gradually = remainingLimits.reduce((acc,val) => [...acc, ...extend(val,acc,null)], todos); 
+    let immediately = [...todos,...extend(lastLimit,todos,null)];
 
     let graduallyDateUndefined = gradually.filter( t => isNil(t.attachedDate));
     let immediatelyDateUndefined = immediately.filter( t => isNil(t.attachedDate));

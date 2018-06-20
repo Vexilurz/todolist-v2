@@ -522,7 +522,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 if(isHeading(draggedItem)){
                     let counter = document.getElementById(`nested-counter`); 
                     if(counter && this.selected){
-                        counter.innerHTML = `${this.selected.length-1}`
+                        counter.innerHTML = `${this.selected.length-2}`
                     }
                 };
                 

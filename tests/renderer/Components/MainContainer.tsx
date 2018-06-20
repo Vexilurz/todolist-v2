@@ -98,7 +98,7 @@ describe(
                 let data = { calendars:range(0,10).map(() => fc()), ...generateRandomDatabase(opt, 0) };
                 let groupsInitial = data
                 .todos
-                .map(todo => repeat(randomRepeatOptions(),todo,new Date(),initialLimit,generateId()))
+                .map(todo => repeat(randomRepeatOptions(),todo,new Date(),initialLimit,generateId(),null))
                 .filter(group => !isEmpty(group));
 
                 
@@ -129,7 +129,7 @@ describe(
                 
                let groupsFinal = data
                .todos
-               .map(todo => repeat(randomRepeatOptions(),todo,new Date(),finalLimit,generateId()))
+               .map(todo => repeat(randomRepeatOptions(),todo,new Date(),finalLimit,generateId(),null))
                .filter(group => !isEmpty(group));
 
                 //analyze store, find action 

@@ -5,12 +5,12 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { connect } from "react-redux";
 import { attachDispatchToProps, dateToDateInputValue, dateInputUpperLimit, isNotNan, limitInput, isNotEmpty } from '../utils/utils'; 
-import { RepeatOptions, Todo, Store } from '../types';
-import { isNil, not, isEmpty, compose, map, cond, defaultTo, equals, when, adjust, path, drop, uniqBy, evolve } from 'ramda';
+import { RepeatOptions, Todo, Store, Project } from '../types';
+import { isNil, not, isEmpty, compose, map, cond, defaultTo, equals, when, adjust, path, drop, uniqBy, evolve, contains, prop } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Rx';
 import { generateId } from '../utils/generateId';
-import { isDate, isTodo,isNotDate, isNotNil, isRepeatOptions } from '../utils/isSomething';
+import { isDate, isTodo,isNotDate, isNotNil, isRepeatOptions, isString } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
@@ -73,7 +73,8 @@ export let repeat = (
     todo:Todo, 
     start:Date, 
     end:Date,
-    groupId:string
+    groupId:string,
+    project:Project
 ) : Todo[] => {
 
     if(isDev()){
@@ -150,7 +151,7 @@ export let repeat = (
 
     let todos = compose(
         when(isNotEmpty, setLast),
-        map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options} })),
+        map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options, projectId:prop('_id')(project)} })),
         selectedDatesToTodos(todo),
         optionToDates
     )(selectedOption); 
@@ -203,13 +204,15 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let groupId : string = generateId();
         let options = {interval, freq, until, count, selectedOption};
         let start = new Date();
+        let project = this.props.projects.find((project:Project) => contains(todo._id)(project.layout.filter(isString)));
 
         let repeatedTodos : Todo[] = repeat(  
             options,
             todo, 
             defaultTo(start)(todo.attachedDate),
             new Date(this.props.limit),
-            groupId
+            groupId,
+            project
         );
         
         if(isDev()){
@@ -228,20 +231,19 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             ); 
         }
 
-        this.props.dispatch({
-            type:"multiple",
-            load:[
-                { 
-                    type:"updateTodo",  
-                    load:{
-                        ...todo,
-                        attachedDate:defaultTo(start)(todo.attachedDate), 
-                        group:{type:selectedOption, _id:groupId, options}
-                    } 
-                },
-                {type:"addTodos",load:repeatedTodos}
-            ]
-        }); 
+        let load = [
+            {type:"updateTodo", load:{...todo, attachedDate:defaultTo(start)(todo.attachedDate), group:{type:selectedOption, _id:groupId, options}}},
+            {type:"addTodos",   load:repeatedTodos}
+        ];
+
+        if(isNotNil(project)){
+            load.push({
+               type:"updateProject", 
+               load:{...project,layout:[...project.layout,...repeatedTodos.map(prop('_id')) ]} 
+            } as any) 
+        }
+
+        this.props.dispatch({type:"multiple", load}); 
     };    
 
 

@@ -339,24 +339,50 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let calendars = [...state.calendars];
                     let idx = calendars.findIndex(c => c.url===action.load.url);
 
-                    return {...state, calendars:adjust(() => action.load, idx, calendars)};
+                    return {
+                        ...state, 
+                        calendars:adjust(() => action.load, idx, calendars)
+                    };
                 }
             ],
             [  
                 typeEquals("removeGroup"), 
-
                 (action:{type:string, load:string}) : Store => {  
                     let groupId : string = action.load;
+                    let one = state.todos.find(todo => path(['group','_id'])(todo)===groupId);
+                    let projectIdx = -1;
 
-                    return{   
+                    if(isNotNil(one)){
+                       let projectId = path(['group','projectId'])(one);
+                       projectIdx = state.projects.findIndex(p => p._id===projectId); 
+                    }
+
+                    return {     
                         ...state,  
-                        todos:filter( state.todos, (todo:Todo) => isNil(todo.group) || todo.group._id!==groupId )
+                        todos:filter(state.todos, (todo:Todo) => isNil(todo.group) || todo.group._id!==groupId),
+                        projects:projectIdx==-1 ? 
+                                 state.projects : 
+                                 adjust(
+                                    project => ({ 
+                                        ...project, 
+                                        layout:project.layout.filter(item => {
+                                            if(isString(item)){
+                                                let todo = state.todos.find(t => t._id===item);
+                                                return path(['group','_id'])(todo)!==groupId;
+                                            }else{
+                                                return true;
+                                            }
+
+                                        }) 
+                                    }), 
+                                    projectIdx, 
+                                    state.projects
+                                 )
                     }; 
                 }
             ],
             [
                 typeEquals("addTodo"),
-
                 (action:{type:string, load:Todo}) : Store => {
                     if(isEmpty(action.load.title)){ 
                        return {...state}; 
@@ -369,7 +395,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
             ], 
             [ 
                 typeEquals("updateTodo"),
-
                 (action:{type:string, load:Todo}) : Store => {
                     let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
 
