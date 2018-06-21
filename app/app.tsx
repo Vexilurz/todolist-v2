@@ -207,7 +207,7 @@ export class App extends Component<AppProps,AppState>{
         if(isDev()){
            console.log(`sync paused`, 'color: #926239');
         }
-        this.setState({syncActive:false});
+        //this.setState({syncActive:false});
     };
 
 
