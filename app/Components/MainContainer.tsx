@@ -18,8 +18,9 @@ import { Next } from './Categories/Next';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { 
-    isNil, contains, not, evolve, map, compose, allPass, 
-    cond, defaultTo, when, concat, append, path, prop
+    isNil, contains, not, evolve, map, compose, allPass, groupBy, 
+    cond, defaultTo, when, concat, append, path, prop, reject, 
+    mapObjIndexed, values
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -38,7 +39,7 @@ import { requestFromMain } from '../utils/requestFromMain';
 import { getData, updateQuickEntryData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
-    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, isTodayOrPast
+    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, isTodayOrPast, log
 } from '../utils/utils';
 import { threeDaysLater, inPast, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 import { introListLayout, getIntroList } from '../utils/introList';
@@ -47,6 +48,9 @@ import { extend } from '../utils/extend';
 import { UpcomingDefault } from './Categories/Upcoming/UpcomingDefault';
 import { Tag } from './Categories/Tag';
 
+//const MockDate = require('mockdate');  
+//let testDate = () => MockDate.set( new Date().getTime() + (1000*60*60*24*300) );
+//testDate();
 
 
 let hideImportCalendarsHint : (calendars:Calendar[], showHint:boolean) => 
@@ -72,31 +76,44 @@ let addIntroList = (projects:Project[],firstLaunch:boolean) =>
         )(actions);
     };
 
+ 
 
+let addExtendedTodos = (projects:Project[], limit:Date, todos:Todo[]) => (actions:action[]) : action[] => {
+    let extended : Todo[] = extend(projects, limit, todos);
 
-let addExtendedTodos = (limit:Date, todos:Todo[]) => (actions:action[]) : action[] => {
-    let projectId = path(['0','group','projectId'])(todos);
-    let project = undefined; 
+    console.log(`0) extended`, extended);
 
-    if(isString(projectId)){
-       project = this.props.projects.find(p => p._id===projectId);
-    }
-
-    let extended : Todo[] = extend(limit, todos, project);
-
-    return compose(
-        when(() => isNotEmpty(extended), append({type:"addTodos", load:extended})),
-        when(
-            () => isNotNil(project),   
-            actions => [
-                ...actions, 
-                {
+    let attachToProjectActions = compose(
+        reject(isNil),
+        log('4) flat'),
+        values,
+        log('3) mapped'),
+        mapObjIndexed(
+            (value:Todo[],projectId:string) : action => {
+                let project = projects.find(p => p._id===projectId);
+                return isNil(project) ? null : ({
                     type:"updateProject", 
-                    load:{ ...project, layout:[...project.layout,...extended.map(prop('_id'))] }
-                }
-            ]
+                    load:{ ...project, layout:[ ...project.layout, ...value.map(prop('_id')) ] }
+                })
+            }
+        ),
+        log('2) grouped'),
+        groupBy(path(['group','projectId'])),
+        log('1) with project ids'),
+        reject(
+            compose(
+                isNil, 
+                path(['group','projectId'])
+            )
         )
+    )(extended);
+
+    let result = compose(
+        when( () => isNotEmpty(extended), append({type:"addTodos", load:extended}) ),
+        actions => [...actions,...attachToProjectActions] 
     )(actions);
+
+    return result;
 };
 
 
@@ -209,7 +226,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         compose(
             (actions:action[]) => this.props.dispatch({type:"multiple", load:actions}),
             hideImportCalendarsHint(calendars,not(this.props.hideHint)),
-            addExtendedTodos(this.props.limit, todos),
+            addExtendedTodos(projects, this.props.limit, todos),
             addIntroList(projects,this.props.firstLaunch),
             () => [],
             () => this.props.dispatch({
@@ -743,9 +760,16 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 (selectedCategory:Category) : boolean => 'project'===selectedCategory,  
                                 () => {
                                     let project = this.props.projects.find(p => this.props.selectedProjectId===p._id);
+                                    let ids = project.layout.filter(isString);
+                                    
                                     if(isNil(project)){ return null }
 
-                                    let ids = project.layout.filter(isString);
+                                    if(isDev()){
+                                       let todos = filter(this.props.todos, allPass([t => contains(t._id)(ids), t => isNotNil(t.group)]));
+                                       console.log(`repeated for ${project.name} - ${todos.length}`, todos);
+                                    }
+
+                                    
                                     let projectFilters = [
                                         (t:Todo) => contains(t._id)(ids), 
                                         byNotDeleted,

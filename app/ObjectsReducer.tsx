@@ -550,19 +550,16 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 typeEquals("updateProject"),
 
                 (action:{type:string, load:Project}) : Store => {
-
                     let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
-
-                    return {...state, projects:adjust((p) => ({...p,...action.load}), idx, state.projects)};
+                    let projects = adjust((p) => ({...p,...action.load}), idx, state.projects);
+                    return {...state, projects};
                 }
             ],
             [ 
                 typeEquals("updateArea"),
 
                 (action:{type:string, load:Area}) : Store => {
-
                     let idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
-                    
                     return {...state, areas:adjust((a) => ({...a, ...action.load}), idx, state.areas)};
                 } 
             ],

@@ -23,11 +23,9 @@ import { isDate, isArrayOfTodos } from './isSomething';
 
 
 
-export let extend = (limit:Date, todos:Todo[], project:Project) : Todo[] => {
+export let extend = (projects:Project[], limit:Date, todos:Todo[]) : Todo[] => {
     let compareByAttachedDate = compareByDate((todo:Todo) => todo.attachedDate);
     let groupButNotAfter = compose(anyPass([equals('never'),equals('on')]), path(['group','type']));
-
-    
     let repeated = compose( 
         flatten, 
         values,
@@ -35,12 +33,18 @@ export let extend = (limit:Date, todos:Todo[], project:Project) : Todo[] => {
             compose(
                (todo:Todo) => {
                     if(isNil(todo)){ return [] }
-
                     let group = todo.group;
-                    let options : RepeatOptions = compose( 
-                        evolve({until:initDate}), 
-                        prop('options') 
-                    )(group);
+                    let projectId = group.projectId;
+                    let project = undefined;
+
+                    console.log(`extend recent projectId:${projectId}`, todo);
+                    
+                    if(projectId){
+                       project = projects.find(p => p._id===projectId);
+                       console.log(`target project`, project);
+                    }
+                    
+                    let options : RepeatOptions = compose( evolve({until:initDate}), prop('options') )(group);
                     let start = defaultTo(new Date())(todo.attachedDate);
                     let todos = repeat(options, todo, start, limit, group._id, project);
 
