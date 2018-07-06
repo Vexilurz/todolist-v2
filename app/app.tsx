@@ -5,10 +5,7 @@ import * as ReactDOM from 'react-dom';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import { Component } from "react";  
 import { ipcRenderer } from 'electron';
-import { 
-    attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, 
-    initDate, onErrorWindow, isNotEmpty 
-} from "./utils/utils";  
+import { attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, initDate, onErrorWindow } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isNotNil, isString } from './utils/isSomething';
 import { createStore } from "redux"; 
@@ -16,26 +13,17 @@ import { Provider, connect } from "react-redux";
 import { LeftPanelMenu } from './Components/LeftPanelMenu/LeftPanelMenu';
 import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
-import { 
-    Project, Todo, Calendar, Config, Store, Indicators, action, 
-    PouchChanges, PouchError, PouchChange, actionStartSync, actionSetKey 
-} from './types';
-import { 
-    isNil, map, when, evolve, prop, isEmpty, path, 
-    compose, allPass, identity, any, defaultTo, fromPairs 
-} from 'ramda';
+import { Project, Todo, Calendar, Config, Store, Indicators, action, PouchChanges, PouchError, PouchChange, actionStartSync } from './types';
+import { isNil, map, when, evolve, prop, isEmpty, path, compose, identity, any, defaultTo, fromPairs } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
-import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { getAmounts } from './utils/getAmounts';
-import { collectSystemInfo } from './utils/collectSystemInfo';
 import { convertEventDate } from './Components/Calendar';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
-import { uppercase } from './utils/uppercase';
 import { getFilters } from './utils/getFilters';
 import { defaultStoreItems } from './defaultStoreItems'; 
 import { applicationReducer } from './reducer';
@@ -49,13 +37,14 @@ import { emailToUsername } from './utils/emailToUsername';
 import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
 import { TopPopoverMenu } from './Components/TopPopoverMenu/TopPopoverMenu';
-import { decryptDoc, decryptKey } from './utils/crypto/crypto';
-import { server } from './utils/couchHost';
-import axios from 'axios';
+import { decryptDoc } from './utils/crypto/crypto';
 import { isDev } from './utils/isDev';
+import { setKey } from './utils/setKey';
+import { reportStart } from './utils/reportStart';
 import { logout } from './utils/logout';
-const remote = require('electron').remote;
-const session = remote.session;
+import { setWindowTitle } from './utils/setWindowTitle';
+import { updateQuickEntry } from './utils/updateQuickEntry';
+import { onCloseWindow } from './utils/onCloseWindow';
 window.onerror = onErrorWindow; 
 
 
@@ -112,18 +101,18 @@ export class App extends Component<AppProps,AppState>{
     componentDidMount(){    
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
         this.initQuickFind(); 
-        this.setWindowTitle(this.props,this.props,this.state.amounts.today+this.state.amounts.hot); 
+        setWindowTitle(this.props,this.props,this.state.amounts.today+this.state.amounts.hot); 
+
         if(!this.props.clone){
             this.initCtrlB();
             this.initPouchObservables();
             this.initSync();
-            this.reportStart();
+            reportStart();
         }
     }; 
 
 
 
-    //cleanup 
     componentWillUnmount(){
         if(this.generateIndicatorsWorker){
            this.generateIndicatorsWorker.terminate();
@@ -134,6 +123,13 @@ export class App extends Component<AppProps,AppState>{
             pouchWorker.postMessage({type:'stopSync',load:null});   
             this.suspendObservables();
         }
+    };
+
+
+
+    suspendObservables = () => {
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions=[];
     };
 
 
@@ -172,7 +168,7 @@ export class App extends Component<AppProps,AppState>{
             map(decrypt), 
             prop(dbname),
             fixIncomingData, 
-            data =>  fromPairs( [[dbname,data]] ),  
+            data => fromPairs( [[dbname,data]] ),  
             defaultTo([]), 
             prop('docs')
         )(change);  
@@ -199,15 +195,6 @@ export class App extends Component<AppProps,AppState>{
            console.log(`sync active`, 'color: #926239');
         }
         this.setState({syncActive:true});
-    };
-
-
-
-    onPouchPaused = (action:action) => { 
-        if(isDev()){
-           console.log(`sync paused`, 'color: #926239');
-        }
-        //this.setState({syncActive:false});
     };
 
 
@@ -251,9 +238,7 @@ export class App extends Component<AppProps,AppState>{
             subscribeToChannel("changes", this.onPouchChanges),
             subscribeToChannel("log", this.onPouchLog),
             subscribeToChannel("error", this.onPouchError),
-
-            subscribeToChannel("active", this.onPouchActive),
-            subscribeToChannel("paused", this.onPouchPaused)
+            subscribeToChannel("active", this.onPouchActive)
         );
     };
 
@@ -278,42 +263,12 @@ export class App extends Component<AppProps,AppState>{
 
     
 
-    suspendObservables = () => {
-        this.subscriptions.map(s => s.unsubscribe());
-        this.subscriptions=[];
-    };
-
-    
-
     cloneWindow = () => {
         ipcRenderer.send("store", {...this.props});
         setTimeout(() => ipcRenderer.send('separateWindowsCount'), 100);
     };
 
-
-
-    reportStart = () => collectSystemInfo().then(
-         ({ arch, cpus, platform, release, type }) => googleAnalytics.send(   
-            'event',    
-            {  
-                ec:'Start',   
-                ea:`
-                Application launched ${new Date().toString()}
-                System info :
-                arch ${arch}; 
-                cpus ${cpus.length};
-                platform ${platform};
-                release ${release};
-                type ${type}; 
-                `,  
-                el:'Application launched', 
-                ev:0
-            } 
-        ) 
-    )
-    .catch(err => globalErrorHandler(err));
-
-        
+ 
 
     promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => {
         let action = {type:'indicators', load:{projects,todos}};
@@ -325,19 +280,6 @@ export class App extends Component<AppProps,AppState>{
     
 
 
-    updateQuickEntry = (nextProps:Store,indicators:Indicators) => 
-    ipcRenderer.send(
-        'updateQuickEntryData',
-        {
-            todos:nextProps.todos,
-            projects:nextProps.projects,
-            areas:nextProps.areas,
-            indicators
-        }
-    );
-
-
-
     componentWillReceiveProps(nextProps:Store){
         if(
            this.props.projects!==nextProps.projects || 
@@ -346,124 +288,93 @@ export class App extends Component<AppProps,AppState>{
             this
             .promiseIndicators(nextProps.projects, nextProps.todos)
             .then( 
-                (indicators:Indicators) => this.setState({indicators}, () => this.updateQuickEntry(nextProps,indicators))
+                (indicators:Indicators) => this.setState({indicators}, () => updateQuickEntry(nextProps,indicators))
             );
 
             let amounts = getAmounts(nextProps);
-            this.setState({amounts}, () => this.setWindowTitle(this.props,nextProps,amounts.today+amounts.hot));
+            this.setState({amounts}, () => setWindowTitle(this.props,nextProps,amounts.today+amounts.hot));
         }
 
-        this.setWindowTitle(this.props, nextProps, this.state.amounts.today+this.state.amounts.hot); 
+        setWindowTitle(this.props, nextProps, this.state.amounts.today+this.state.amounts.hot); 
     }; 
 
 
 
-    setWindowTitle = (props:Store,newProps:Store,today:number) : void => {
-        if(newProps.selectedCategory==="area"){
-            let area = newProps.areas.find( a => a._id===newProps.selectedAreaId );
-            if(area){
-                ipcRenderer.send(
-                   'setWindowTitle', 
-                   `${today===0 ? '' : `(${today})`} tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
-                    newProps.id
-                );
-            }
-        }else if(newProps.selectedCategory==="project"){
-            let project = newProps.projects.find( p => p._id===newProps.selectedProjectId );
-    
-            if(project){
-                ipcRenderer.send(
-                   'setWindowTitle',  
-                   `${today===0 ? '' : `(${today})`} tasklist - ${uppercase( isEmpty(project.name) ? 'New Project' : project.name )}`, 
-                    newProps.id
-                );
-            }
-        }else{
-            ipcRenderer.send(
-               'setWindowTitle',
-               `${today===0 ? '' : `(${today})`} tasklist - ${uppercase(newProps.selectedCategory)}`, 
-                newProps.id
-            );    
-        }
-    };
-    
-    
-
     render(){
         return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001} as any}>  
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
-                { 
-                    <TopPopoverMenu 
-                        dispatch={this.props.dispatch} 
-                        showMenu={this.props.showMenu}
-                        selectedTags={this.props.selectedTags}
-                        filters={getFilters(this.props.projects)}
-                        collapsed={this.props.collapsed}
-                        selectedCategory={this.props.selectedCategory}
-                        searchQuery={this.props.searchQuery} 
-                        leftPanelWidth={this.props.leftPanelWidth}
-                        openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
-                        projects={this.props.projects}
-                        areas={this.props.areas}
-                        amounts={this.state.amounts}
-                        indicators={this.state.indicators}
-                        dragged={this.props.dragged}
-                        selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId}
-                        id={this.props.id}
-                    /> 
-                }
-                {    
-                    this.props.clone ? null :
-                    <LeftPanelMenu 
-                        sync={this.props.sync && this.state.syncActive}
-                        dispatch={this.props.dispatch}
-                        collapsed={this.props.collapsed}
-                        selectedCategory={this.props.selectedCategory}
-                        searchQuery={this.props.searchQuery} 
-                        leftPanelWidth={this.props.leftPanelWidth}
-                        openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
-                        projects={this.props.projects}
-                        areas={this.props.areas}
-                        amounts={this.state.amounts}
-                        indicators={this.state.indicators}
-                        dragged={this.props.dragged}
-                        selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId}
-                        id={this.props.id}
-                    />  
-                } 
-                <MainContainer 
+            { 
+                <TopPopoverMenu 
                     dispatch={this.props.dispatch} 
-                    secretKey={this.props.secretKey}
-                    selectedCategory={this.props.selectedCategory}
-                    limit={this.props.limit}
-                    nextUpdateCheck={this.props.nextUpdateCheck}
-                    nextBackupCleanup={this.props.nextBackupCleanup}
-                    selectedTodo={this.props.selectedTodo}
-                    scrolledTodo={this.props.scrolledTodo}
-                    showRepeatPopup={this.props.showRepeatPopup}
-                    hideHint={this.props.hideHint}
-                    firstLaunch={this.props.firstLaunch}
-                    clone={this.props.clone} 
-                    showWhenCalendar={this.props.showWhenCalendar}
-                    groupTodos={this.props.groupTodos} 
-                    showRightClickMenu={this.props.showRightClickMenu}
-                    showCalendarEvents={this.props.showCalendarEvents}
-                    showTrashPopup={this.props.showTrashPopup}
+                    showMenu={this.props.showMenu}
+                    selectedTags={this.props.selectedTags}
                     filters={getFilters(this.props.projects)}
-                    indicators={this.state.indicators}
-                    calendars={filter(this.props.calendars, (calendar:Calendar) => calendar.active)}
+                    collapsed={this.props.collapsed}
+                    selectedCategory={this.props.selectedCategory}
+                    searchQuery={this.props.searchQuery} 
+                    leftPanelWidth={this.props.leftPanelWidth}
+                    openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
                     projects={this.props.projects}
-                    areas={this.props.areas} 
-                    todos={this.props.todos}  
+                    areas={this.props.areas}
+                    amounts={this.state.amounts}
+                    indicators={this.state.indicators}
+                    dragged={this.props.dragged}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
-                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                    selectedTags={this.props.selectedTags}
-                    dragged={this.props.dragged}
-                    cloneWindow={this.cloneWindow}
+                    id={this.props.id}
                 /> 
+            }
+            {    
+                this.props.clone ? null :
+                <LeftPanelMenu 
+                    sync={this.props.sync && this.state.syncActive}
+                    dispatch={this.props.dispatch}
+                    collapsed={this.props.collapsed}
+                    selectedCategory={this.props.selectedCategory}
+                    searchQuery={this.props.searchQuery} 
+                    leftPanelWidth={this.props.leftPanelWidth}
+                    openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
+                    projects={this.props.projects}
+                    areas={this.props.areas}
+                    amounts={this.state.amounts}
+                    indicators={this.state.indicators}
+                    dragged={this.props.dragged}
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId}
+                    id={this.props.id}
+                />  
+            } 
+            <MainContainer 
+                dispatch={this.props.dispatch} 
+                secretKey={this.props.secretKey}
+                selectedCategory={this.props.selectedCategory}
+                limit={this.props.limit}
+                nextUpdateCheck={this.props.nextUpdateCheck}
+                nextBackupCleanup={this.props.nextBackupCleanup}
+                selectedTodo={this.props.selectedTodo}
+                scrolledTodo={this.props.scrolledTodo}
+                showRepeatPopup={this.props.showRepeatPopup}
+                hideHint={this.props.hideHint}
+                firstLaunch={this.props.firstLaunch}
+                clone={this.props.clone} 
+                showWhenCalendar={this.props.showWhenCalendar}
+                groupTodos={this.props.groupTodos} 
+                showRightClickMenu={this.props.showRightClickMenu}
+                showCalendarEvents={this.props.showCalendarEvents}
+                showTrashPopup={this.props.showTrashPopup}
+                filters={getFilters(this.props.projects)}
+                indicators={this.state.indicators}
+                calendars={filter(this.props.calendars, (calendar:Calendar) => calendar.active)}
+                projects={this.props.projects}
+                areas={this.props.areas} 
+                todos={this.props.todos}  
+                selectedProjectId={this.props.selectedProjectId}
+                selectedAreaId={this.props.selectedAreaId}
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                selectedTags={this.props.selectedTags}
+                dragged={this.props.dragged}
+                cloneWindow={this.cloneWindow}
+            /> 
             </div>   
             {
                 !this.props.showTrashPopup ? null :    
@@ -535,18 +446,6 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-let onCloseWindow = (isMainWindow:boolean) => () => {
-    if(isMainWindow){
-       ipcRenderer.send('Mhide'); 
-       return false; 
-    }else{
-       ipcRenderer.send('separateWindowsCount'); 
-       return undefined;
-    }
-};
-
-
-
 let renderApp = (config:Config, clonedStore:Store, id:number) : void => { 
     let app=document.createElement('div'); 
     let isClonedWindow : boolean = isNotNil(clonedStore);
@@ -593,66 +492,6 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
         document.getElementById('application')
     )  
 }; 
-
-
-
-let getCredentialsFromToken = (token) => {
-    let result = compose(
-        tuple => ({username:tuple[0], password:tuple[1]}),
-        s => s.split(':'),
-        atob
-    )(token);
-    return result;
-};
-
-
-
-let setKey = (config:Config) => {
-    let key = config.secretKey;
-    let action : actionSetKey = {type:"setKey", load:key};
-    return new Promise( 
-        resolve => {
-            session.defaultSession.cookies.get(
-                {url: server}, 
-                (error, cookies) => {
-                    let cookie = cookies[0];
-
-                    if(cookie && cookie.name==="AuthToken" && isNil(key)){
-
-
-                        let token = cookie.value; 
-                        let {password} = getCredentialsFromToken(token);
-
-                        return axios({method:'get',url:`${server}/users/key`,headers:{'AuthToken':token}}) 
-                        .then(prop("data"))
-                        .then((key:any) => {
-                            if(isNil(key) || isEmpty(key)){
-                               return null;
-                            }else{
-                               return decryptKey(password)(key);
-                            } 
-                        })
-                        .then((key:any) => {
-                            if(!isEmpty(key) && !isNil(key)){
-                               action.load = key;
-                               config.secretKey = key;
-                            }
-                            return workerSendAction(pouchWorker)(action).then(() => resolve(config));
-                        })
-                        .catch(e => workerSendAction(pouchWorker)(action).then(() => resolve(config))) 
-
-
-
-                    }else{
-
-
-                        return workerSendAction(pouchWorker)(action).then(() => resolve(config));
-                    }
-                }
-            )
-        } 
-    ) 
-}
 
 
    

@@ -377,8 +377,6 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
        //Initialize placeholder
        this.setState({showPlaceholder:true,placeholderHeight:initialRect.height});
-
-       
     };
 
 

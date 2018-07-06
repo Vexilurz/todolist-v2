@@ -50,24 +50,23 @@ class ThisEveningSeparator extends Component<{},{}>{
     } 
 
     render(){    
-
-        return  <div    
-        ref={(e) => {this.ref=e;}}   
-        style={{    
-            color:"rgba(0,0,0,0.8)",
-            fontWeight:"bold",
-            fontSize:"16px", 
-            userSelect:"none",
-            marginTop:"5px", 
-            marginBottom:"5px",
-            height:"70px",  
-            width:"100%",   
-            WebkitUserSelect:"none",
-            display:"flex",  
-            position:"relative",     
-            alignItems:"center",    
-            justifyContent:"center" 
-        }}   
+        return <div    
+            ref={(e) => {this.ref=e;}}   
+            style={{    
+                color:"rgba(0,0,0,0.8)",
+                fontWeight:"bold",
+                fontSize:"16px", 
+                userSelect:"none",
+                marginTop:"5px", 
+                marginBottom:"5px",
+                height:"70px",  
+                width:"100%",   
+                WebkitUserSelect:"none",
+                display:"flex",  
+                position:"relative",     
+                alignItems:"center",    
+                justifyContent:"center" 
+            }}   
         >        
         <div     
             style={{             
