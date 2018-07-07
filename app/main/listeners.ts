@@ -18,10 +18,10 @@ import { keyFromDate } from '../utils/time';
 import { RegisteredListener, Config } from '../types';
 import { mainWindow, quickEntry, notification } from './main';
 import { getConfig } from './utils/getConfig';
-import { toggleShortcut } from './shortcuts';
 import { autoUpdater } from "electron-updater";
 import { onAppLoaded } from './utils/onAppLoaded';
 import { onQuickEntryLoaded } from './utils/onQuickEntryLoaded';
+import { toggleShortcut } from './shortcuts';
 const fs = require('fs');
 const pathTo = require('path');
 const log = require("electron-log");
@@ -376,7 +376,7 @@ export class Listeners{
                     }
                 }
             },
-            { 
+            {  
                 name:"toggleShortcut",
                 callback:(event,enable,shortcut) => toggleShortcut(enable,shortcut)
             },

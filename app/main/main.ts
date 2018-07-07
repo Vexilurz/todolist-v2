@@ -2,18 +2,10 @@ import { handleMainWindowCrashed } from './utils/handleMainWindowCrashed';
 import { createTray } from './utils/createTray';
 import { initAutoUpdater } from './utils/initAutoUpdater';
 import { handleQuickEntryCrashed } from './utils/handleQuickEntryCrashed';
-import { registerAllShortcuts, toggleShortcut, unregisterAllShortcuts } from './shortcuts';
-import { defaultConfig } from '../defaultConfig';
-import fs = require('fs');     
-import { dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray } from 'electron';
+import { dialog,app,BrowserWindow,Tray } from 'electron';
 import { Listeners } from "./listeners";
-import { 
-    isNil, not, forEachObjIndexed, when, contains, compose, equals, 
-    ifElse, reject, isEmpty, defaultTo, map, identity, toLower 
-} from 'ramda';  
+import { not } from 'ramda';  
 import { getWindowSize } from './utils/getWindowSize';
-import { isDev } from './../utils/isDev';
-import { isNotNil } from '../utils/isSomething';
 import { Config } from '../types'; 
 import { getConfig } from './utils/getConfig';
 import { initWindow, initQuickEntry, initNotification } from './utils/initWindow';
@@ -25,7 +17,7 @@ import { onAppLoaded } from './utils/onAppLoaded';
 import { onNotificationLoaded } from './utils/onNotificationLoaded'; 
 import { onQuickEntryLoaded } from './utils/onQuickEntryLoaded'; 
 import { onWindowAllClosed } from './utils/onWindowAllClosed';
-import { updateConfig } from './utils/updateConfig';
+import { registerAllGlobalShortcuts, registerAllLocalShortcuts, toggleGlobalShortcut, toggleLocalShortcut } from './shortcuts';
 const storage = require('electron-json-storage');
 const os = require('os');
 const path = require("path");
@@ -72,8 +64,10 @@ let onReady = (config:Config) => {
  
 
     listeners = new Listeners(mainWindow);
-    registerAllShortcuts(); 
-    toggleShortcut(enableShortcutForQuickEntry, 'Ctrl+Alt+T');
+    registerAllGlobalShortcuts(); 
+    registerAllLocalShortcuts(); 
+
+    toggleGlobalShortcut(enableShortcutForQuickEntry, 'Ctrl+Alt+T');
     initAutoUpdater();
     initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
     
@@ -82,12 +76,12 @@ let onReady = (config:Config) => {
     mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
     mainWindow.on('focus', () => {  
         mainWindow['focused'] = true; 
-        toggleShortcut(true, 'Ctrl+B');
+        toggleLocalShortcut(true, 'Ctrl+B');
         //registerAllShortcuts();
     }); 
     mainWindow.on('blur', () => { 
         mainWindow['focused'] = false; 
-        toggleShortcut(false, 'Ctrl+B');
+        toggleLocalShortcut(false, 'Ctrl+B');
         //unregisterAllShortcuts();
     }); 
     mainWindow.on('unresponsive', handleMainWindowUnresponsive);
