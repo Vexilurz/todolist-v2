@@ -403,8 +403,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 if(isProject(project) && isNotNil(todo.group)){
 
                     let todo = draggedTodo as Todo;
+                    //let source = this.props.projects.find((p:Project) => contains(todo._id)(p.layout));
                     let group = todo.group;
-                    actions.push({type:"removeGroupFromProject", load:{ groupId:group._id, projectId:group.projectId}});
+                    actions.push({type:"removeGroupFromProject", load:{ groupId:group._id, projectId:this.props.project._id }});
                     actions.push({type:"attachGroupToProject", load:{ groupId:group._id, projectId:project._id}});
                 
                 }else if(isCategory(category)){
@@ -418,22 +419,18 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     }); 
 
                     if(updated.projects){ 
-                        actions.push({type:"updateProjects", load:updated.projects}); 
+                       actions.push({type:"updateProjects", load:updated.projects}); 
                     }
                     
                     if(updated.todo){ 
-                        actions.push({type:"updateTodo", load:assoc("group", null)(updated.todo)}); 
+                       actions.push({type:"updateTodo", load:assoc("group", null)(updated.todo)}); 
                     }
                 }
 
             }else if(isHeading(draggedTodo as Heading)){
                 let sourceProjectId = this.props.project._id;
                 let heading = selectedItems[0];
-
-                let todos = compose(
-                    reject(typeEquals('creation')), 
-                    drop(1)
-                )(selectedItems);
+                let todos = compose(reject(typeEquals('creation')), drop(1))(selectedItems);
 
                 this.onDropMany(sourceProjectId,event,heading,todos); 
             };

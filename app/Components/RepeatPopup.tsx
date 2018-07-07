@@ -232,7 +232,19 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         }
 
         let load = [
-            {type:"updateTodo", load:{...todo, attachedDate:defaultTo(start)(todo.attachedDate), group:{type:selectedOption, _id:groupId, options}}},
+            {
+                type:"updateTodo", 
+                load:{
+                    ...todo, 
+                    attachedDate:defaultTo(start)(todo.attachedDate), 
+                    group:{
+                        projectId:prop('_id')(project), 
+                        type:selectedOption, 
+                        _id:groupId, 
+                        options
+                    }
+                }
+            },
             {type:"addTodos",   load:repeatedTodos}
         ];
 

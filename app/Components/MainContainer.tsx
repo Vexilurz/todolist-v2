@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
-import {isDev} from "../utils/isDev"; 
+import { isDev } from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { Todo, Project, Area, Calendar, Category, action } from '.././types';
 import Print from 'material-ui/svg-icons/action/print';  
@@ -38,9 +38,7 @@ import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
 import { getData, updateQuickEntryData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
-import { 
-    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, isTodayOrPast, log
-} from '../utils/utils';
+import { isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, isTodayOrPast, log } from '../utils/utils';
 import { threeDaysLater, inPast, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 import { introListLayout, getIntroList } from '../utils/introList';
 import { fixIncomingData } from '../utils/fixIncomingData';
@@ -48,10 +46,11 @@ import { extend } from '../utils/extend';
 import { UpcomingDefault } from './Categories/Upcoming/UpcomingDefault';
 import { Tag } from './Categories/Tag';
 
-//const MockDate = require('mockdate');  
-//let testDate = () => MockDate.set( new Date().getTime() + (1000*60*60*24*300) );
-//testDate();
-
+/*
+const MockDate = require('mockdate');  
+let testDate = () => MockDate.set( new Date().getTime() + (1000*60*60*24*100) );
+testDate();
+*/
 
 let hideImportCalendarsHint : (calendars:Calendar[], showHint:boolean) => 
     (actions:action[]) => action[] =
