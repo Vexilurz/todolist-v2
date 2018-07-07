@@ -156,10 +156,11 @@ export class Login extends Component<LoginProps,LoginState>{
             when(isNotNil,globalErrorHandler)
         ); 
 
-       
-        
         return Promise
-        .all([retrieveKey(this.props),requestKey(token, password)])
+        .all([
+            retrieveKey(this.props),
+            requestKey(token, password)
+        ])
         .then(
             //return key or null
             ifElse(

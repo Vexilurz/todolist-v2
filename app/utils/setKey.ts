@@ -1,4 +1,4 @@
-import { server } from './couchHost';
+import { server, host } from './couchHost';
 import { getCredentialsFromToken } from './getCredentialsFromToken';
 import axios from 'axios';
 import { decryptKey } from './crypto/crypto';
@@ -6,6 +6,7 @@ import { isNil, prop, isEmpty } from 'ramda';
 import { workerSendAction } from './workerSendAction';
 import { pouchWorker } from '../app';
 import { Config, actionSetKey } from '../types';
+import { getToken } from './getToken';
 const remote = require('electron').remote;
 const session = remote.session;
 
@@ -22,9 +23,16 @@ export let setKey = (config:Config) => {
                     let cookie = cookies[0];
                     if(cookie && cookie.name==="AuthToken" && isNil(key)){
                         let token = cookie.value; 
-                        let {password} = getCredentialsFromToken(token);
+                        let { password, username } = getCredentialsFromToken(token);
 
-                        return axios({method:'get',url:`${server}/users/key`,headers:{'AuthToken':token}}) 
+                        return axios({ 
+                            method:'post', 
+                            url:`${host}/_session`, 
+                            data:{ name:username, password }, 
+                            headers: {'Authorization': 'Basic ' + getToken({username, password})}
+                        }).then(
+                            () => axios({method:'get',url:`${server}/users/key`,headers:{'AuthToken':token}}) 
+                        )
                         .then(prop("data"))
                         .then((key:any) => {
                             if(isNil(key) || isEmpty(key)){

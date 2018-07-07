@@ -10,7 +10,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { 
     isNil, contains, drop, map, compose, adjust, findIndex, cond, 
     prepend, equals, lt, lte, add, takeWhile, splitAt, insertAll, 
-    last, prop, when, reject, ifElse, path 
+    last, prop, when, reject, ifElse, assoc, all, any, uniq, path
 } from 'ramda';
 import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
@@ -298,11 +298,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
 
 
-    onDropMany = (event:any,heading:Heading,todos:Todo[]) => {
+    onDropMany = (sourceProjectId:string, event:any, heading:Heading, todos:Todo[]) => {
         if(isDev()){
            assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
            assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
         }
+
+        let someWithGroup = any( compose(isNotNil,prop('group')) );
 
         let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook, filters } = this.props;
         let selectedProjectIdx = findIndex((p:Project) => p._id===selectedProjectId, projects);
@@ -325,16 +327,19 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 })
             );
 
-            dispatch({type:"multiple", load:[
-                {type:"updateProjects",load:updatedProjects},
-                {type:"updateTodos",load:updatedTodos}
-            ]}); 
+            dispatch({
+                type:"multiple", 
+                load:[
+                    {type:"updateProjects",load:updatedProjects},
+                    {type:"updateTodos",load:updatedTodos.map( assoc("group", null) ) } //remove group
+                ]
+            }); 
 
         }else if(isProject(project)){
 
             let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
-
-            dispatch({ 
+            let actions = [];
+            actions.push({ 
                 type:"updateProjects", 
                 load:adjust(
                     (p:Project) => ({...p, layout:[...project.layout, heading, ...todos.map((todo:Todo) => todo._id)]}),
@@ -342,6 +347,20 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     updatedProjects
                 )
             });
+
+            if(someWithGroup(todos)){
+                let groupsIds = uniq(todos.map(path(['group','_id'])));
+
+                actions.push(
+                    ...groupsIds.map( groupId => ({type:"removeGroupFromProject", load:{ groupId,  projectId:sourceProjectId  }}) )
+                );
+
+                actions.push(
+                    ...groupsIds.map( groupId => ({type:"attachGroupToProject", load:{ groupId, projectId:project._id  }}) )
+                );
+            }
+
+            dispatch({type:"multiple",load:actions});
         }
     };
     
@@ -388,7 +407,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     actions.push({type:"removeGroupFromProject", load:{ groupId:group._id, projectId:group.projectId}});
                     actions.push({type:"attachGroupToProject", load:{ groupId:group._id, projectId:project._id}});
                 
-                }else{
+                }else if(isCategory(category)){
 
                     let updated : { projects:Project[], todo:Todo } = onDrop({
                         event, 
@@ -403,15 +422,20 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     }
                     
                     if(updated.todo){ 
-                        actions.push({type:"updateTodo", load:updated.todo}); 
+                        actions.push({type:"updateTodo", load:assoc("group", null)(updated.todo)}); 
                     }
                 }
 
             }else if(isHeading(draggedTodo as Heading)){
-
+                let sourceProjectId = this.props.project._id;
                 let heading = selectedItems[0];
-                let todos = compose(reject(typeEquals('creation')), drop(1))(selectedItems);
-                this.onDropMany(event,heading,todos); 
+
+                let todos = compose(
+                    reject(typeEquals('creation')), 
+                    drop(1)
+                )(selectedItems);
+
+                this.onDropMany(sourceProjectId,event,heading,todos); 
             };
 
         }else{   

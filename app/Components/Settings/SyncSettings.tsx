@@ -97,23 +97,23 @@ export class SyncSettings extends Component<SyncSettingsProps,SyncSettingsState>
                 />
             </div>
             <div style={{width:"50%",height:"80%",display:"flex",alignItems:"center"}}> 
-                { 
-                    this.state.authenticated ?
-                    <Connected
-                        setAuthenticated={this.setAuthenticated}
-                        dispatch={this.props.dispatch}
-                        email={this.props.email}
-                        sync={this.props.sync}
-                        lastSync={this.props.lastSync}
-                    />
-                    :
-                    <Login
-                        setAuthenticated={this.setAuthenticated}
-                        secretKey={this.props.secretKey}
-                        dispatch={this.props.dispatch}
-                        email={this.props.email}
-                    />  
-                } 
+            { 
+                this.state.authenticated ?
+                <Connected
+                    setAuthenticated={this.setAuthenticated}
+                    dispatch={this.props.dispatch}
+                    email={this.props.email}
+                    sync={this.props.sync}
+                    lastSync={this.props.lastSync}
+                />
+                :
+                <Login
+                    setAuthenticated={this.setAuthenticated}
+                    secretKey={this.props.secretKey}
+                    dispatch={this.props.dispatch}
+                    email={this.props.email}
+                />  
+            } 
             </div>
         </div>
     }

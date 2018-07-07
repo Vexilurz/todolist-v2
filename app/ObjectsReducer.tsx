@@ -105,7 +105,10 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let selectedTodos = filter( state.todos, (t:Todo) => action.load.groupId===path(['group','_id'], t) );
                     let selectedTodosIds = selectedTodos.map(prop('_id'));
                     let project = state.projects.find(p => p._id===action.load.projectId);
-                    let updatedProject = evolve({ layout:layout => [...selectedTodosIds,...layout] }, project);
+                    let updatedProject = evolve(
+                        { layout:layout => [...selectedTodosIds.filter(item => !contains(item)(layout)),...layout] }, 
+                        project
+                    );
                     let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], action.load.projectId) );
 
                     console.log("attachGroupToProject",updatedProject,updatedTodos);
