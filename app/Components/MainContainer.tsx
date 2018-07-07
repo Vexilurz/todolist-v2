@@ -81,13 +81,9 @@ let addIntroList = (projects:Project[],firstLaunch:boolean) =>
 let addExtendedTodos = (projects:Project[], limit:Date, todos:Todo[]) => (actions:action[]) : action[] => {
     let extended : Todo[] = extend(projects, limit, todos);
 
-    console.log(`0) extended`, extended);
-
     let attachToProjectActions = compose(
         reject(isNil),
-        log('4) flat'),
         values,
-        log('3) mapped'),
         mapObjIndexed(
             (value:Todo[],projectId:string) : action => {
                 let project = projects.find(p => p._id===projectId);
@@ -97,15 +93,8 @@ let addExtendedTodos = (projects:Project[], limit:Date, todos:Todo[]) => (action
                 })
             }
         ),
-        log('2) grouped'),
-        groupBy(path(['group','projectId'])),
-        log('1) with project ids'),
-        reject(
-            compose(
-                isNil, 
-                path(['group','projectId'])
-            )
-        )
+        groupBy( path(['group','projectId']) ),
+        reject( compose( isNil, path(['group','projectId']) ) )
     )(extended);
 
     let result = compose(

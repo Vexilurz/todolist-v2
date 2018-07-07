@@ -14,7 +14,7 @@ import {
 } from 'ramda';
 import { indexToPriority } from '../utils/indexToPriority';
 import { SortableContainer } from './CustomSortableContainer';
-import { isCategory, isTodo, isProject } from '../utils/isSomething'; 
+import { isCategory, isTodo, isProject, isString } from '../utils/isSomething'; 
 import { assert } from '../utils/assert';
 import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';
@@ -427,22 +427,36 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let leftpanel = document.getElementById("leftpanel");
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){  
- 
-            let updated : { projects:Project[],todo:Todo } = onDrop({
-                event, 
-                draggedTodo, 
-                projects, 
-                config:{moveCompletedItemsToLogbook},
-                filters
-            }); 
 
-            if(updated.projects){
-               actions.push({type:"updateProjects", load:updated.projects});
+            if(isNil(draggedTodo['group'])){
+                let updated : { projects:Project[],todo:Todo } = onDrop({
+                    event, 
+                    draggedTodo, 
+                    projects, 
+                    config:{moveCompletedItemsToLogbook},
+                    filters
+                }); 
+
+                if(updated.projects){
+                    actions.push({type:"updateProjects", load:updated.projects});
+                }
+
+                if(updated.todo){
+                    actions.push({type:"updateTodo", load:updated.todo});
+                }
+            }else{
+                
+                let { project, category } = findDropTarget(event,projects);
+                let todo = draggedTodo as Todo;
+                let group = todo.group;
+
+                if(isString(group.projectId)){
+                   actions.push({type:"removeGroupFromProject", load:{ groupId:group.last, projectId:group.projectId }});
+                }
+
+                actions.push({ type:"attachGroupToProject", load:{groupId:group._id,projectId:project._id} });
             }
 
-            if(updated.todo){
-               actions.push({type:"updateTodo", load:updated.todo});
-            }
         }else{     
 
             if(oldIndex===newIndex){ return }

@@ -7,7 +7,7 @@ import {
     adjust, cond, isEmpty, contains, remove, uniq, assoc, reverse, 
     findIndex, splitAt, last, assocPath, isNil, and, compose, add, 
     reject, map, when, find, prop, ifElse, identity, path,  defaultTo,
-    insert  
+    insert, evolve  
 } from 'ramda'; 
 import { filter } from 'lodash';
 import { isString, isDate, isHeading, isTodo, isNotNil } from './utils/isSomething';
@@ -45,12 +45,79 @@ let updateOtherInstances = (action:action) => (newState:Store) => {
 };
 
 
+let updateTodos = (state:Store) => (action:{type:string, load:Todo[]}) : Store => {
+    let changedTodos = action.load;
+    let changedIds:string[] = changedTodos.map((t:Todo) => t._id);
+
+    if(isEmpty(changedIds)){ 
+       return { ...state };  
+    }
+     
+    let todos : Todo[] = state.todos.map(
+        ifElse(
+            (todo) => contains(todo._id)(changedIds),
+            (todo) => ({...todo,...changedTodos.find( t => t._id===todo._id )}),
+            identity
+        )
+    );
+
+    /*compose(concat(changedTodos), reject((todo:Todo) => contains(todo._id)(changedIds)))(state.todos);*/
+
+    return { ...state, todos };
+}; 
+
+
+
+let updateProject = (state:Store) => (action:{type:string, load:Project}) : Store => {
+    let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
+    let projects = adjust((p) => ({...p,...action.load}), idx, state.projects);
+    return {...state, projects};
+};
+
+
 
 export let objectsReducer = (state:Store, action:action) : Store => { 
     return compose(
         updateOtherInstances(action),  
         cond([ 
+            [ 
+                typeEquals("removeGroupFromProject"),
+                (action:{type:string,load:{ groupId:string, projectId:string }}) : Store => {
+                    let selectedTodos = filter( state.todos, (t:Todo) => action.load.groupId===path(['group','_id'], t) );
+                    let selectedTodosIds = selectedTodos.map(prop('_id'));
+                    let project = state.projects.find(p => p._id===action.load.projectId);
+                    let updatedProject = evolve({ layout:reject(item => contains(item)(selectedTodosIds)) }, project);
+                    let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], null) );
 
+                    console.log("removeGroupFromProject",updatedProject,updatedTodos);
+
+                    let newState = compose(
+                        state => updateProject(state)({type:"updateProject", load:updatedProject}), 
+                        state => updateTodos(state)({type:"updateTodos", load:updatedTodos})
+                    )(state);
+
+                    return ({...newState});
+                }   
+            ],
+            [ 
+                typeEquals("attachGroupToProject"),
+                (action:{type:string,load:{groupId:string,projectId:string}}) : Store => {
+                    let selectedTodos = filter( state.todos, (t:Todo) => action.load.groupId===path(['group','_id'], t) );
+                    let selectedTodosIds = selectedTodos.map(prop('_id'));
+                    let project = state.projects.find(p => p._id===action.load.projectId);
+                    let updatedProject = evolve({ layout:layout => [...layout,...selectedTodosIds] }, project);
+                    let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], action.load.projectId) );
+
+                    console.log("attachGroupToProject",updatedProject,updatedTodos);
+
+                    let newState = compose(
+                        state => updateProject(state)({type:"updateProject", load:updatedProject}), 
+                        state => updateTodos(state)({type:"updateTodos", load:updatedTodos})
+                    )(state);
+
+                    return ({...newState});
+                }   
+            ],
             [ 
                 typeEquals("shouldSendStatistics"),
                 (action:{type:string,load:boolean}) : Store => {
@@ -258,27 +325,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 })
             ],
             [ 
-                typeEquals("updateTodos"),
-                (action:{type:string, load:Todo[]}) : Store => {
-                    let changedTodos = action.load;
-                    let changedIds:string[] = changedTodos.map((t:Todo) => t._id);
-
-                    if(isEmpty(changedIds)){ 
-                       return { ...state };  
-                    }
-                     
-                    let todos : Todo[] = state.todos.map(
-                        ifElse(
-                            (todo) => contains(todo._id)(changedIds),
-                            (todo) => ({...todo,...changedTodos.find( t => t._id===todo._id )}),
-                            identity
-                        )
-                    );
-
-                    /*compose(concat(changedTodos), reject((todo:Todo) => contains(todo._id)(changedIds)))(state.todos);*/
-
-                    return { ...state, todos };
-                } 
+                typeEquals("updateTodos"), updateTodos(state)
             ], 
             [
                 typeEquals("updateTodoById"),
@@ -547,13 +594,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 }
             ],
             [ 
-                typeEquals("updateProject"),
-
-                (action:{type:string, load:Project}) : Store => {
-                    let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
-                    let projects = adjust((p) => ({...p,...action.load}), idx, state.projects);
-                    return {...state, projects};
-                }
+                typeEquals("updateProject"), updateProject(state)
             ],
             [ 
                 typeEquals("updateArea"),

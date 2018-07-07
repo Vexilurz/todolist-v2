@@ -10,7 +10,7 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
 import { Category, ChecklistItem, Todo, Project, Area, LayoutItem, Store } from '../types';
-import { remove, isNil, not, and, equals } from 'ramda';
+import { remove, isNil, not, and, equals, path, prop, contains, evolve, reject, assocPath } from 'ramda';
 let uniqid = require("uniqid");    
 import { isDev } from '../utils/isDev'; 
 import { Observable } from 'rxjs/Rx';
@@ -21,8 +21,8 @@ import { attachDispatchToProps, getCompletedWhen } from '../utils/utils';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { generateId } from '../utils/generateId';
 import { noteFromState, getNotePlainTextFromRaw } from '../utils/draftUtils';
-import { isNotNil } from '../utils/isSomething';
- 
+import { isNotNil, isString } from '../utils/isSomething';
+import { filter } from 'lodash';
 
  
 interface RightClickMenuState{
@@ -192,40 +192,41 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
  
 
     
-    removeFromProject = () => {
-        let {projects, dispatch, selectedProjectId, rightClickedTodoId} = this.props;
-        let project : Project = projects.find((p:Project) => p._id===selectedProjectId);
-        
-        if(isNil(project)){ return }
-        
-        let layout : LayoutItem[] = [...project.layout]; 
-        let idx : number = layout.findIndex((i:LayoutItem) => i===rightClickedTodoId);
- 
-        if(idx!==-1){
-            dispatch({
-                type:"updateProject", 
-                load:{
-                    ...project, 
-                    layout:remove(idx,1,layout)
-                }
-            });
-        }
-    };
-
-
- 
     onRemoveFromProjectArea = (e) => {
         let {selectedCategory, selectedProjectId, selectedAreaId} = this.props;
 
-        let projectSelected : boolean = and(
-            equals(selectedCategory,"project"),
-            not(isNil(selectedProjectId))
-        );
+        let projectSelected : boolean = and( equals(selectedCategory,"project"), isNotNil(selectedProjectId) );
            
         if(projectSelected){
            this.removeFromProject();
         }
     };  
+
+
+
+    removeFromProject = () => {
+        let {projects, dispatch, selectedProjectId, rightClickedTodoId} = this.props;
+        let project : Project = projects.find((p:Project) => p._id===selectedProjectId);
+        let todo : Todo = this.getRightClickedTodo();
+
+        if(isNil(project)){ return }
+
+        if(isNotNil(todo.group)){  
+            let selectedTodos = filter( this.props.todos, (t:Todo) => todo.group._id===path(['group','_id'], t) );
+            let selectedTodosIds = selectedTodos.map(prop('_id'));
+            let updatedProject = evolve({ layout:reject(item => contains(item)(selectedTodosIds)) }, project);
+            let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], null) );
+            let load = [{type:"updateProject", load:updatedProject}, {type:"updateTodos", load:updatedTodos}];
+            dispatch({ type:"multiple", load });
+        }else{ 
+            let layout : LayoutItem[] = [...project.layout]; 
+            let idx : number = layout.findIndex((i:LayoutItem) => i===rightClickedTodoId);
+        
+            if(idx!==-1){
+               dispatch({type:"updateProject", load:{...project,layout:remove(idx,1,layout)}});
+            }
+        }
+    };
 
 
 

@@ -23,10 +23,11 @@ import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
-import { isDate, isToday, isNotNil } from '../../utils/isSomething';
+import { isDate, isToday } from '../../utils/isSomething';
 import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
 import { getTime, setTime } from '../../utils/time';
   
+
 
 export interface TodoCreationFormState{  
     open : boolean,
@@ -52,6 +53,7 @@ export interface TodoCreationFormState{
     showDeadlineCalendar : boolean
 }   
 
+
     
 export interface TodoCreationFormProps{ 
     dispatch:Function,  
@@ -67,6 +69,7 @@ export interface TodoCreationFormProps{
     targetHeading?:Heading
 }    
  
+
   
 export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreationFormState>{
     calendar:HTMLElement; 
@@ -250,8 +253,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let {selectedCategory,dispatch,selectedProjectId,selectedAreaId} = this.props;
         let timeSeconds = Math.round(new Date().getTime() / 1000);
         let actions = [];
-
-        console.log(`add todo ${todo.title} - ${todo._id}`);
 
         googleAnalytics.send(  
             'event', 

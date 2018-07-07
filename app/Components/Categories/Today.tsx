@@ -6,16 +6,16 @@ import { Component } from "react";
 import { byNotCompleted, byNotDeleted, getTagsFromItems, generateDropStyle, byTags, byCategory } from "../../utils/utils";  
 import { Todo, Project, Area, Calendar, Category, CalendarEvent, action } from '../../types'; 
 import { Tags } from '../../Components/Tags';
-import { onDrop } from '.././TodosList'; 
+import { onDrop, findDropTarget } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, not, flatten, ifElse, prop, compose, map, identity } from 'ramda';
+import { allPass, isEmpty, not, flatten, ifElse, prop, compose, map, identity, isNil } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { filter } from 'lodash'; 
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
-import { isTodo, isNotTodo } from '../../utils/isSomething';
+import { isTodo, isNotTodo, isString } from '../../utils/isSomething';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateId } from '../../utils/generateId';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
@@ -279,21 +279,37 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
-            let updated : { projects:Project[], todo:Todo } = onDrop({
-                event, 
-                draggedTodo, 
-                projects, 
-                config:{moveCompletedItemsToLogbook},
-                filters
-            }); 
 
-            if(updated.projects){
-               actions.push({type:"updateProjects", load:updated.projects});
+            if(isNil(draggedTodo['group'])){
+
+                let updated : { projects:Project[], todo:Todo } = onDrop({
+                    event, 
+                    draggedTodo, 
+                    projects, 
+                    config:{moveCompletedItemsToLogbook},
+                    filters
+                }); 
+
+                if(updated.projects){
+                   actions.push({type:"updateProjects", load:updated.projects});
+                }
+
+                if(updated.todo){
+                   actions.push({type:"updateTodo", load:updated.todo});
+                }
+            }else{
+
+                let { project, category } = findDropTarget(event,projects);
+                let todo = draggedTodo as Todo;
+                let group = todo.group;
+
+                if(isString(group.projectId)){
+                   actions.push({type:"removeGroupFromProject", load:{ groupId:group.last, projectId:group.projectId }});
+                }
+
+                actions.push({ type:"attachGroupToProject", load:{groupId:group._id,projectId:project._id} });
             }
 
-            if(updated.todo){
-               actions.push({type:"updateTodo", load:updated.todo});
-            }
         }else{     
  
             if(oldIndex===newIndex){ return }

@@ -325,21 +325,19 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 })
             );
 
-            dispatch({
-                type:"multiple",
-                load:[{type:"updateProjects",load:updatedProjects},{type:"updateTodos",load:updatedTodos}]
-            }); 
+            dispatch({type:"multiple", load:[
+                {type:"updateProjects",load:updatedProjects},
+                {type:"updateTodos",load:updatedTodos}
+            ]}); 
 
         }else if(isProject(project)){
+
             let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
 
             dispatch({ 
                 type:"updateProjects", 
                 load:adjust(
-                    (p:Project) => ({ 
-                        ...p, 
-                        layout:[...project.layout, heading, ...todos.map((todo:Todo) => todo._id)]   
-                    }),
+                    (p:Project) => ({...p, layout:[...project.layout, heading, ...todos.map((todo:Todo) => todo._id)]}),
                     idx, 
                     updatedProjects
                 )
@@ -347,6 +345,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
     };
     
+
 
     componentWillReceiveProps(nextProps){
         if(this.currentScroll && this.props.rootRef){
@@ -380,21 +379,37 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
             if(isTodo(draggedTodo)){
 
-                let updated : { projects:Project[], todo:Todo } = onDrop({
-                    event, 
-                    draggedTodo : draggedTodo as Todo, 
-                    projects, 
-                    config:{moveCompletedItemsToLogbook},
-                    filters
-                }); 
+                if(isNil(draggedTodo['group'])){
 
-                if(updated.projects){ 
-                    actions.push({type:"updateProjects", load:updated.projects}); 
+                    let updated : { projects:Project[], todo:Todo } = onDrop({
+                        event, 
+                        draggedTodo : draggedTodo as Todo, 
+                        projects, 
+                        config:{moveCompletedItemsToLogbook},
+                        filters
+                    }); 
+
+                    if(updated.projects){ 
+                        actions.push({type:"updateProjects", load:updated.projects}); 
+                    }
+                    
+                    if(updated.todo){ 
+                        actions.push({type:"updateTodo", load:updated.todo}); 
+                    }
+
+                }else{
+
+                    let { project, category } = findDropTarget(event,projects);
+                    let todo = draggedTodo as Todo;
+                    let group = todo.group;
+
+                    if(isString(group.projectId)){
+                       actions.push({type:"removeGroupFromProject", load:{ groupId:group.last, projectId:group.projectId }});
+                    }
+
+                    actions.push({ type:"attachGroupToProject", load:{groupId:group._id,projectId:project._id} });
                 }
-                
-                if(updated.todo){ 
-                    actions.push({type:"updateTodo", load:updated.todo}); 
-                }
+
 
             }else if(isHeading(draggedTodo as Heading)){
 
