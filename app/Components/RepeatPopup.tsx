@@ -237,7 +237,8 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 load:{
                     ...todo, 
                     attachedDate:defaultTo(start)(todo.attachedDate), 
-                    group:{
+                    category:isNil(todo.attachedDate) ? "today" : todo.category,
+                    group:{ 
                         projectId:prop('_id')(project), 
                         type:selectedOption, 
                         _id:groupId, 
@@ -245,8 +246,10 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     }
                 }
             },
-            {type:"addTodos",   load:repeatedTodos}
+            {type:"addTodos", load:repeatedTodos}
         ];
+
+        console.log("TARGET",load[0].load)
 
         if(isNotNil(project)){
             load.push({
@@ -275,7 +278,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         this.subscriptions = [];
     } 
 
-
+  
 
     onOutsideClick = (e) => {
         if(isNil(this.ref)){ return }
