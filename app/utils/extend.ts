@@ -1,19 +1,9 @@
 
-import { 
-    Todo, Project, Area, 
-    Calendar, Category, CalendarEvent, 
-    RepeatOptions, objectsByDate 
-} from './../types';
-import { 
-    byTags, getDayName, getDatesRange, byNotCompleted, byNotDeleted,
-    getTagsFromItems, getMonthName, yearFromDate, convertTodoDates,
-    getRangeDays, isNotEmpty, typeEquals, compareByDate, monthFromDate,
-    log, anyTrue, different, initDate, nDaysFromNow
-} from './utils';  
+import { Todo, Project, RepeatOptions } from './../types';
+import { compareByDate, initDate } from './utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
-    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
+    isNil, compose, map, flatten, prop, uniqBy, groupBy, 
+    defaultTo, all, evolve, path, values, equals, anyPass
 } from 'ramda';
 import { filter } from 'lodash'; 
 import { repeat } from '../Components/RepeatPopup';
@@ -36,12 +26,9 @@ export let extend = (projects:Project[], limit:Date, todos:Todo[]) : Todo[] => {
                     let group = todo.group;
                     let projectId = group.projectId;
                     let project = undefined;
-
-                    console.log(`extend recent projectId:${projectId}`, todo);
                     
                     if(projectId){
                        project = projects.find(p => p._id===projectId);
-                       console.log(`target project`, project);
                     }
                     
                     let options : RepeatOptions = compose( evolve({until:initDate}), prop('options') )(group);
@@ -70,7 +57,6 @@ export let extend = (projects:Project[], limit:Date, todos:Todo[]) : Todo[] => {
         groupBy(path(['group','_id'])),
         (todos) => filter(todos, groupButNotAfter)
     )(todos);
-
 
     if(isDev()){
        assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. extend.`);

@@ -14,7 +14,7 @@ import {
 } from 'ramda';
 import { indexToPriority } from '../utils/indexToPriority';
 import { SortableContainer } from './CustomSortableContainer';
-import { isCategory, isTodo, isProject, isString } from '../utils/isSomething'; 
+import { isCategory, isTodo, isProject, isString, isNotNil } from '../utils/isSomething'; 
 import { assert } from '../utils/assert';
 import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';
@@ -426,36 +426,41 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         let leftpanel = document.getElementById("leftpanel");
 
-        if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){  
+        if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
+             
+            let todo = draggedTodo as Todo;
+            let { project, category } = findDropTarget(event,projects);
 
-            if(isNil(draggedTodo['group'])){
-                let updated : { projects:Project[],todo:Todo } = onDrop({
+            if(isProject(project) && isNotNil(todo.group)){
+
+                let todo = draggedTodo as Todo;
+                let group = todo.group;
+
+                if(isString(group.projectId)){
+                   actions.push({type:"removeGroupFromProject", load:{ groupId:group._id,  projectId:group.projectId }});
+                }
+
+                actions.push({type:"attachGroupToProject", load:{ groupId:group._id, projectId:project._id }});
+            
+            }else{
+
+                let updated : { projects:Project[], todo:Todo } = onDrop({
                     event, 
-                    draggedTodo, 
+                    draggedTodo : draggedTodo as Todo, 
                     projects, 
                     config:{moveCompletedItemsToLogbook},
                     filters
                 }); 
 
-                if(updated.projects){
-                    actions.push({type:"updateProjects", load:updated.projects});
+                if(updated.projects){ 
+                    actions.push({type:"updateProjects", load:updated.projects}); 
                 }
-
-                if(updated.todo){
-                    actions.push({type:"updateTodo", load:updated.todo});
-                }
-            }else{
                 
-                let { project, category } = findDropTarget(event,projects);
-                let todo = draggedTodo as Todo;
-                let group = todo.group;
-
-                if(isString(group.projectId)){
-                   actions.push({type:"removeGroupFromProject", load:{ groupId:group.last, projectId:group.projectId }});
+                if(updated.todo){ 
+                    actions.push({type:"updateTodo", load:updated.todo}); 
                 }
-
-                actions.push({ type:"attachGroupToProject", load:{groupId:group._id,projectId:project._id} });
             }
+
 
         }else{     
 

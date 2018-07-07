@@ -1,9 +1,6 @@
 import { quickEntry, mainWindow } from './main';
-import { 
-    isNil, not, forEachObjIndexed, when, contains, compose, equals, 
-    ifElse, reject, isEmpty, defaultTo, map, identity, toLower 
-} from 'ramda';  
-import { globalShortcut } from 'electron';
+import { isNil, forEachObjIndexed, ifElse, identity } from 'ramda';  
+const electronLocalshortcut = require('electron-localshortcut');
 
 
 
@@ -17,7 +14,7 @@ let shortcuts = {
         quickEntry.webContents.send("focus"); 
     },
 
-    'Ctrl+Alt+D+P':() => {
+    'Ctrl+Alt+D':() => {
         if(!mainWindow['focused'] ){ return }
 
         mainWindow.webContents.openDevTools()
@@ -35,19 +32,19 @@ let shortcuts = {
  
 export let registerAllShortcuts = () : void => {
     forEachObjIndexed(
-        (value:Function,key:string) => globalShortcut.register(key, value)  
+        (value:Function,key:string) => electronLocalshortcut.register(key, value)  
     )(shortcuts)
 }; 
  
 
 
-export let unregisterAllShortcuts = () => globalShortcut.unregisterAll();
+export let unregisterAllShortcuts = () => electronLocalshortcut.unregisterAll();
 
 
 
 export let toggleShortcut : (enable:boolean, shortcut:string) => void =
     ifElse(
         identity,
-        (enable, shortcut) => globalShortcut.register(shortcut, shortcuts[shortcut]),
-        (enable, shortcut) => globalShortcut.unregister(shortcut)
+        (enable, shortcut) => electronLocalshortcut.register(shortcut, shortcuts[shortcut]),
+        (enable, shortcut) => electronLocalshortcut.unregister(shortcut)
     ); 

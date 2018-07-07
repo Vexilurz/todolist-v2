@@ -15,7 +15,7 @@ import { filter } from 'lodash';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
-import { isTodo, isNotTodo, isString } from '../../utils/isSomething';
+import { isTodo, isNotTodo, isString, isProject, isNotNil } from '../../utils/isSomething';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateId } from '../../utils/generateId';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
@@ -271,48 +271,49 @@ export class Today extends Component<TodayProps,TodayState>{
         let draggedTodo = items[oldIndex] as Todo;
         let actions = [{type:"dragged",load:null}];
 
-
         if(isNotTodo(draggedTodo)){
            this.props.dispatch({type:"multiple",load:actions});
            return;
         }
 
-
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
 
-            if(isNil(draggedTodo['group'])){
+            let todo = draggedTodo as Todo;
+            let { project, category } = findDropTarget(event,projects);
+
+            if(isProject(project) && isNotNil(todo.group)){
+
+                let todo = draggedTodo as Todo;
+                let group = todo.group;
+
+                if(isString(group.projectId)){
+                   actions.push({type:"removeGroupFromProject", load:{ groupId:group._id,  projectId:group.projectId }});
+                }
+
+                actions.push({type:"attachGroupToProject", load:{ groupId:group._id, projectId:project._id }});
+            
+            }else{
 
                 let updated : { projects:Project[], todo:Todo } = onDrop({
                     event, 
-                    draggedTodo, 
+                    draggedTodo : draggedTodo as Todo, 
                     projects, 
                     config:{moveCompletedItemsToLogbook},
                     filters
                 }); 
 
-                if(updated.projects){
-                   actions.push({type:"updateProjects", load:updated.projects});
+                if(updated.projects){ 
+                    actions.push({type:"updateProjects", load:updated.projects}); 
                 }
-
-                if(updated.todo){
-                   actions.push({type:"updateTodo", load:updated.todo});
+                
+                if(updated.todo){ 
+                    actions.push({type:"updateTodo", load:updated.todo}); 
                 }
-            }else{
-
-                let { project, category } = findDropTarget(event,projects);
-                let todo = draggedTodo as Todo;
-                let group = todo.group;
-
-                if(isString(group.projectId)){
-                   actions.push({type:"removeGroupFromProject", load:{ groupId:group.last, projectId:group.projectId }});
-                }
-
-                actions.push({ type:"attachGroupToProject", load:{groupId:group._id,projectId:project._id} });
             }
 
-        }else{     
- 
+        }else{  
             if(oldIndex===newIndex){ return }
+
             let changeOrderAction = this.changeOrder(oldIndex,newIndex,items);
             actions.push(changeOrderAction);  
         }    

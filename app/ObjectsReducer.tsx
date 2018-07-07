@@ -86,14 +86,14 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let selectedTodos = filter( state.todos, (t:Todo) => action.load.groupId===path(['group','_id'], t) );
                     let selectedTodosIds = selectedTodos.map(prop('_id'));
                     let project = state.projects.find(p => p._id===action.load.projectId);
-                    let updatedProject = evolve({ layout:reject(item => contains(item)(selectedTodosIds)) }, project);
+                    let updatedProject = evolve({ layout:reject(item => contains(item, selectedTodosIds)) }, project);
                     let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], null) );
 
                     console.log("removeGroupFromProject",updatedProject,updatedTodos);
 
                     let newState = compose(
                         state => updateProject(state)({type:"updateProject", load:updatedProject}), 
-                        state => updateTodos(state)({type:"updateTodos", load:updatedTodos})
+                        state => updateTodos(state)({type:"updateTodos", load:updatedTodos}) 
                     )(state);
 
                     return ({...newState});
@@ -105,7 +105,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let selectedTodos = filter( state.todos, (t:Todo) => action.load.groupId===path(['group','_id'], t) );
                     let selectedTodosIds = selectedTodos.map(prop('_id'));
                     let project = state.projects.find(p => p._id===action.load.projectId);
-                    let updatedProject = evolve({ layout:layout => [...layout,...selectedTodosIds] }, project);
+                    let updatedProject = evolve({ layout:layout => [...selectedTodosIds,...layout] }, project);
                     let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], action.load.projectId) );
 
                     console.log("attachGroupToProject",updatedProject,updatedTodos);

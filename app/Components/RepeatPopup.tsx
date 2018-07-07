@@ -81,7 +81,7 @@ export let repeat = (
        assert(isTodo(todo),'todo is not of type Todo. repeat.');
        assert(isDate(start),'start is not of type Date. repeat.');
        assert(isDate(end),'end is not of type Date. repeat.');
-       assert(isRepeatOptions(options),`options is not of type RepeatOptions. repeat. ${JSON.stringify(options)}`);
+       //assert(isRepeatOptions(options),`options is not of type RepeatOptions. repeat. ${JSON.stringify(options)}`);
     }
 
     let { 
