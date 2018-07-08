@@ -24,7 +24,7 @@ const path = require("path");
 const configPath = path.resolve(os.homedir(), "Documents", "tasklist");
 storage.setDataPath(configPath);
 
-
+ 
  
 export let mainWindow : BrowserWindow;   
 export let quickEntry : BrowserWindow;   
@@ -104,7 +104,12 @@ app.on('window-all-closed', onWindowAllClosed);
 
 process.on( 
     "unchaughtException" as any,
-    error => mainWindow ? mainWindow.webContents.send("error", error) : null
+    error => {
+        console.log(error);
+        if(mainWindow){
+           mainWindow.webContents.send("error", error);
+        }
+    }
 );
 
 

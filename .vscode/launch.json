@@ -10,14 +10,16 @@
       "args": ["."],  
       "cwd": "${workspaceRoot}",
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
-      "outFiles": [  
-        "${workspaceRoot}/dist/main.js" 
+      "outFiles":[  
+        "${workspaceRoot}/dist",
+        "${workspaceRoot}/dist/main.js",
+        "${workspaceRoot}/dist/main.js.map"
       ],
       "protocol":"inspector",
       "env": { }, 
-      "sourceMaps": true 
+      "sourceMaps":true 
     }   
   ]
-} 
+}  
   
 

@@ -5,7 +5,6 @@ import { app } from 'electron';
 
 export let onWindowAllClosed = () => { 
     unregisterAllGlobalShortcuts();
-    unregisterAllLocalShortcuts(); 
     listeners.stopToListenOnAllChannels();
     app.exit(); 
 };       

@@ -50,7 +50,6 @@ export let createTray = (mainWindow:BrowserWindow) : Tray => {
 
             let visible : boolean = mainWindow.isVisible();
             let windows = getWindows();
-
             if(visible){ 
                windows.forEach((w) => w.hide()); 
             }else if(not(visible)){ 
