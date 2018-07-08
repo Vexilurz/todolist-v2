@@ -8,7 +8,7 @@ import { generateDropStyle, removeHeading, typeEquals, log } from '../../utils/u
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { 
-    isNil, contains, drop, map, compose, adjust, findIndex, cond, 
+    isNil, contains, drop, map, compose, adjust, findIndex, cond, defaultTo,
     prepend, equals, lt, lte, add, takeWhile, splitAt, insertAll, 
     last, prop, when, reject, ifElse, assoc, all, any, uniq, path
 } from 'ramda';
@@ -339,6 +339,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
             let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
             let actions = [];
+
             actions.push({ 
                 type:"updateProjects", 
                 load:adjust(
@@ -349,14 +350,18 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             });
 
             if(someWithGroup(todos)){
-                let groupsIds = uniq(todos.map(path(['group','_id'])));
-
+                let groupsIds = compose( 
+                    uniq, 
+                    reject(isNil), 
+                    map(path(['group','_id'])) 
+                );
+                 
                 actions.push(
-                    ...groupsIds.map( groupId => ({type:"removeGroupFromProject", load:{ groupId,  projectId:sourceProjectId  }}) )
+                    ...groupsIds.map( groupId => ({type:"removeGroupFromProject", load:{ groupId, projectId:sourceProjectId }}) )
                 );
 
                 actions.push(
-                    ...groupsIds.map( groupId => ({type:"attachGroupToProject", load:{ groupId, projectId:project._id  }}) )
+                    ...groupsIds.map( groupId => ({type:"attachGroupToProject", load:{ groupId, projectId:project._id }}) )
                 );
             }
 
@@ -382,7 +387,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let y = event.clientY;  
         let items = this.props.items;
         let fromIndex = items.findIndex(i=> i._id===item._id);
-        let toIndex = above.map(id => items.find(i => i['_id']===id)).filter(isNotNil).length;
+        let toIndex = defaultTo([])(above).map(id => items.find(i => i['_id']===id)).filter(isNotNil).length;
 
         // dragged item -> ( heading + todos  |  todo )
         let selectedItems = compose(
@@ -408,14 +413,14 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     actions.push({type:"removeGroupFromProject", load:{ groupId:group._id, projectId:this.props.project._id }});
                     actions.push({type:"attachGroupToProject", load:{ groupId:group._id, projectId:project._id}});
                 
-                }else if(isCategory(category)){
+                }else{
 
                     let updated : { projects:Project[], todo:Todo } = onDrop({
                         event, 
                         draggedTodo : draggedTodo as Todo, 
                         projects, 
                         config:{moveCompletedItemsToLogbook},
-                        filters
+                        filters 
                     }); 
 
                     if(updated.projects){ 
@@ -425,7 +430,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     if(updated.todo){ 
                        actions.push({type:"updateTodo", load:assoc("group", null)(updated.todo)}); 
                     }
-                }
+                }   
 
             }else if(isHeading(draggedTodo as Heading)){
                 let sourceProjectId = this.props.project._id;

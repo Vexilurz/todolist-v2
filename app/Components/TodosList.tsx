@@ -63,13 +63,12 @@ export let removeTodosFromProjects =  (projects:Project[], todos:Todo[]) : Proje
         }) 
     );
 
-    assert(
-        all(
-            (p:Project) => intersection(p.layout,ids).length===0 , 
-            updated
-        ), 
-        'removeTodosFromProjects. incorrect logic.'
-    ); 
+    if(isDev()){
+        assert(
+            all((p:Project) => intersection(p.layout,ids).length===0, updated), 
+            'removeTodosFromProjects. incorrect logic.'
+        ); 
+    }
 
     return updated;
 };
@@ -398,19 +397,21 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         actions.push({type:"dragged",load:null}); 
         let draggedTodo = item;
 
-        assert(
-            draggedTodo._id===selected[oldIndex]._id, 
-           `incorrect index. ${newIndex}; 
-            draggedTodo : ${JSON.stringify(draggedTodo)};
-            selected[oldIndex] : ${selected[oldIndex]}; 
-            onSortEnd. TodosList.` 
-        );
+        if(isDev()){
+            assert(
+                draggedTodo._id===selected[oldIndex]._id, 
+            `incorrect index. ${newIndex}; 
+                draggedTodo : ${JSON.stringify(draggedTodo)};
+                selected[oldIndex] : ${selected[oldIndex]}; 
+                onSortEnd. TodosList.` 
+            );
 
 
-        assert(
-            isTodo(draggedTodo), 
-            `draggedTodo is not of type Todo ${draggedTodo}. TodosList.`
-        );
+            assert(
+                isTodo(draggedTodo), 
+                `draggedTodo is not of type Todo ${draggedTodo}. TodosList.`
+            );
+        }
 
 
         if(
