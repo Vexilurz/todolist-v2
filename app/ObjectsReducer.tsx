@@ -12,6 +12,7 @@ import {
 import { filter } from 'lodash';
 import { isString, isDate, isHeading, isTodo, isNotNil } from './utils/isSomething';
 import { moveReminderFromPast } from './utils/getData';
+import { isDev } from './utils/isDev';
 
 
 
@@ -89,7 +90,9 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let updatedProject = evolve({ layout:reject(item => contains(item, selectedTodosIds)) }, project);
                     let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], null) );
 
-                    console.log("removeGroupFromProject",updatedProject,updatedTodos);
+                    if(isDev()){
+                       console.log("removeGroupFromProject",updatedProject,updatedTodos);
+                    }
 
                     let newState = compose(
                         state => updateProject(state)({type:"updateProject", load:updatedProject}), 
@@ -111,7 +114,9 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     );
                     let updatedTodos = selectedTodos.map( assocPath(['group','projectId'], action.load.projectId) );
 
-                    console.log("attachGroupToProject",updatedProject,updatedTodos);
+                    if(isDev()){
+                       console.log("attachGroupToProject",updatedProject,updatedTodos);
+                    }
 
                     let newState = compose(
                         state => updateProject(state)({type:"updateProject", load:updatedProject}), 

@@ -748,9 +748,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 (selectedCategory:Category) : boolean => 'project'===selectedCategory,  
                                 () => {
                                     let project = this.props.projects.find(p => this.props.selectedProjectId===p._id);
+
+                                    if(isNil(project)){ 
+                                       this.props.dispatch({type:"selectedCategory", load:"inbox"}); 
+                                       return null; 
+                                    }
+
                                     let ids = project.layout.filter(isString);
-                                    
-                                    if(isNil(project)){ return null }
 
                                     if(isDev()){
                                        let todos = filter(this.props.todos, allPass([t => contains(t._id)(ids), t => isNotNil(t.group)]));
@@ -792,7 +796,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => {
                                     let area = this.props.areas.find((a) => this.props.selectedAreaId===a._id);
 
-                                    if(isNil(area)){ return null }
+                                    if(isNil(area)){ 
+                                       this.props.dispatch({type:"selectedCategory", load:"inbox"}); 
+                                       return null; 
+                                    }
  
                                     return <AreaComponent    
                                         area={area}   

@@ -88,7 +88,9 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
 
     let changes = detectChanges(state)(newState);
 
-    console.log('updateDatabase - changes', changes);
+    if(isDev()){
+       console.log('updateDatabase - changes', changes);
+    }
 
     let items = compose(flatten,map(values),values)(changes);
  

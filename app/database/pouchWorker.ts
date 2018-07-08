@@ -132,7 +132,9 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
                     .fromEvent(s, 'complete', (event) => event)
                     .first()
                     .subscribe(complete => {
-                        console.log('pouch sync completed for', s, complete);
+                        if(isDev()){
+                           console.log('pouch sync completed for', s, complete);
+                        }
                         resolve(complete);
                     });
 

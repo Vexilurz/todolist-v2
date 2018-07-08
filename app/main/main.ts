@@ -77,12 +77,10 @@ let onReady = (config:Config) => {
     mainWindow.on('focus', () => {  
         mainWindow['focused'] = true; 
         toggleLocalShortcut(true, 'Ctrl+B');
-        //registerAllShortcuts();
     }); 
     mainWindow.on('blur', () => { 
         mainWindow['focused'] = false; 
         toggleLocalShortcut(false, 'Ctrl+B');
-        //unregisterAllShortcuts();
     }); 
     mainWindow.on('unresponsive', handleMainWindowUnresponsive);
     mainWindow.webContents.on('crashed', handleMainWindowCrashed(mainWindow));

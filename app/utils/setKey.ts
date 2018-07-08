@@ -7,6 +7,7 @@ import { workerSendAction } from './workerSendAction';
 import { pouchWorker } from '../app';
 import { Config, actionSetKey } from '../types';
 import { getToken } from './getToken';
+import { isDev } from './isDev';
 const remote = require('electron').remote;
 const session = remote.session;
 
@@ -54,10 +55,12 @@ export let setKey = (config:Config) => {
                             })
                             .then(
                                 response => {
-                                    console.log('response.status', response.status)
-                                    console.log('response.statusText', response.statusText)
-                                    console.log('response.data', response.data)
-                                    return response
+                                    if(isDev()){
+                                       console.log('response.status', response.status)
+                                       console.log('response.statusText', response.statusText)
+                                       console.log('response.data', response.data)
+                                    }
+                                    return response;
                                 }
                             )
                             .then(

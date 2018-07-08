@@ -1,10 +1,7 @@
 import { AppName } from './AppName';
 import { Tray, BrowserWindow, Menu, app } from 'electron';
 const path = require("path");
-import { 
-    isNil, not, forEachObjIndexed, when, contains, compose, equals, 
-    ifElse, reject, isEmpty, defaultTo, map, identity, toLower 
-} from 'ramda';  
+import { isNil, not, contains, compose, reject } from 'ramda';  
 
 
 export let createTray = (mainWindow:BrowserWindow) : Tray => {
@@ -41,7 +38,7 @@ export let createTray = (mainWindow:BrowserWindow) : Tray => {
             click:() => {
                 let windows = BrowserWindow.getAllWindows();
                 windows.forEach((w) => w.destroy());
-                app.exit();
+                app.quit();
             }
         },
     ]);
