@@ -22,7 +22,7 @@ export let setKey = (config:Config) => {
                 {url: server}, 
                 (error, cookies) => {
                     let cookie = cookies[0];
-
+                    
                     if(cookie && cookie.name==="AuthToken"){
 
                         let token = cookie.value; 
@@ -67,10 +67,13 @@ export let setKey = (config:Config) => {
                                 () => workerSendAction(pouchWorker)(action).then(() => resolve(config))
                             );
                         })
-                        .catch(e => workerSendAction(pouchWorker)(action).then(() => resolve(config))) 
+                        .catch(e => {
+                            console.log(e);
+                            workerSendAction(pouchWorker)(action).then(() => resolve(config))
+                        }) 
                        
                     }else{
-                        
+                        console.log('no credentials');
                         return workerSendAction(pouchWorker)(action).then(() => resolve(config));
                     }
                 }
