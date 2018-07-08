@@ -354,12 +354,12 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     uniq, 
                     reject(isNil), 
                     map(path(['group','_id'])) 
-                );
+                )(todos);
                  
                 actions.push(
                     ...groupsIds.map( groupId => ({type:"removeGroupFromProject", load:{ groupId, projectId:sourceProjectId }}) )
                 );
-
+ 
                 actions.push(
                     ...groupsIds.map( groupId => ({type:"attachGroupToProject", load:{ groupId, projectId:project._id }}) )
                 );

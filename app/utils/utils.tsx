@@ -1303,8 +1303,7 @@ export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?
                                                     false :  
                                                     daysRemaining(date)<=0;  
 
-                                                    
-
+                 
 
 export let convertDates = (object) => 
     cond([

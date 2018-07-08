@@ -63,14 +63,21 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                 byNotDeleted   
             ])
         ); 
-        
+        let newProjectId = generateId();
+        let newGroupId = generateId();
+
         let duplicatedTodos:Todo[] = [];
 
         let duplicatedLayout:LayoutItem[] = this.props.project.layout.map((item) => {
             if(isString(item)){
                 let todo = relatedTodos.find( todo => todo._id===item );
                 if(todo){
-                    let duplicate : Todo = {...todo, _id:generateId()};
+                    let duplicate : Todo = {
+                        ...todo, 
+                        _id:generateId(), 
+                        group:isNil(todo.group) ? undefined : { ...todo.group, _id:newGroupId, projectId:newProjectId } 
+                    };  
+
                     delete duplicate['_rev']; 
                     duplicatedTodos.push(duplicate);
                     return duplicate._id;
@@ -84,13 +91,20 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             }
         });  
 
-        let duplicate = {...this.props.project, _id:generateId(), layout:duplicatedLayout.filter(isNotNil)};
+        let duplicate = {
+            ...this.props.project, 
+            _id:newProjectId, 
+            layout:duplicatedLayout.filter(isNotNil)
+        };
 
         delete duplicate["_rev"]; 
 
         this.props.dispatch({
             type:"multiple",
-            load:[{type:"addProject",load:duplicate},{type:"addTodos",load:duplicatedTodos}]
+            load:[
+                {type:"addProject",load:duplicate}, 
+                {type:"addTodos",load:duplicatedTodos}
+            ]
         }); 
 
         this.closeMenu(); 

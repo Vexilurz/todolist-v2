@@ -39,11 +39,16 @@ let updateOtherInstances = (action:action) => (newState:Store) => {
     //update other windows only if action was initialized inside current window 
     //and action belong to ObjectsReducer 
     if(shouldUpdateOtherInstances){
-       ipcRenderer.send("action", {action,id:newState.id}); 
+        if(isDev()){ 
+           console.log(`update other instances with ${action.type}`, action.load); 
+        }
+
+        ipcRenderer.send("action", {action,id:newState.id}); 
     }  
 
     return newState;
 };
+
 
 
 let updateTodos = (state:Store) => (action:{type:string, load:Todo[]}) : Store => {

@@ -20,7 +20,7 @@ import { Inbox } from './Categories/Inbox';
 import { 
     isNil, contains, not, evolve, map, compose, allPass, groupBy, 
     cond, defaultTo, when, concat, append, path, prop, reject, 
-    mapObjIndexed, values
+    mapObjIndexed, values, ifElse
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -414,14 +414,22 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
             Observable  
                 .fromEvent(ipcRenderer, "action", (event,action) => action)
-                .map((action) => ({ 
+                .map((action) => ({  
                     ...action,
-                    load:compose(
-                        map(convertDates),
-                        defaultTo({}),
-                        convertDates
+                    load:ifElse(
+                        isString,
+                        load => load,
+                        compose( map(convertDates), defaultTo({}), convertDates )
                     )(action.load)
                 }))
+                .map(
+                    action => {
+                        if(isDev()){
+                            console.log("action from separate window", action);
+                        }
+                        return action;
+                    }
+                )
                 .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
 
 
