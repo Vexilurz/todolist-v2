@@ -249,7 +249,6 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             {type:"addTodos", load:repeatedTodos}
         ];
 
-        console.log("TARGET",load[0].load)
 
         if(isNotNil(project)){
             load.push({
