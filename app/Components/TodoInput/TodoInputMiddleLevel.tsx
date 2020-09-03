@@ -73,13 +73,7 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                 color:'rgba(10,10,10,0.9)',
                 paddingBottom:"10px"
             }}>
-                <Editor
-                    editorState={this.props.editorState}
-                    onChange={this.props.onNoteChange as any} 
-                    plugins={[linkifyPlugin]} 
-                    keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
-                    placeholder="Notes"
-                />
+                
             </div> 
             {    
                 not(showChecklist) ? null : 

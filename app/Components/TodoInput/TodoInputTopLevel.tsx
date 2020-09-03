@@ -166,7 +166,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                     <div> 
                         <TextareaAutosize 
                             placeholder="New Task"
-                            innerRef={ref => this.props.setInputRef(ref)}
+                            ref={ref => this.props.setInputRef(ref)}
                             onChange={this.props.onTitleChange as any} 
                             style={{
                                 resize:"none",

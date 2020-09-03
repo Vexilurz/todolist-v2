@@ -18,7 +18,7 @@ import { normalize } from '../utils/normalize';
 import { sameDay } from '../utils/time';
 import { stopPropagation } from '../utils/stopPropagation';
 
-let RRule = require('rrule');
+let RRule: any = {};
 
 
 let oneDayMore = (date:Date) : Date => { 

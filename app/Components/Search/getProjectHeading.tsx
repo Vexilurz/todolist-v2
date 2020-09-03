@@ -2,7 +2,7 @@ import '../../assets/styles.css';
 import * as React from 'react';
 import { Project } from '../../types';
 import { isEmpty } from 'ramda';
-import PieChart from 'react-minimal-pie-chart';
+import { PieChart } from 'react-minimal-pie-chart';
 
 
 

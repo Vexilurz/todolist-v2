@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';   
 import { Component } from "react";  
 import { connect } from "react-redux";
-import * as Waypoint from 'react-waypoint';
+import { Waypoint } from 'react-waypoint';
 import {  
     attachDispatchToProps,  
     getTagsFromItems,

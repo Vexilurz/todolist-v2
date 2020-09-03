@@ -9,7 +9,7 @@ import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
 import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { byNotCompleted, byNotDeleted, typeEquals, different } from '../../utils/utils';
-import PieChart from 'react-minimal-pie-chart';
+import { PieChart } from 'react-minimal-pie-chart';
 import { 
     uniq, allPass, remove, reject, slice, prop, flatten,
     isEmpty, contains, assoc, isNil, not, map, concat, ifElse, 

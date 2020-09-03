@@ -8,7 +8,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { attachDispatchToProps, getTagsFromItems, different } from '../../utils/utils'; 
 import { Category, Todo, Area, Project, Store } from '../../types';
 import { isEmpty, flatten, defaultTo, toLower } from 'ramda';
-import PieChart from 'react-minimal-pie-chart';
+import { PieChart } from 'react-minimal-pie-chart';
 import { isNotNil } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { sortByCompletedOrNot } from './sortByCompletedOrNot';

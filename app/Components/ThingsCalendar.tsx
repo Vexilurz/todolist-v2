@@ -388,11 +388,11 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                             backgroundColor:"rgb(157, 157, 157)",
                             borderRadius:"5px"   
                         }}>
-                            <TimeInput
+                            {/* <TimeInput
                                 key={`time-input`}
                                 onChange={(time) => this.setState({time,timeSet:true})}
                                 value={this.state.time} 
-                            />
+                            /> */}
                             <div  
                             onClick={() => this.setState({time:'12:00', timeSet:false})}
                             style={{ 

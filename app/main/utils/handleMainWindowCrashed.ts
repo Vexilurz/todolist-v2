@@ -10,7 +10,8 @@ crashReporter.start({
     companyName:`Pixelbutler`,
     submitURL:`${server}/crash`,
     uploadToServer:true,
-    ignoreSystemCrashHandler:true
+    ignoreSystemCrashHandler:true,
+    compress: true 
 })
 
 export let handleMainWindowCrashed = (mainWindow:BrowserWindow) => 

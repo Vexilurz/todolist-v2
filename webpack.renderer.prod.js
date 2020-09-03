@@ -150,16 +150,16 @@ module.exports = [
         target: "electron-renderer",     
         optimization: {
             minimize: true,
-            minimizer: [
-                new UglifyJsPlugin({
-                    sourceMap:false,
-                    uglifyOptions:{
-                        output:{
-                            comments:false
-                        }
-                    }
-                })
-            ]
+            // minimizer: [
+            //     new UglifyJsPlugin({
+            //         sourceMap:false,
+            //         uglifyOptions:{
+            //             output:{
+            //                 comments:false
+            //             }
+            //         }
+            //     })
+            // ]
         },
         
         plugins : [

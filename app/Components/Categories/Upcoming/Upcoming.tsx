@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Todo,Project, Area, Calendar, Category, CalendarEvent } from '../../../types';
-import * as Waypoint from 'react-waypoint';
+import { Waypoint } from 'react-waypoint';
 import { ContainerHeader } from '../.././ContainerHeader';
 import { getDayName, getDatesRange, getTagsFromItems, getMonthName, yearFromDate, isNotEmpty } from '../../../utils/utils';  
 import { isNil, not, last, isEmpty, any } from 'ramda';

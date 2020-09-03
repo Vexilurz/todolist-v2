@@ -6,7 +6,7 @@ import { Component } from "react";
 import { Project, Area, Category } from '../../types';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { byNotCompleted, byNotDeleted, typeEquals, isNotEmpty } from '../../utils/utils';
-import PieChart from 'react-minimal-pie-chart';
+import { PieChart } from 'react-minimal-pie-chart';
 import { ExpandableList } from '../../Components/ExpandableList';
 import { allPass, isEmpty, compose, cond, defaultTo, when } from 'ramda'; 
 import { AutoresizableText } from '../AutoresizableText';

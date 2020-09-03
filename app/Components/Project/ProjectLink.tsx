@@ -9,7 +9,7 @@ import { Project, Category } from '../../types';
 import { daysLeftMark } from '../../utils/utils'; 
 import { DueDate } from '../TodoInput/DueDate';
 import { Checkbox } from '../TodoInput/Checkbox';
-import PieChart from 'react-minimal-pie-chart';
+import { PieChart } from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo'; 
 import { contains, isNil, not, isEmpty, defaultTo } from 'ramda';
 import Hide from 'material-ui/svg-icons/action/visibility-off';

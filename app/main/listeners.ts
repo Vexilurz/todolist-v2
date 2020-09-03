@@ -301,38 +301,36 @@ export class Listeners{
             {
                 name:"selectFolder",
                 callback:(event) => {
-                    dialog.showOpenDialog( 
+                    dialog.showOpenDialog( mainWindow,
                         { 
                             title:`Select data folder`,
-                            buttonLabel:'Select',
+                            buttonLabel:'Select', //TODO: REMOVED
                             properties:['openDirectory']
-                        },  
-                        (value) => {
-                            if(value)   
-                                event.sender.send("selectFolder",value[0]); 
-                            else
-                                event.sender.send("selectFolder",undefined);
                         }
-                    )
+                    ).then(value => {
+                        if(value)   
+                            event.sender.send("selectFolder",value[0]); 
+                        else
+                            event.sender.send("selectFolder",undefined);
+                    })
                 }  
             },
             {
                 name:"selectJsonDatabase",
                 callback:(event) => {
-                    dialog.showOpenDialog( 
+                    dialog.showOpenDialog( mainWindow,
                         { 
                             title:`Select database file`,
                             buttonLabel:'Select',
                             properties:['openFile'],
                             filters:[{extensions: ["json"], name: ""}]
-                        },  
-                        (value) => { 
-                            if(value)    
-                               event.sender.send("selectJsonDatabase",value[0]); 
-                            else
-                               event.sender.send("selectJsonDatabase",undefined); 
                         }
-                    )
+                    ).then(value => {
+                        if(value)    
+                            event.sender.send("selectJsonDatabase",value[0]); 
+                        else
+                            event.sender.send("selectJsonDatabase",undefined); 
+                    })
                 }  
             },
             { 

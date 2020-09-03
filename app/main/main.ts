@@ -34,8 +34,8 @@ export let dateCalendar : BrowserWindow;
 export let tray : Tray;
 
 
-
-const shouldQuit = app.makeSingleInstance(
+app.requestSingleInstanceLock()
+const shouldQuit = app.on('second-instance',
     (commandLine, workingDirectory) => {
         if(mainWindow){
             mainWindow.show();

@@ -13,13 +13,11 @@ export let handleMainWindowUnresponsive = (mainWindow:BrowserWindow) => (e) => {
             buttons: ["Restart application", "Wait"],
             title: `${AppName} is not responding`,
             message: `${AppName} is not responding`
-        },
-        (response) => {
+        }).then(result => {
             let restart = 0;
-            if(response===restart){
+            if(result.response===restart){
                app.relaunch();
                app.exit(0);
             }
-        }   
-    )
+        })    
 };

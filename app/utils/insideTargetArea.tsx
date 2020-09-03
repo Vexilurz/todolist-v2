@@ -9,7 +9,7 @@ export let insideTargetArea = (
 ) : boolean => {
 
     if(isNil(target)){ return false }
-    let rect = target.getBoundingClientRect();
+    let rect:ClientRect = target.getBoundingClientRect();// as DOMRect;
 
     if(!isNil(addMargin)){
         rect = addMargin(rect); 

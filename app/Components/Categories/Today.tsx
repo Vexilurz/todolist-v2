@@ -30,8 +30,8 @@ import { groupEventsByType } from '../../utils/groupEventsByType';
 import { byTime } from '../../utils/byTime';
 
 
-let Perf = require('react-addons-perf');
-let p = require('react-dom/lib/ReactPerf'); 
+// let Perf = require('react-addons-perf');
+// let p = require('react-dom/lib/ReactPerf'); 
 
 
 class ThisEveningSeparator extends Component<{},{}>{
@@ -251,7 +251,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
     onSortStart = (oldIndex:number,event:any) => {
         if(isDev()){
-           Perf.start();
+        //    Perf.start();
         }
         this.props.dispatch({type:"dragged",load:"todo"});  
     };
@@ -321,11 +321,11 @@ export class Today extends Component<TodayProps,TodayState>{
         this.props.dispatch({type:"multiple",load:actions}); 
 
         if(isDev()){
-            Perf.stop();
-            Perf.getLastMeasurements(); 
-            Perf.getWasted();
-            Perf.printExclusive();
-            Perf.printWasted();
+            // Perf.stop();
+            // Perf.getLastMeasurements(); 
+            // Perf.getWasted();
+            // Perf.printExclusive();
+            // Perf.printWasted();
         }
     };   
     

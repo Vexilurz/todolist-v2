@@ -42,7 +42,7 @@ export let registerAllLocalShortcuts = () : void => {
 
 export let registerAllGlobalShortcuts = () : void => {
     forEachObjIndexed(
-        (value:Function,key:string) => globalShortcut.register(key, value)  
+        (value:() => void,key:string) => globalShortcut.register(key, value)          
     )(globalShortcuts)
 }; 
 

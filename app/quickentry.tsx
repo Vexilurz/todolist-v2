@@ -44,10 +44,11 @@ import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
 import { TodoTags } from './Components/TodoInput/TodoTags';
 import { TagsPopup } from './Components/TodoInput/TagsPopup';
-import PieChart from 'react-minimal-pie-chart';
+import { PieChart } from 'react-minimal-pie-chart';
 import { AutoresizableText } from './Components/AutoresizableText';
 import { stringToLength } from './utils/stringToLength';
 import Editor from 'draft-js-plugins-editor';
+import { EditorState  } from 'draft-js';
 import { shell } from 'electron'; 
 import { Provider, connect } from "react-redux";
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
@@ -199,8 +200,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             project:null,
             tag:'',
             category:'', 
-            title:'', 
-            editorState:noteToState(null),
+            title:'',
+            // TODO: REMOVED 
+            editorState:EditorState.createEmpty(),//noteToState(null),
             deadline:undefined, 
             deleted:undefined, 
             attachedDate:undefined,
@@ -334,7 +336,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         ...state,
         category:todo.category, 
         title:todo.title,
-        editorState:noteToState(todo.note),
+        editorState:EditorState.createEmpty(),
         reminder:todo.reminder, 
         deadline:todo.deadline, 
         deleted:todo.deleted, 
@@ -426,7 +428,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    onNoteChange = (editorState) : void => this.setState({editorState}); 
+    onNoteChange = (editorState:any) : void => this.setState({editorState}); 
 
 
 
@@ -589,7 +591,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             <div> 
                 <TextareaAutosize 
                     placeholder="New Task"
-                    innerRef={e => {this.inputRef=e;}}
+                    ref={e => {this.inputRef=e;}}
                     onKeyDown={(event) => { 
                         if(event.which===13 || event.keyCode===13){ 
                            event.stopPropagation(); 
@@ -614,14 +616,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     }}
                 /> 
             </div> 
-            <div style={{paddingTop:"10px"} as any}>  
-            <Editor
-                editorState={this.state.editorState}
-                onChange={this.onNoteChange}
-                plugins={[linkifyPlugin]} 
-                keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
-                placeholder="Notes"
-            />
+            <div style={{paddingTop:"10px"} as any}>              
+         
             </div>
                 <div 
                     ref={(e) => {this.checklist=e;}} 

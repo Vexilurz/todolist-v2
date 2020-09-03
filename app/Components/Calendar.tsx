@@ -5,7 +5,9 @@ import {
 import { filter } from 'lodash';
 import axios from 'axios';
 let ical = require('ical.js'); 
-let RRule = require('rrule');
+let RRule: any = {};
+// let {RRule} = require('rrule');
+
 import * as icalR from '../ical/index.js'; 
 import { normalize } from '../utils/normalize';
 import { assert } from '../utils/assert';

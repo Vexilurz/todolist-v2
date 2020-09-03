@@ -7,7 +7,7 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import { Todo, Project } from '../../types';
 import { getTagsFromItems, daysLeftMark, getMonthName } from '../../utils/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
-import PieChart from 'react-minimal-pie-chart';
+import { PieChart } from 'react-minimal-pie-chart';
 import { DeadlineCalendar } from '../ThingsCalendar'; 
 import { isNil, isEmpty, not, compose } from 'ramda';
 import { Tags } from '../Tags';
@@ -298,13 +298,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     color:"rgba(10,10,10,0.9)",
                     paddingBottom:"10px"
                 }}> 
-                    <Editor
-                        editorState={this.state.editorState}
-                        onChange={this.updateEditorState}
-                        plugins={[linkifyPlugin]}  
-                        keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
-                        placeholder="Notes"
-                    />
+                    
                 </div>   
             </div>
             <div className={`no-print`}>  

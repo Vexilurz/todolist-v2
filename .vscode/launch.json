@@ -5,7 +5,7 @@
       "name": "Debug Main Process",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceRoot}/app/main/main.ts",
+      "program": "${workspaceRoot}/dist/main.js",
       "stopOnEntry": false,
       "args": ["."],  
       "cwd": "${workspaceRoot}",
