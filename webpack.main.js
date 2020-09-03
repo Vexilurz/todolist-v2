@@ -1,7 +1,7 @@
 const path = require("path"); 
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');  
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {     
@@ -50,7 +50,9 @@ module.exports = {
     target: "electron-main",     
 
     plugins:[ 
-        new CleanWebpackPlugin(['dist']),
+        new CleanWebpackPlugin({
+          cleanAfterEveryBuildPatterns: ['dist']
+        }),
         new webpack.DefinePlugin({
             NODE_ENV: JSON.stringify('development')
         })

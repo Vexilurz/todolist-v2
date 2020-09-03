@@ -2,7 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');      
-const CleanWebpackPlugin = require('clean-webpack-plugin');   
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');   
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = [
@@ -128,7 +128,11 @@ module.exports = [
             new webpack.DefinePlugin({
                 NODE_ENV: JSON.stringify('development')
             }),
-            new CopyWebpackPlugin([ {from : './assets'}, './config.json' ]), 
+            // new CopyWebpackPlugin(
+            //     {
+            //         patterns: [ {from : './assets'}, './config.json' ],
+            //     }
+            //    ), 
             new HtmlWebpackPlugin({
                 inject:true, 
                 title:'tasklist',     
