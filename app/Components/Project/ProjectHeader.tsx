@@ -15,6 +15,7 @@ import { TagsPopup } from '../TodoInput/TagsPopup';
 import AutosizeInput from 'react-input-autosize';
 import {shell} from 'electron'; 
 import Editor from 'draft-js-plugins-editor';
+import { EditorState  } from 'draft-js';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
 import { noteToState } from '../../utils/draftUtils';
@@ -69,7 +70,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         let {project} = this.props;
         this.state={
             showDeadlineCalendar:false,
-            editorState:noteToState(project.description),
+            editorState:EditorState.createEmpty(),//noteToState(project.description),
             showTagsPopup:false,
             name:project.name
         };   

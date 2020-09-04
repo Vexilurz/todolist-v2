@@ -27,6 +27,7 @@ import { isDate, isToday } from '../../utils/isSomething';
 import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
 import { getTime, setTime } from '../../utils/time';
   
+import { EditorState  } from 'draft-js';
 
 
 export interface TodoCreationFormState{  
@@ -105,7 +106,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             tag:'',
             category, 
             title,
-            editorState:noteToState(note), 
+            editorState:EditorState.createEmpty(),//noteToState(note), 
             display:"flex",
             translateX:0,
             opacity:1,
@@ -297,7 +298,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         ...state,
         category:todo.category, 
         title:todo.title,
-        editorState:noteToState(todo.note),  
+        editorState:EditorState.createEmpty(),//noteToState(todo.note),  
         completedWhen:todo.completedWhen,
         completedSet:todo.completedSet,
         reminder:todo.reminder, 

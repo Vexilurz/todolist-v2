@@ -98,6 +98,6 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
        let actionChanges : actionChanges = { type:"changes", load:changes, import:prop('import')(load[0]) };
        pouchWorker.postMessage(actionChanges); 
     } 
- 
+    console.log('updateDatabase - return', newState);
     return newState; 
 };          

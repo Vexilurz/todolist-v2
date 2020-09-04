@@ -29,6 +29,8 @@ import { TodoInputLabels } from './TodoInputLabels';
 import { TodoInputTopLevel } from './TodoInputTopLevel';
 import { TodoInputMiddleLevel } from './TodoInputMiddleLevel';
 
+import { EditorState  } from 'draft-js';
+
 
 
 export interface TodoInputProps{ 
@@ -134,7 +136,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             open:false,
             tag:'', 
             translateX:0,
-            editorState:noteToState(note),
+            editorState:EditorState.createEmpty(),//noteToState(note),
             animatingSlideAway:false,
             display:"flex",
             showAdditionalTags:false, 
@@ -168,7 +170,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 category, 
                 checklist, 
                 title, 
-                editorState:noteToState(note)
+                editorState:EditorState.createEmpty(),//noteToState(note)
             });
         }
     };
