@@ -13,8 +13,10 @@ export let getConfig = () : Promise<Config> => {
             "config",  
             (error, data) => {  
                 if(isNil(data) || isEmpty(data)){
+                    console.log('defaultConfig');                    
                     resolve(defaultConfig);
                 }else{  
+                    console.log('not defaultConfig', {...data,firstLaunch:false});
                     resolve({...data,firstLaunch:false}); 
                 } 
             }

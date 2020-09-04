@@ -44,7 +44,10 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}) : Brow
         title:'Add task',    
         center:true,       
         minimizable:true,
-        frame:true    
+        frame:true,
+        webPreferences: {
+            nodeIntegration: true
+        }    
     } as any);                 
   
     handler.setResizable(true); 
@@ -74,7 +77,10 @@ export let initNotification = ({width,height}:{width:number,height:number}):Brow
         useContentSize:true, 
         title:'Notification',    
         center:false,       
-        frame:false  
+        frame:false,
+        webPreferences: {
+            nodeIntegration: true
+        }  
     } as any);    
 
     handler.setAlwaysOnTop(true);

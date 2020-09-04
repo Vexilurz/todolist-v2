@@ -45,6 +45,9 @@ import { logout } from './utils/logout';
 import { setWindowTitle } from './utils/setWindowTitle';
 import { updateQuickEntry } from './utils/updateQuickEntry';
 import { onCloseWindow } from './utils/onCloseWindow';
+
+import { defaultConfig } from './defaultConfig';
+
 window.onerror = onErrorWindow; 
 
 
@@ -496,31 +499,12 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
 
    
 //render application
-let dummy: Config = {
-    secretKey:"string",
-    salt:"string", 
-    email:"string",
-    sync:false,    
-    nextBackupCleanup:new Date(),
-    nextUpdateCheck:new Date(),
-    firstLaunch:true, 
-    defaultTags:["q","w"],
-    hideHint:false,
-    shouldSendStatistics:false,
-    showCalendarEvents:false,
-    disableReminder:true,
-    groupTodos:true,
-    preserveWindowWidth:true, //when resizing sidebar
-    enableShortcutForQuickEntry:true,
-    quickEntrySavesTo:"string", //inbox today next someday
-    moveCompletedItemsToLogbook:"string", //immediately
-}
 ipcRenderer.once(
     'loaded', 
     (event,clonedStore:Store,id:number) => 
         // requestFromMain("getConfig", [], (event, config) => config)
         // .then(setKey)
         // .then((config:Config) => renderApp(config,clonedStore,id))
-        renderApp(dummy,clonedStore,id)
+        renderApp(defaultConfig,clonedStore,id)
 );    
 

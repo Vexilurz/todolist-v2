@@ -14,8 +14,8 @@ import { pouchWorker } from '../app';
 import { encryptKey, decryptKey, generateSecretKey } from '../utils/crypto/crypto';
 import { LoginForm } from './LoginForm';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
-const remote = require('electron').remote;
-const session = remote.session;
+// const remote = require('electron').remote;
+// const session = remote.session;
 
 
 let switchAccount = ([retrieved,requested]) => isNotNil(retrieved) && isNotNil(requested) && retrieved!==requested;
@@ -151,6 +151,7 @@ export class Login extends Component<LoginProps,LoginState>{
         let expire = nDaysFromNow(1000);
         let token = getToken({username, password});
 
+        const session = require('electron').remote.session; //TODO
         session.defaultSession.cookies.set( 
             {url:server,name:'AuthToken',value:token,expirationDate:expire.getTime()}, 
             when(isNotNil,globalErrorHandler)

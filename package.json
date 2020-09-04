@@ -71,7 +71,7 @@
     "draft-js": "^0.11.7",
     "draft-js-linkify-plugin": "^2.0.2",
     "draft-js-plugins-editor": "^3.0.0",
-    "electron": "^9.0.5",
+    "electron": "^10.1.1",
     "electron-builder": "^22.8.0",
     "electron-ga": "^1.0.6",
     "electron-json-storage": "^4.2.0",
