@@ -1,4 +1,4 @@
-import path = require("path");
+import path from "path";
 import {BrowserWindow,Menu} from 'electron';  
 import { AppName } from "./AppName";
 
@@ -17,6 +17,9 @@ export let initWindow = (
         title:AppName,      
         center:true,
         frame:true, 
+        webPreferences: {
+            nodeIntegration: true
+        },
         ...options
     }) as any;       
     

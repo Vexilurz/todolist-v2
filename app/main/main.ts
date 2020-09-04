@@ -35,6 +35,7 @@ export let tray : Tray;
 
 
 app.requestSingleInstanceLock()
+
 const shouldQuit = app.on('second-instance',
     (commandLine, workingDirectory) => {
         if(mainWindow){
@@ -53,7 +54,7 @@ let onReady = (config:Config) => {
     let options = {maximizable:true, show:false};
     let onMainWindowReady = (handler:BrowserWindow) => {};
 
-    if(shouldQuit){ app.exit(); return; }  
+    // if(shouldQuit){ app.exit(); return; }  
       
     dialog.showErrorBox = (title, content) => {};
    
