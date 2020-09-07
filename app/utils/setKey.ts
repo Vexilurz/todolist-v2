@@ -8,8 +8,8 @@ import { pouchWorker } from '../app';
 import { Config, actionSetKey } from '../types';
 import { getToken } from './getToken';
 import { isDev } from './isDev';
-const remote = require('electron').remote;
-const session = remote.session;
+// const remote = require('electron').remote;
+// const session = remote.session;
 
 
 
@@ -17,7 +17,9 @@ export let setKey = (config:Config) => {
     let key = config.secretKey;
     let action : actionSetKey = {type:"setKey", load:key};
     return new Promise( 
-        resolve => {
+        resolve => { 
+            const remote = require('electron').remote;
+            const session = remote.session;
             session.defaultSession.cookies.get(
                 {url: server}, 
                 (error, cookies) => {

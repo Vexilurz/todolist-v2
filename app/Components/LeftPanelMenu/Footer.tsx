@@ -77,24 +77,25 @@ export class Footer extends Component<FooterProps,FooterState>{
                     alignItems:"center"
                 }}>        
                     {   
-                        this.props.sync ? null :
-                        <div style={{position:"absolute",width:"12px"}}>
-                            <Exclamation 
-                                style={{
-                                    color:"red",
-                                    fill:"currentcolor", 
-                                    height:"11px",
-                                    paddingLeft:"1px",
-                                    width:"11px"
-                                }}
-                            />
-                        </div>  
+                        null
+                        // this.props.sync ? null :
+                        // <div style={{position:"absolute",width:"12px"}}>
+                        //     <Exclamation 
+                        //         style={{
+                        //             color:"red",
+                        //             fill:"currentcolor", 
+                        //             height:"11px",
+                        //             paddingLeft:"1px",
+                        //             width:"11px"
+                        //         }}
+                        //     />
+                        // </div>  
                     }      
-                    <Spinner 
+                    {/* <Spinner 
                         dispatch={this.props.dispatch} 
                         sync={this.props.sync} 
                         openSyncSettings={this.props.openSyncSettings}
-                    /> 
+                    />  */}
                 </div>
             </div>            
             <div style={{display:"flex",paddingRight:"10px",alignItems:"center",cursor:"pointer"}}>     

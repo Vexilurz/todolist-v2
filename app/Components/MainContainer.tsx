@@ -235,49 +235,49 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     
     
 
-    initUpdateTimeout = () : void => {
-        if(isDev()){
-           console.log(`nextUpdateCheck - ${this.props.nextUpdateCheck}`);
-        }
+    // initUpdateTimeout = () : void => {
+    //     if(isDev()){
+    //        console.log(`nextUpdateCheck - ${this.props.nextUpdateCheck}`);
+    //     }
 
-        let check = () =>
-            checkForUpdates()  
-            .then(
-                (updateCheckResult:UpdateCheckResult) => requestFromMain(
-                   'getVersion',
-                    [],
-                    (event, currentAppVersion) => [updateCheckResult, currentAppVersion]
-                )
-            )
-            .then( 
-                ([updateCheckResult, currentAppVersion]) => {
-                    let {updateInfo} = updateCheckResult;
-                    let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-                    let next : any = isDev() ? fiveMinutesLater(new Date()) : threeDaysLater(new Date());
-                    let actions = [{type:"nextUpdateCheck",load:next}];
+        // let check = () =>
+        //     checkForUpdates()  
+        //     .then(
+        //         (updateCheckResult:UpdateCheckResult) => requestFromMain(
+        //            'getVersion',
+        //             [],
+        //             (event, currentAppVersion) => [updateCheckResult, currentAppVersion]
+        //         )
+        //     )
+        //     .then( 
+        //         ([updateCheckResult, currentAppVersion]) => {
+        //             let {updateInfo} = updateCheckResult;
+        //             let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+        //             let next : any = isDev() ? fiveMinutesLater(new Date()) : threeDaysLater(new Date());
+        //             let actions = [{type:"nextUpdateCheck",load:next}];
 
-                    if(canUpdate){ 
-                       actions.push({type:"showUpdatesNotification", load:true});
-                    } 
+        //             if(canUpdate){ 
+        //                actions.push({type:"showUpdatesNotification", load:true});
+        //             } 
 
-                    this.props.dispatch({type:"multiple",load:actions}); 
-                    this.initUpdateTimeout();
-                }
-            )
+        //             this.props.dispatch({type:"multiple",load:actions}); 
+        //             this.initUpdateTimeout();
+        //         }
+        //     )
           
  
-        if( 
-            isNil(this.props.nextUpdateCheck) || 
-            inPast(new Date(this.props.nextUpdateCheck)) 
-        ){ 
-            check(); 
-        }else{
-            this.timeouts.push( 
+        // if( 
+        //     isNil(this.props.nextUpdateCheck) || 
+        //     inPast(new Date(this.props.nextUpdateCheck)) 
+        // ){ 
+        //     check(); 
+        // }else{
+        //     this.timeouts.push( 
 
-                setCallTimeout( () => check(), new Date(this.props.nextUpdateCheck) ) 
-            );
-        }
-    };
+        //         setCallTimeout( () => check(), new Date(this.props.nextUpdateCheck) ) 
+        //     );
+        // }
+    // };
 
 
 
@@ -467,7 +467,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
         if(!this.props.clone){
             this.initData(); 
-            this.initUpdateTimeout();
+            //this.initUpdateTimeout();
             this.initBackupCleanupTimeout();
         }
     };      

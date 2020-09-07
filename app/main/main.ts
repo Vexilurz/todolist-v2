@@ -24,7 +24,7 @@ const path = require("path");
 const configPath = path.resolve(os.homedir(), "Documents", "tasklist");
 storage.setDataPath(configPath);
 
- 
+import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
  
 export let mainWindow : BrowserWindow;   
 export let quickEntry : BrowserWindow;   
@@ -95,7 +95,13 @@ let onReady = (config:Config) => {
 
 
 
-app.on('ready', () => getConfig().then((config) => onReady(config)));    
+app.on('ready', () => {
+    installExtension(REACT_DEVELOPER_TOOLS)
+        .then((name) => console.log(`Added Extension:  ${name}`))
+        .catch((err) => console.log('An error occurred: ', err));
+        
+    getConfig().then((config) => onReady(config))
+});    
 
 
 

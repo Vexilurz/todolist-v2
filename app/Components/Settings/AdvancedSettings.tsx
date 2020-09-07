@@ -159,37 +159,37 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     
  
-    checkUpdates : () => Promise<void> = () => 
-    this.updateState({updateStatus:"Loading..."})
-    .then(() => checkForUpdates())  
-    .then(
-        (updateCheckResult:UpdateCheckResult) => requestFromMain(
-            'getVersion', 
-            [], 
-            (event,version) => version
-        ) 
-        .then(
-            (version) => {
-                let {updateInfo} = updateCheckResult;
-                let currentAppVersion = version; 
-                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+    // checkUpdates : () => Promise<void> = () => 
+    // this.updateState({updateStatus:"Loading..."})
+    // .then(() => checkForUpdates())  
+    // .then(
+    //     (updateCheckResult:UpdateCheckResult) => requestFromMain(
+    //         'getVersion', 
+    //         [], 
+    //         (event,version) => version
+    //     ) 
+    //     .then(
+    //         (version) => {
+    //             let {updateInfo} = updateCheckResult;
+    //             let currentAppVersion = version; 
+    //             let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
-                if(canUpdate){  
-                    this.props.dispatch({
-                        type:"multiple",
-                        load:[
-                            {type:"openSettings", load:false},  
-                            {type:"showUpdatesNotification", load:true}
-                        ]
-                    }); 
-                }  
+    //             if(canUpdate){  
+    //                 this.props.dispatch({
+    //                     type:"multiple",
+    //                     load:[
+    //                         {type:"openSettings", load:false},  
+    //                         {type:"showUpdatesNotification", load:true}
+    //                     ]
+    //                 }); 
+    //             }  
 
-                return this.updateState({
-                    updateStatus:`Latest version is ${canUpdate ? updateInfo.version : 'already installed'}.`
-                }); 
-            }
-        )     
-    );  
+    //             return this.updateState({
+    //                 updateStatus:`Latest version is ${canUpdate ? updateInfo.version : 'already installed'}.`
+    //             }); 
+    //         }
+    //     )     
+    // );  
 
 
 
@@ -409,7 +409,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                             {updateStatus} 
                         </div>  
                     }     
-                    <div     
+                    {/* <div     
                         onClick={this.checkUpdates} 
                         style={{     
                             display:"flex",
@@ -429,7 +429,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         <div style={{color:"white",whiteSpace:"nowrap",fontSize:"16px"}}>  
                             Check for updates
                         </div>    
-                    </div>    
+                    </div>     */}
                 </div> 
 
                 <div style={{cursor:"pointer", height:"30px"}}>

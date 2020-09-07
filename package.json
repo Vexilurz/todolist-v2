@@ -73,6 +73,7 @@
     "draft-js-plugins-editor": "^3.0.0",
     "electron": "^10.1.1",
     "electron-builder": "^22.8.0",
+    "electron-devtools-installer": "^3.1.1",
     "electron-ga": "^1.0.6",
     "electron-json-storage": "^4.2.0",
     "electron-log": "^4.2.4",
