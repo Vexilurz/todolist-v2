@@ -132,7 +132,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 }   
             ],
             [ 
-                typeEquals("shouldSendStatistics"),
+                typeEquals("shouldSendStatistics"), //TODO: can't comment this...
                 (action:{type:string,load:boolean}) : Store => {
                     return ({...state, shouldSendStatistics:action.load}); 
                 }   

@@ -193,10 +193,10 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    shouldSendStatistics = () => this.props.dispatch({
-        type:"shouldSendStatistics",
-        load:!this.props.shouldSendStatistics
-    }); 
+    // shouldSendStatistics = () => this.props.dispatch({
+    //     type:"shouldSendStatistics",
+    //     load:!this.props.shouldSendStatistics
+    // }); 
 
 
 
@@ -266,10 +266,10 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         return <div ref={e => {this.ref=e;}} style={{paddingTop:"25px",width:"90%",paddingLeft:"25px"}}>
             <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",height:"90%"}}> 
            
-            <div style={{display:"flex", alignItems:"center"}}>
+            {/* <div style={{display:"flex", alignItems:"center"}}>
                 <Checkbox checked={shouldSendStatistics} onClick={this.shouldSendStatistics}/>
                 <div style={{paddingLeft:"10px"}}>Send anonymous usage statistics</div>
-            </div> 
+            </div>  */}
 
             <div style={{display:"flex", alignItems:"center"}}>
                 <Checkbox checked={not(disableReminder)} onClick={this.disableReminder}/>

@@ -90,7 +90,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
     componentWillReceiveProps(nextProps:ProjectHeaderProps,nextState:ProjectHeaderState){
         if(this.props.project._id!==nextProps.project._id){
-           this.setState({editorState:noteToState(nextProps.project.description)}); 
+           this.setState({
+               editorState:EditorState.createEmpty()//noteToState(nextProps.project.description)
+            }); 
         } 
   
         if(this.props.project.name!==nextProps.project.name){

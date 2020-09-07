@@ -10,30 +10,30 @@ export const googleAnalytics = ({
         requestFromMain("getConfig", [], (event, config) => config)
         .then(
             (config) => {
-                if(config.shouldSendStatistics){ 
-                    if(isNil(analytics)){
-                        collectSystemInfo()
-                        .then(
-                            (sysInfo) => {
-                                analytics = new Analytics(
-                                    'UA-113407516-1',
-                                    {
-                                        userId:config.email,
-                                        appName:"tasklist",
-                                        appVersion:sysInfo.version,
-                                        language:sysInfo.userLanguage,
-                                        userAgent:navigator.userAgent,
-                                        viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
-                                        screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
-                                    }
-                                );
-                                analytics.send(type,load);
-                            }
-                        )
-                    }else{
-                        analytics.send(type,load); 
-                    }
-                }
+                // if(config.shouldSendStatistics){ 
+                //     if(isNil(analytics)){
+                //         collectSystemInfo()
+                //         .then(
+                //             (sysInfo) => {
+                //                 analytics = new Analytics(
+                //                     'UA-113407516-1',
+                //                     {
+                //                         userId:config.email,
+                //                         appName:"tasklist",
+                //                         appVersion:sysInfo.version,
+                //                         language:sysInfo.userLanguage,
+                //                         userAgent:navigator.userAgent,
+                //                         viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
+                //                         screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
+                //                     }
+                //                 );
+                //                 analytics.send(type,load);
+                //             }
+                //         )
+                //     }else{
+                //         analytics.send(type,load); 
+                //     }
+                // }
             }            
         ) 
 });     
