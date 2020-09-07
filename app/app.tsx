@@ -502,9 +502,9 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
 ipcRenderer.once(
     'loaded', 
     (event,clonedStore:Store,id:number) => 
-        // requestFromMain("getConfig", [], (event, config) => config)
+        requestFromMain("getConfig", [], (event, config) => config)
         // .then(setKey)
-        // .then((config:Config) => renderApp(config,clonedStore,id))
-        renderApp(defaultConfig,clonedStore,id)
+        .then((config:Config) => renderApp(config,clonedStore,id))
+        // renderApp(defaultConfig,clonedStore,id)
 );    
 
