@@ -9,7 +9,7 @@ import { emailToUsername } from '../../utils/emailToUsername';
 import { Connected } from '../Connected';
 import { Login } from '../Login';
 import { debounce } from 'lodash';
-import { checkAuthenticated } from '../../utils/checkAuthenticated';
+// import { checkAuthenticated } from '../../utils/checkAuthenticated';
 import { pouchWorker } from '../../app';
 
 
@@ -40,7 +40,7 @@ export class SyncSettings extends Component<SyncSettingsProps,SyncSettingsState>
 
 
     componentDidMount(){
-        checkAuthenticated().then( auth => this.setAuthenticated(auth) )
+        // checkAuthenticated().then( auth => this.setAuthenticated(auth) )
     }
 
     

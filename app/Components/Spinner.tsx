@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 import { subscribeToChannel } from '../utils/subscribeToChannel';
 import IconButton from 'material-ui/IconButton'; 
 // import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
-import { checkAuthenticated } from '../utils/checkAuthenticated';
+// import { checkAuthenticated } from '../utils/checkAuthenticated';
 
 
 
@@ -48,24 +48,24 @@ export class Spinner extends Component<SpinnerProps,SpinnerState>{
    
 
 
-    onRefresh = (e) => {
-        checkAuthenticated() 
-        .then(
-            auth => {
-                if(auth && this.props.sync){
-                    this.setState(
-                        {active:true},  
-                        () => setTimeout(
-                            () => this.setState({active:false}, () => this.props.dispatch({ type:"lastSync", load:new Date() })), 
-                            1000
-                        )
-                    );
-                }else{
-                    this.props.openSyncSettings(e);
-                }
-            }
-        )
-    }
+    // onRefresh = (e) => {
+    //     checkAuthenticated() 
+    //     .then(
+    //         auth => {
+    //             if(auth && this.props.sync){
+    //                 this.setState(
+    //                     {active:true},  
+    //                     () => setTimeout(
+    //                         () => this.setState({active:false}, () => this.props.dispatch({ type:"lastSync", load:new Date() })), 
+    //                         1000
+    //                     )
+    //                 );
+    //             }else{
+    //                 this.props.openSyncSettings(e);
+    //             }
+    //         }
+    //     )
+    // }
     
     
 

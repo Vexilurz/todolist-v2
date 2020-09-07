@@ -32,7 +32,7 @@ import { toStoreChanges } from './utils/toStoreChanges';
 import { changesToActions } from './utils/changesToActions';
 import { subscribeToChannel } from './utils/subscribeToChannel';
 import { requestFromMain } from './utils/requestFromMain';
-import { checkAuthenticated } from './utils/checkAuthenticated';
+// import { checkAuthenticated } from './utils/checkAuthenticated';
 import { emailToUsername } from './utils/emailToUsername';
 import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
@@ -109,7 +109,7 @@ export class App extends Component<AppProps,AppState>{
         if(!this.props.clone){
             this.initCtrlB();
             this.initPouchObservables();
-            this.initSync();
+            // this.initSync();
             reportStart();
         }
     }; 
@@ -137,14 +137,14 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-    openLoginForm = () => this.props.dispatch({
-        type:"multiple", 
-        load:[
-            {type:'sync', load:false}, 
-            {type:"openSettings", load:true}, 
-            {type:"selectedSettingsSection", load:'Sync'}
-        ]
-    });
+    // openLoginForm = () => this.props.dispatch({
+    //     type:"multiple", 
+    //     load:[
+    //         {type:'sync', load:false}, 
+    //         {type:"openSettings", load:true}, 
+    //         {type:"selectedSettingsSection", load:'Sync'}
+    //     ]
+    // });
 
  
 
@@ -161,7 +161,7 @@ export class App extends Component<AppProps,AppState>{
            this.props.dispatch({ type:"lastImport", load:new Date() });
         }
 
-        checkAuthenticated().then( when(identity, () => this.props.dispatch({ type:"lastSync", load:new Date() })) )
+        // checkAuthenticated().then( when(identity, () => this.props.dispatch({ type:"lastSync", load:new Date() })) )
 
         if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  } //continue only if change from "outside"
  
@@ -202,15 +202,15 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-    initSync = () => checkAuthenticated().then(auth => {
-        if(isString(this.props.email) && auth && this.props.sync){
-           let action : actionStartSync = { type:"startSync", load:emailToUsername(this.props.email) };
-           this.setState({syncActive:true}); 
-           pouchWorker.postMessage(action);
-        }else{
-           this.setState({syncActive:false}); 
-        }
-    });
+    // initSync = () => checkAuthenticated().then(auth => {
+    //     if(isString(this.props.email) && auth && this.props.sync){
+    //        let action : actionStartSync = { type:"startSync", load:emailToUsername(this.props.email) };
+    //        this.setState({syncActive:true}); 
+    //        pouchWorker.postMessage(action);
+    //     }else{
+    //        this.setState({syncActive:false}); 
+    //     }
+    // });
 
     
 
@@ -230,7 +230,7 @@ export class App extends Component<AppProps,AppState>{
                 ]
             )
         ){
-            logout().then(() => this.openLoginForm());
+            // logout().then(() => this.openLoginForm());
         }
     };
 

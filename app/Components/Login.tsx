@@ -7,12 +7,12 @@ import { nDaysFromNow } from '../utils/utils';
 import { isNotNil } from '../utils/isSomething';
 import axios from 'axios';
 import { emailToUsername } from '../utils/emailToUsername';
-import { server } from '../utils/couchHost';
+// import { server } from '../utils/couchHost';
 import { getToken } from '../utils/getToken';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
 import { encryptKey, decryptKey, generateSecretKey } from '../utils/crypto/crypto';
-import { LoginForm } from './LoginForm';
+// import { LoginForm } from './LoginForm';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 // const remote = require('electron').remote;
 // const session = remote.session;
@@ -21,19 +21,19 @@ import { globalErrorHandler } from '../utils/globalErrorHandler';
 let switchAccount = ([retrieved,requested]) => isNotNil(retrieved) && isNotNil(requested) && retrieved!==requested;
         
 
-let requestKey = (token,password) => axios({
-    method:'get', 
-    url:`${server}/users/key`, 
-    headers: { 'AuthToken' : token }
-})
-.then(prop("data"))
-.then((key:any) => {
-    if(isNil(key) || isEmpty(key)){
-       return null;
-    }else{
-       return decryptKey(password)(key);
-    }
-}); 
+// let requestKey = (token,password) => axios({
+//     method:'get', 
+//     url:`${server}/users/key`, 
+//     headers: { 'AuthToken' : token }
+// })
+// .then(prop("data"))
+// .then((key:any) => {
+//     if(isNil(key) || isEmpty(key)){
+//        return null;
+//     }else{
+//        return decryptKey(password)(key);
+//     }
+// }); 
 
 
 interface LoginProps{
@@ -116,82 +116,83 @@ export class Login extends Component<LoginProps,LoginState>{
 
     
     //save key locally and remotely if needed
-    preserveKey = (requested:string,retrieved:string,email:string,password:string) => (key:string) : Promise<string> => {
-        let username = emailToUsername(email); 
-        let submitKey = (key:string) => axios({method:'post', url:`${server}/users/key`, data:{ username, password, key }});
-        let load = [{type:'sync',load:true},{type:'email',load:email}]; 
+    // preserveKey = (requested:string,retrieved:string,email:string,password:string) => (key:string) : Promise<string> => {
+    //     let username = emailToUsername(email); 
+    //     let submitKey = (key:string) => axios({method:'post', url:`${server}/users/key`, data:{ username, password, key }});
+    //     let load = [{type:'sync',load:true},{type:'email',load:email}]; 
         
-        if(isNil(key)){
+    //     if(isNil(key)){
 
-            let newKey = generateSecretKey();
-            let encryptedKey = encryptKey(password)(newKey);
-            this.props.dispatch({type:'multiple',load:[ {type:"secretKey", load:newKey}, ...load ]});
-            return submitKey(encryptedKey).then(resp => newKey);
+    //         let newKey = generateSecretKey();
+    //         let encryptedKey = encryptKey(password)(newKey);
+    //         this.props.dispatch({type:'multiple',load:[ {type:"secretKey", load:newKey}, ...load ]});
+    //         return submitKey(encryptedKey).then(resp => newKey);
 
-        }else if(isNil(requested) && !isNil(retrieved)){
+    //     }else if(isNil(requested) && !isNil(retrieved)){
 
-            this.props.dispatch({type:'multiple', load:[{ type:"secretKey", load:key }, ...load]});
-            let encryptedKey = encryptKey(password)(key);
-            return submitKey(encryptedKey).then(resp => key);
+    //         this.props.dispatch({type:'multiple', load:[{ type:"secretKey", load:key }, ...load]});
+    //         let encryptedKey = encryptKey(password)(key);
+    //         return submitKey(encryptedKey).then(resp => key);
 
-        }else{
+    //     }else{
 
-            this.props.dispatch({type:'multiple', load:[{ type:"secretKey", load:key }, ...load]});
-            return new Promise(resolve => resolve(key));
-        }
-    };
+    //         this.props.dispatch({type:'multiple', load:[{ type:"secretKey", load:key }, ...load]});
+    //         return new Promise(resolve => resolve(key));
+    //     }
+    // };
 
 
 
-    onAuth = ({email,password} : {email:string,password:string}) => response => {
-        if(response.status!==200){ return }
+    // onAuth = ({email,password} : {email:string,password:string}) => response => {
+    //     if(response.status!==200){ return }
         
-        let retrieveKey = (props) : Promise<string> => new Promise(resolve => resolve(props.secretKey));
-        let username = emailToUsername(email); 
-        let expire = nDaysFromNow(1000);
-        let token = getToken({username, password});
+    //     let retrieveKey = (props) : Promise<string> => new Promise(resolve => resolve(props.secretKey));
+    //     let username = emailToUsername(email); 
+    //     let expire = nDaysFromNow(1000);
+    //     let token = getToken({username, password});
 
-        const session = require('electron').remote.session; //TODO
-        session.defaultSession.cookies.set( 
-            {url:server,name:'AuthToken',value:token,expirationDate:expire.getTime()}, 
-            when(isNotNil,globalErrorHandler)
-        ); 
+    //     const session = require('electron').remote.session; //TODO
+    //     session.defaultSession.cookies.set( 
+    //         {url:server,name:'AuthToken',value:token,expirationDate:expire.getTime()}, 
+    //         when(isNotNil,globalErrorHandler)
+    //     ); 
 
-        return Promise
-        .all([
-            retrieveKey(this.props),
-            requestKey(token, password)
-        ])
-        .then(
-            //return key or null
-            ifElse(
-                switchAccount,
-                ([retrieved,requested]) => {
-                    //login with different account
-                    this.props.dispatch({type:"eraseDataStore", load:undefined});
+    //     return Promise
+    //     .all([
+    //         retrieveKey(this.props),
+    //         requestKey(token, password)
+    //     ])
+    //     .then(
+    //         //return key or null
+    //         ifElse(
+    //             switchAccount,
+    //             ([retrieved,requested]) => {
+    //                 //login with different account
+    //                 this.props.dispatch({type:"eraseDataStore", load:undefined});
 
-                    return this.eraseDatabase().then(
-                        (error) => {
-                            if(isNotNil(error)){ globalErrorHandler(error) }
-                            return this.preserveKey(requested, retrieved, email, password)(requested);
-                        }
-                    )
-                },
-                ([retrieved,requested]) => {
-                    let key = this.selectKey([retrieved,requested]);
-                    return this.preserveKey(requested, retrieved, email, password)(key);
-                }
-            )
-        )
-        .then(this.setKeyInWorker)
-        .then(this.encryptDatabase)
-        .then(this.initSync(username))
-        .then(() => this.props.setAuthenticated(true))
-    };      
+    //                 return this.eraseDatabase().then(
+    //                     (error) => {
+    //                         if(isNotNil(error)){ globalErrorHandler(error) }
+    //                         return this.preserveKey(requested, retrieved, email, password)(requested);
+    //                     }
+    //                 )
+    //             },
+    //             ([retrieved,requested]) => {
+    //                 let key = this.selectKey([retrieved,requested]);
+    //                 return this.preserveKey(requested, retrieved, email, password)(key);
+    //             }
+    //         )
+    //     )
+    //     .then(this.setKeyInWorker)
+    //     .then(this.encryptDatabase)
+    //     .then(this.initSync(username))
+    //     .then(() => this.props.setAuthenticated(true))
+    // };      
 
     
 
     render(){
-        return <LoginForm email={this.props.email} onAuth={this.onAuth}/>
+        return <></>
+        // <LoginForm email={this.props.email} onAuth={this.onAuth}/>
     }
 };
