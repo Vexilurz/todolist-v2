@@ -154,26 +154,27 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             prop('layout')
         )(this.props.project) as string[];
 
-
         let selectedTodos : Todo[] = filter(
             this.props.todos,
             (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
         );   
 
-
         let todos = selectedTodos.map(
             (t:Todo) : Todo => ({...t, reminder:null, deleted:defaultTo(new Date())(t.deleted)})
         );
-
 
         let load = [
             {type:"updateTodos", load:todos},
             {type:"updateProject", load:{...this.props.project,deleted:new Date()}},
             {type:"selectedCategory", load:"inbox"}  
         ];
- 
+
+        console.log("there onDelete before dispatch");
+        console.log(this.props.dispatch)
         this.props.dispatch({type:"multiple", load});
 
+        console.log("there onDelete after dispatch");
+        
         this.closeMenu();           
     };
 
