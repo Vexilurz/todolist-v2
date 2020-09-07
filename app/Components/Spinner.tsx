@@ -6,7 +6,7 @@ import RefreshIndicator from 'material-ui/RefreshIndicator';
 import { Subscription } from 'rxjs';
 import { subscribeToChannel } from '../utils/subscribeToChannel';
 import IconButton from 'material-ui/IconButton'; 
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+// import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { checkAuthenticated } from '../utils/checkAuthenticated';
 
 
@@ -71,24 +71,25 @@ export class Spinner extends Component<SpinnerProps,SpinnerState>{
 
     render(){ 
         return this.state.active ?
-        <RefreshIndicator 
-            size={25}
-            left={0}
-            top={0}
-            status="loading"
-            style={{display:'inline-block', position:'relative'}}
-        />
-        : 
-        <IconButton    
-            onClick = {this.onRefresh}  
-            iconStyle={{   
-                color:"rgba(100, 100, 100, 1)",
-                width:"25px", 
-                height:"25px"   
-            }}
-            style={{width:"auto", height:"auto", padding:"0px"}}
-        >        
-            <Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>
-        </IconButton>  
+        <></> : <></>
+        // <RefreshIndicator 
+        //     size={25}
+        //     left={0}
+        //     top={0}
+        //     status="loading"
+        //     style={{display:'inline-block', position:'relative'}}
+        // />
+        // : 
+        // <IconButton    
+        //     onClick = {this.onRefresh}  
+        //     iconStyle={{   
+        //         color:"rgba(100, 100, 100, 1)",
+        //         width:"25px", 
+        //         height:"25px"   
+        //     }}
+        //     style={{width:"auto", height:"auto", padding:"0px"}}
+        // >        
+        //     <Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>
+        // </IconButton>  
     }
 };

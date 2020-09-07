@@ -3,7 +3,7 @@ import './../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react";  
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+// import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Star from 'material-ui/svg-icons/toggle/star';
 import Plus from 'material-ui/svg-icons/content/add';
 import Minus from 'material-ui/svg-icons/content/remove';
@@ -247,13 +247,13 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                             marginBottom:"2px"
                         }}
                     >
-                        <Refresh style={{  
+                        {/* <Refresh style={{  
                             paddingLeft:"2px",
                             color:"black", 
                             width:"18px", 
                             height:"18px", 
                             cursor:"default"  
-                        }}/>
+                        }}/> */}
                         <div style={{marginLeft:"13px"}}> 
                             Recurring task
                         </div>

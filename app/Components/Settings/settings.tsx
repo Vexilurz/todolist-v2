@@ -15,7 +15,7 @@ import { QuickEntrySettings } from './QuickEntrySettings';
 import { CalendarEventsSettings } from './CalendarEventsSettings';
 import { AdvancedSettings } from './AdvancedSettings';
 import { TagsSettings } from './TagsSettings';
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+// import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { SyncSettings } from './SyncSettings';
 
  
@@ -130,12 +130,12 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         name={'Calendars'}
                         selected={selectedSettingsSection==='CalendarEvents'}
                     />
-                     <Section
+                     {/* <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Sync'})} 
                         icon={<Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
                         name={'Sync'} 
                         selected={selectedSettingsSection==='Sync'} 
-                    /> 
+                    />  */}
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
                         icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}

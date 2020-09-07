@@ -1,5 +1,5 @@
 import {isString,isCategory} from './isSomething';
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+// import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
@@ -159,18 +159,19 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
         ],
         [
             equals("group"),
-            () => <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
-                <Refresh  
-                    style={{     
-                        width:18,   
-                        height:18, 
-                        marginLeft:"3px", 
-                        color:"black", 
-                        cursor:"default", 
-                        marginRight:"5px"  
-                    }} 
-                /> 
-            </div>   
+            () => <></>
+            // <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
+            //     <Refresh  
+            //         style={{     
+            //             width:18,   
+            //             height:18, 
+            //             marginLeft:"3px", 
+            //             color:"black", 
+            //             cursor:"default", 
+            //             marginRight:"5px"  
+            //         }} 
+            //     /> 
+            // </div>   
         ],
         [
             equals("reminder"),

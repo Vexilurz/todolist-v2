@@ -4,7 +4,7 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';   
 import { Component } from "react";  
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+// import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Checked from 'material-ui/svg-icons/navigation/check';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import NotesIcon from 'material-ui/svg-icons/action/subject'; 
@@ -205,15 +205,16 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                 )
                             }
                             {    
-                                isNil(group) ? null :
-                                <div style={{display:"flex",alignItems:"center",paddingRight:"4px"}}> 
-                                    <Refresh style={{     
-                                        width:16,   
-                                        height:16,   
-                                        color:"rgba(200,200,200,1)", 
-                                        cursor:"default"
-                                    }}/>
-                                </div>
+                                null
+                                // isNil(group) ? null :
+                                // <div style={{display:"flex",alignItems:"center",paddingRight:"4px"}}> 
+                                //     <Refresh style={{     
+                                //         width:16,   
+                                //         height:16,   
+                                //         color:"rgba(200,200,200,1)", 
+                                //         cursor:"default"
+                                //     }}/>
+                                // </div>
                             }  
                             { 
                                 isNil(reminder) ? null :

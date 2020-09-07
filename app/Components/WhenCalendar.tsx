@@ -3,7 +3,7 @@ import './../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react";  
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+// import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Star from 'material-ui/svg-icons/toggle/star';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import DayPicker from 'react-day-picker';  
@@ -463,13 +463,13 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                             marginBottom:"2px"
                         }}
                     >
-                        <Refresh style={{  
+                        {/* <Refresh style={{  
                             paddingLeft:"2px",
                             color:"black", 
                             width:"18px", 
                             height:"18px", 
                             cursor:"default"  
-                        }}/>
+                        }}/> */}
                         <div style={{marginLeft:"13px"}}> 
                             Recurring task
                         </div>
