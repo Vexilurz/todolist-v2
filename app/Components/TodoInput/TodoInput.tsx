@@ -136,7 +136,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             open:false,
             tag:'', 
             translateX:0,
-            editorState:EditorState.createEmpty(),//noteToState(note),
+            editorState: noteToState(note),
             animatingSlideAway:false,
             display:"flex",
             showAdditionalTags:false, 

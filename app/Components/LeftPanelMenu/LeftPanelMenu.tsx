@@ -78,16 +78,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
         let {dispatch} = this.props;
 
-        googleAnalytics.send(
-            'event', 
-            { 
-               ec:'ProjectCreation', 
-               ea:`Project Created ${new Date().toString()}`, 
-               el:`Project Created`, 
-               ev:timeSeconds  
-            }
-        ) 
-        .catch(err => this.onError(err)) 
+        // googleAnalytics.send(
+        //     'event', 
+        //     { 
+        //        ec:'ProjectCreation', 
+        //        ea:`Project Created ${new Date().toString()}`, 
+        //        el:`Project Created`, 
+        //        ev:timeSeconds  
+        //     }
+        // ) 
+        // .catch(err => this.onError(err)) 
 
         let project = generateEmptyProject();
 

@@ -13,6 +13,7 @@ import {shell} from 'electron';
 import Editor from 'draft-js-plugins-editor';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
+import { EditorState  } from 'draft-js';
 
 const linkifyPlugin = createLinkifyPlugin({
     component:(props) => {
@@ -73,7 +74,14 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                 color:'rgba(10,10,10,0.9)',
                 paddingBottom:"10px"
             }}>
-                
+                <Editor
+                    editorState={this.props.editorState}
+                    onChange={this.props.onNoteChange as any} 
+                    plugins={[linkifyPlugin]} 
+                    //@ts-ignore
+                    keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
+                    placeholder="Notes"
+                />    
             </div> 
             {    
                 not(showChecklist) ? null : 

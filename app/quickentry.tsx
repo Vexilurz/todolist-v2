@@ -617,7 +617,14 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 /> 
             </div> 
             <div style={{paddingTop:"10px"} as any}>              
-         
+            <Editor
+                    editorState={this.state.editorState}
+                    onChange={this.onNoteChange } 
+                    plugins={[linkifyPlugin]} 
+                    //@ts-ignore
+                    keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
+                    placeholder="Notes"
+                />  
             </div>
                 <div 
                     ref={(e) => {this.checklist=e;}} 

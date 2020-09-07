@@ -301,7 +301,14 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     color:"rgba(10,10,10,0.9)",
                     paddingBottom:"10px"
                 }}> 
-                    
+                    <Editor
+                        editorState={this.state.editorState}
+                        onChange={this.updateEditorState}
+                        plugins={[linkifyPlugin]}
+                        //@ts-ignore
+                        keyBindingFn={(e) => { if (e.keyCode === 13) { e.stopPropagation(); } }}
+                        placeholder="Notes"
+                    /> 
                 </div>   
             </div>
             <div className={`no-print`}>  
