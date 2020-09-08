@@ -280,7 +280,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     // };
 
 
-
+    //TODO: think that this is must be commented too...
     initBackupCleanupTimeout = () : void => {
         if(isDev()){
            console.log(`nextBackupCleanup - ${this.props.nextBackupCleanup}`);

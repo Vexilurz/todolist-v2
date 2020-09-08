@@ -206,16 +206,18 @@ export let printElement = (selectedCategory:Category, list:HTMLElement) : Promis
 
 
  
-export let measureTime = (f:(...args) => any, name?:string) => 
-    (...args) => {
+export let measureTime = (f:(...args) => any, name?:string) => {
+    return (...args) => {
         let start : number = performance.now();
-        let data = f.apply(null,args); 
+        //let data = f.apply(null,args); 
+        let data = f(args);
         let finish : number = performance.now();
         if(isDev()){
            console.log(`${name ? name : f.name} - time of execution : ${finish - start} ms`);
         } 
         return data; 
     }; 
+}
 
  
 

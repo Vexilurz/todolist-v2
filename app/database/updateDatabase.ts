@@ -86,6 +86,9 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
 
     if(isEmpty(actions)){ return newState }
 
+    console.log("detectChanges in updateDatabase");
+    console.log("state: ",state);
+    console.log("newState: ",newState);
     let changes = detectChanges(state)(newState);
 
     if(isDev()){
@@ -96,7 +99,8 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
  
     if(!isEmpty(changes) && !isEmpty(items)){ 
        let actionChanges : actionChanges = { type:"changes", load:changes, import:prop('import')(load[0]) };
-       pouchWorker.postMessage(actionChanges); 
+       let actionChanges_json = JSON.parse(JSON.stringify(actionChanges));
+       pouchWorker.postMessage(actionChanges_json);
     } 
     console.log('updateDatabase - return', newState);
     return newState; 

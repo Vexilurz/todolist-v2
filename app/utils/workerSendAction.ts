@@ -16,7 +16,8 @@ export let workerSendAction = (worker:any) =>
                 .map(prop("load"))
                 .subscribe((load:T) => resolve(load));
 
-                worker.postMessage(action);
+                let action_json = JSON.parse(JSON.stringify(action));
+                worker.postMessage(action_json);
             }
         );
 

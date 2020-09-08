@@ -4,14 +4,16 @@ import { pick, pickBy, mapObjIndexed, compose } from 'ramda';
 
 
 
-let toObjById = (list:withId[]) => 
-    list.reduce(
+let toObjById = (list:withId[]) => {
+    let tmp = list.reduce(
         (obj,item) => {  
             obj[item._id]=item; 
             return obj; 
         },
         {}
     );
+    return tmp;
+}
 
 
 
@@ -22,7 +24,10 @@ export let detectChanges : (state:Store) => (newState:Store) => Changes =
             (val:any[], key:string) : DatabaseChanges<any> => {
                 let changes = { add:[], remove:[], update:[] };
                 let prev = state[key];
-                let next = val;
+                console.log("key", key); 
+                console.log("prev", prev); 
+                let next = val; //TODO: this is not an todo object!!!
+                console.log("next", typeof(next), next);
 
                 if(prev.length===next.length){     //items updated
 
@@ -34,7 +39,7 @@ export let detectChanges : (state:Store) => (newState:Store) => Changes =
                                 changes.update.push(item);
                             }
                         } 
-                    )
+                    )                    
 
                 }else if(prev.length<next.length){ //items added
 

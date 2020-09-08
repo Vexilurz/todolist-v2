@@ -16,7 +16,8 @@ export let generateAmounts : (
         trash:((todo:any) => boolean)[]//1
     } 
 ) => {inbox:number,today:number,hot:number,next:number,someday:number,logbook:number,trash:number} =
-    (todos,filters) => todos.reduce(
+    (todos,filters) => {
+        return todos.reduce(
         (acc,val:any) => {
             if( filters.trash[0](val) ){
                 acc.trash+=1;
@@ -80,4 +81,4 @@ export let generateAmounts : (
             logbook:0,
             trash:0
         }
-    );
+    );}
