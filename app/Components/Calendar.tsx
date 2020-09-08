@@ -110,9 +110,9 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
         map(
             (event:CalendarEvent) => compose( 
 
-                (range) => adjust((event) => assoc('sequenceEnd', true, event), range.length-1, range), 
+                (range) => adjust(range.length-1, (event) => assoc('sequenceEnd', true, event), range), 
 
-                adjust((event) => assoc('sequenceStart', true, event), 0),
+                adjust(0, (event) => assoc('sequenceStart', true, event)), // TODO: check this
  
                 map((date:Date) => ({...event,start:date})),
 

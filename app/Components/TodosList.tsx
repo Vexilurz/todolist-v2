@@ -287,8 +287,8 @@ export let onDrop = ({
 
         return {
             projects:adjust(
-                (p:Project) => ({ ...p, layout:[draggedTodo._id,...p.layout] }),
-                idx, 
+                idx,
+                (p:Project) => ({ ...p, layout:[draggedTodo._id,...p.layout] }),                 
                 updatedProjects
             ),
             todo:null

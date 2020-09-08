@@ -43,7 +43,7 @@ export let getTransformations = (f:Function) => ({
         title:f,
         checklist:map( evolve({text:f}) ),
         attachedTags:map( f ),
-        note:evolve({ blocks:adjust(evolve({text:f}))(0) })
+        note:evolve({ blocks:adjust(evolve({text:f}))(0) }) //TODO: check this
     },
     projects:{
         name:f, 
@@ -53,7 +53,7 @@ export let getTransformations = (f:Function) => ({
                 evolve({title:f}) 
             ) 
         ),  
-        description:evolve({ blocks:adjust(evolve({text:f}))(0) })
+        description:evolve({ blocks:adjust(evolve({text:f}))(0) }) //TODO: check this
     },
     areas:{
         name:f, 

@@ -146,7 +146,7 @@ export let repeat = (
     );  
 
 
-    let setLast = items => adjust( evolve({group:(group) => ({...group, last:true})}), items.length-1 , items );
+    let setLast = items => adjust( items.length-1, evolve({group:(group) => ({...group, last:true})}),  items );
 
 
     let todos = compose(

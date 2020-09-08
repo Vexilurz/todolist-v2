@@ -39,7 +39,7 @@ let updateOtherInstances = (action:action) => (newState:Store) => {
     //update other windows only if action was initialized inside current window 
     //and action belong to ObjectsReducer 
     if(shouldUpdateOtherInstances){
-        if(isDev()){ 
+        if(isDev()){                      
            console.log(`update other instances with ${action.type}`, action.load); 
         }
 
@@ -54,11 +54,9 @@ let updateOtherInstances = (action:action) => (newState:Store) => {
 let updateTodos = (state:Store) => (action:{type:string, load:Todo[]}) : Store => {
     let changedTodos = action.load;
     let changedIds:string[] = changedTodos.map((t:Todo) => t._id);
-
     if(isEmpty(changedIds)){ 
        return { ...state };  
     }
-     
     let todos : Todo[] = state.todos.map(
         ifElse(
             (todo) => contains(todo._id)(changedIds),
@@ -66,7 +64,6 @@ let updateTodos = (state:Store) => (action:{type:string, load:Todo[]}) : Store =
             identity
         )
     );
-
     /*compose(concat(changedTodos), reject((todo:Todo) => contains(todo._id)(changedIds)))(state.todos);*/
 
     return { ...state, todos };
@@ -76,7 +73,7 @@ let updateTodos = (state:Store) => (action:{type:string, load:Todo[]}) : Store =
 
 let updateProject = (state:Store) => (action:{type:string, load:Project}) : Store => {
     let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
-    let projects = adjust((p) => ({...p,...action.load}), idx, state.projects);
+    let projects = adjust(idx, (p) => ({...p,...action.load}), state.projects);
     return {...state, projects};
 };
 
@@ -244,7 +241,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
 
                     project = ({...project,showScheduled:!project.showScheduled});
 
-                    return {...state, projects:adjust(() => project, idx, state.projects)};
+                    return {...state, projects:adjust(idx, () => project, state.projects)};
                 }
             ],
             [
@@ -258,7 +255,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
 
                     project = ({...project,showCompleted:!project.showCompleted});
 
-                    return {...state, projects:adjust(() => project, idx, state.projects)};
+                    return {...state, projects:adjust(idx, () => project, state.projects)};
 
                 }
             ],
@@ -308,7 +305,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                             (todos) => {
                                 let id = todosToUpdateIds[0];
                                 let index = findIndex((t:Todo) => todo._id===t._id, todos);
-                                return adjust(todo => assoc('group', null, todo), index, todos);
+                                return adjust(index, todo => assoc('group', null, todo), todos);
                             }, 
                             map(
                                 when(
@@ -361,7 +358,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     //if todo exists - update
                     }else{ 
 
-                        return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
+                        return{ ...state, todos:adjust(idx, () => todo, state.todos) }; 
                     }
                 }
             ], 
@@ -401,7 +398,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
 
                     return {
                         ...state, 
-                        calendars:adjust(() => action.load, idx, calendars)
+                        calendars:adjust(idx, () => action.load, calendars)
                     };
                 }
             ],
@@ -423,6 +420,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         projects:projectIdx==-1 ? 
                                  state.projects : 
                                  adjust(
+                                    projectIdx,
                                     project => ({ 
                                         ...project, 
                                         layout:project.layout.filter(item => {
@@ -434,8 +432,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                                             }
 
                                         }) 
-                                    }), 
-                                    projectIdx, 
+                                    }),                                      
                                     state.projects
                                  )
                     }; 
@@ -479,7 +476,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         //if todo exists - update
                         }else{ 
 
-                            return{ ...state, todos:adjust((prev) => ({...prev,...todo}), idx, state.todos) }; 
+                            return{ ...state, todos:adjust((idx, prev) => ({...prev,...todo}), state.todos) }; 
                         }
                     }
                 }
@@ -537,7 +534,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         }
                     }
 
-                    return {...state,projects:adjust(() => project, idx, state.projects)};
+                    return {...state,projects:adjust(idx, () => project, state.projects)};
                 }
             ], 
             [
@@ -565,8 +562,8 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     ) as Todo[];
 
                     let projects = adjust(
-                        (project:Project) : Project => ({...project,completed:undefined}), 
-                        projectIndex, 
+                        projectIndex,
+                        (project:Project) : Project => ({...project,completed:undefined}),                          
                         state.projects
                     );  
 
@@ -598,8 +595,8 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     ) as Todo[];
 
                     let projects = adjust(
-                        (project:Project) : Project => ({...project,deleted:undefined}), 
-                        projectIndex, 
+                        projectIndex,
+                        (project:Project) : Project => ({...project,deleted:undefined}),                          
                         state.projects
                     );
 
@@ -614,7 +611,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
 
                 (action:{type:string, load:Area}) : Store => {
                     let idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
-                    return {...state, areas:adjust((a) => ({...a, ...action.load}), idx, state.areas)};
+                    return {...state, areas:adjust(idx, (a) => ({...a, ...action.load}), state.areas)};
                 } 
             ],
             [ 

@@ -169,12 +169,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             {type:"selectedCategory", load:"inbox"}  
         ];
 
-        console.log("there onDelete before dispatch");
-        console.log(this.props.dispatch)
         this.props.dispatch({type:"multiple", load});
 
-        console.log("there onDelete after dispatch");
-        
         this.closeMenu();           
     };
 

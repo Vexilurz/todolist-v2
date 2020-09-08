@@ -54,8 +54,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             updatedItem.text = newText; 
 
             let checklist = adjust(
-                () => isEmpty(updatedItem.text) ? undefined : updatedItem, 
                 idx, 
+                () => isEmpty(updatedItem.text) ? undefined : updatedItem,                 
                 this.props.checklist
             );
 
@@ -74,7 +74,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             
             item.checked=!item.checked;
 
-            let checklist = adjust(() => item, idx, this.props.checklist);
+            let checklist = adjust(idx, () => item, this.props.checklist);
 
             this.props.updateChecklist(checklist);  
         }

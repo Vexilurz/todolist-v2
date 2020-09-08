@@ -598,7 +598,6 @@ export let turnedOn = (was:boolean, now:boolean) : boolean => !was && now;
 
 
 export let attachDispatchToProps = (dispatch:Function,props) => {
-    console.log("attachDispatchToProps.\nthis:", this, "\nprops: ", {...props}, "\ndispatch: ", {dispatch})
     return {...props, dispatch}
 };
 

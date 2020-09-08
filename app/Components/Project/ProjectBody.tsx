@@ -309,9 +309,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook, filters } = this.props;
         let selectedProjectIdx = findIndex((p:Project) => p._id===selectedProjectId, projects);
         let { project, category } = findDropTarget(event,projects);
-        let updatedProjects = adjust(  
-            (p:Project) => removeHeading(heading._id,p),
-            selectedProjectIdx,
+        let updatedProjects = adjust(
+            selectedProjectIdx,  
+            (p:Project) => removeHeading(heading._id,p),            
             removeTodosFromProjects(projects,todos)
         );
 
@@ -343,8 +343,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             actions.push({ 
                 type:"updateProjects", 
                 load:adjust(
-                    (p:Project) => ({...p, layout:[...project.layout, heading, ...todos.map((todo:Todo) => todo._id)]}),
-                    idx, 
+                    idx,
+                    (p:Project) => ({...p, layout:[...project.layout, heading, ...todos.map((todo:Todo) => todo._id)]}),                     
                     updatedProjects
                 )
             });

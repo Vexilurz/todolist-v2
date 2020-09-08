@@ -96,7 +96,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                assert(idx!==-1, `Item does not exist. ${headingId} updateHeading. ${layout}`); 
             }
 
-            let updatedLayout = adjust(() => ({...layout[idx] as Heading, title:newValue}), idx, layout);
+            let updatedLayout = adjust(idx, () => ({...layout[idx] as Heading, title:newValue}), layout);
             
             this.props.dispatch({type:"updateProject", load:{...this.props.project, layout:updatedLayout}});
         },
