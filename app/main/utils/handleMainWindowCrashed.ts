@@ -2,17 +2,17 @@ import { loadApp } from './loadApp';
 import { BrowserWindow } from 'electron';
 import { not } from 'ramda';
 import { isDev } from '../../utils/isDev';
-import { server } from '../../utils/couchHost';
+// import { server } from '../../utils/couchHost';
 const { crashReporter } = require('electron');
 
-crashReporter.start({
-    productName:`Tasklist`,
-    companyName:`Pixelbutler`,
-    submitURL:`${server}/crash`,
-    uploadToServer:true,
-    ignoreSystemCrashHandler:true,
-    compress: true 
-})
+// crashReporter.start({
+//     productName:`Tasklist`,
+//     companyName:`Pixelbutler`,
+//     submitURL:`${server}/crash`,
+//     uploadToServer:true,
+//     ignoreSystemCrashHandler:true,
+//     compress: true 
+// })
 
 export let handleMainWindowCrashed = (mainWindow:BrowserWindow) => 
     (event,killed) => { 

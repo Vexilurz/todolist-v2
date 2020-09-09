@@ -1,5 +1,5 @@
 import { inPast } from './time';
-import { host } from './couchHost';
+// import { host } from './couchHost';
 import { Project, Area, Category, Todo, Calendar, Config, Store, action, Indicators, Cookie } from '../types';
 import { 
     isNil, not, map, compose, contains, prop, when, evolve, isEmpty,
