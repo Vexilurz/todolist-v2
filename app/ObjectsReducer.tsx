@@ -476,7 +476,7 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         //if todo exists - update
                         }else{ 
 
-                            return{ ...state, todos:adjust((idx, prev) => ({...prev,...todo}), state.todos) }; 
+                            return{ ...state, todos:adjust(idx, (prev) => ({...prev,...todo}), state.todos) }; 
                         }
                     }
                 }

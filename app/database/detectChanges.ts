@@ -23,11 +23,8 @@ export let detectChanges : (state:Store) => (newState:Store) => Changes =
         mapObjIndexed(
             (val:any[], key:string) : DatabaseChanges<any> => {
                 let changes = { add:[], remove:[], update:[] };
-                let prev = state[key];
-                console.log("key", key); 
-                console.log("prev", prev); 
-                let next = val; //TODO: this is not an todo object!!!
-                console.log("next", typeof(next), next);
+                let prev = state[key];                
+                let next = val; 
 
                 if(prev.length===next.length){     //items updated
 
