@@ -36,7 +36,7 @@ let onChangeHandler = (dbName:string) => (info:PouchChanges) => {
 };
 
 
-
+//TODO: check this sync!
 export let startDatabaseSync = (username:string) => (database:any) => {
     let name : string = database.name;
     let options = { skip_setup:true, auto_compaction:true };

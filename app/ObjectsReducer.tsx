@@ -128,12 +128,12 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return ({...newState});
                 }   
             ],
-            [ 
-                typeEquals("shouldSendStatistics"), //TODO: can't comment this...
-                (action:{type:string,load:boolean}) : Store => {
-                    return ({...state, shouldSendStatistics:action.load}); 
-                }   
-            ],
+            // [ 
+            //     typeEquals("shouldSendStatistics"), 
+            //     (action:{type:string,load:boolean}) : Store => {
+            //         return ({...state, shouldSendStatistics:action.load}); 
+            //     }   
+            // ],
             [ 
                 typeEquals("removeCalendar"),  
                 (action:{ type:string, load:string }) : Store => { 
