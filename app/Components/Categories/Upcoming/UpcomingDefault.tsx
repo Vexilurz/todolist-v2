@@ -103,9 +103,6 @@ let getWeekTitle = (objects:CalendarObject[]) : { month:string, range:string } =
 
 
 let todosChanged = (was:Todo[]) => (now:Todo[]) : boolean => {
-    console.log("detectChanges in todosChanged");   
-    console.log("state: ",{todos:was} as Store);
-    console.log("newState: ",{todos:now} as Store); 
     let changes = detectChanges({todos:was} as Store)({todos:now} as Store);
 
     let changed = compose( 

@@ -281,30 +281,30 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
     //TODO: think that this is must be commented too...
-    initBackupCleanupTimeout = () : void => {
-        if(isDev()){
-           console.log(`nextBackupCleanup - ${this.props.nextBackupCleanup}`);
-        }
+    // initBackupCleanupTimeout = () : void => {
+    //     if(isDev()){
+    //        console.log(`nextBackupCleanup - ${this.props.nextBackupCleanup}`);
+    //     }
 
-        let cleanup = () => 
-            requestFromMain('backupCleanup', [], event => event)
-            .then(() => {
-                let next = isDev() ? fiveMinutesLater(new Date()) : fourteenDaysLater(new Date());
-                this.props.dispatch({type:"nextBackupCleanup", load:next});
-                this.initBackupCleanupTimeout(); 
-            });
+    //     let cleanup = () => 
+    //         requestFromMain('backupCleanup', [], event => event)
+    //         .then(() => {
+    //             let next = isDev() ? fiveMinutesLater(new Date()) : fourteenDaysLater(new Date());
+    //             this.props.dispatch({type:"nextBackupCleanup", load:next});
+    //             this.initBackupCleanupTimeout(); 
+    //         });
         
-        if(
-            isNil(this.props.nextBackupCleanup)  || 
-            inPast(new Date(this.props.nextBackupCleanup))
-        ){ 
-            cleanup(); 
-        }else{
-            this.timeouts.push(
-                setCallTimeout( () => cleanup(), new Date(this.props.nextBackupCleanup) )
-            );
-        }
-    };
+    //     if(
+    //         isNil(this.props.nextBackupCleanup)  || 
+    //         inPast(new Date(this.props.nextBackupCleanup))
+    //     ){ 
+    //         cleanup(); 
+    //     }else{
+    //         this.timeouts.push(
+    //             setCallTimeout( () => cleanup(), new Date(this.props.nextBackupCleanup) )
+    //         );
+    //     }
+    // };
 
  
 
@@ -468,7 +468,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         if(!this.props.clone){
             this.initData(); 
             //this.initUpdateTimeout();
-            this.initBackupCleanupTimeout();
+            // this.initBackupCleanupTimeout();
         }
     };      
      

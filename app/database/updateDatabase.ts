@@ -86,9 +86,6 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
 
     if(isEmpty(actions)){ return newState }
 
-    console.log("detectChanges in updateDatabase");
-    console.log("state: ",state);
-    console.log("newState: ",newState);
     let changes = detectChanges(state)(newState);
 
     if(isDev()){

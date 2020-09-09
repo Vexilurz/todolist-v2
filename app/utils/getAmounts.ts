@@ -24,8 +24,6 @@ export let getAmounts = (props:Store) : {
         trash:((todo:Todo) => boolean)[]
     } = getFilters(props.projects);
 
-    let qwe:any = props.todos
-    console.log("generateAmounts props.todos:", typeof(qwe),qwe)
     let amounts = generateAmounts(props.todos, filters);
 
     return amounts;
