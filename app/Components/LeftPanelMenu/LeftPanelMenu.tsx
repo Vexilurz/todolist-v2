@@ -108,16 +108,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
         let {dispatch} = this.props;
 
-        googleAnalytics.send(  
-            'event', 
-            { 
-               ec:'AreaCreation', 
-               ea:`Area Created ${new Date().toString()}`, 
-               el:'Area Created', 
-               ev:timeSeconds 
-            }
-        ) 
-        .catch(err => this.onError(err))  
+        // googleAnalytics.send(  
+        //     'event', 
+        //     { 
+        //        ec:'AreaCreation', 
+        //        ea:`Area Created ${new Date().toString()}`, 
+        //        el:'Area Created', 
+        //        ev:timeSeconds 
+        //     }
+        // ) 
+        // .catch(err => this.onError(err))  
 
         let area = generateEmptyArea();
 

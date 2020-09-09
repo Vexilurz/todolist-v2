@@ -421,7 +421,7 @@ export class App extends Component<AppProps,AppState>{
                     defaultTags={this.props.defaultTags}
                 />
             } 
-            { 
+            {/* { 
                 this.props.clone ? null : 
                 !this.props.showUpdatesNotification ? null :
                 <UpdateNotification  
@@ -429,7 +429,7 @@ export class App extends Component<AppProps,AppState>{
                     showUpdatesNotification={this.props.showUpdatesNotification}
                     progress={this.props.progress}
                 />
-            }
+            } */}
             { 
                 this.props.clone ? null : 
                 !this.props.showLicense ? null :

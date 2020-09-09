@@ -40,14 +40,14 @@ export let globalErrorHandler = (error:any) : Promise<any> => {
     return requestFromMain("getConfig", [], (event, config) => config).then(
         (config:Config) => Promise.all(
             [
-                googleAnalytics.send(
-                    'event',  
-                    { ec:'Error', ea:stringToLength(`Error : ${message}`, 400), el:`Error occured : ${config.email}`, ev:value }
-                ),
-                googleAnalytics.send(  
-                    'exception',  
-                    { exd:stringToLength(`Error : ${message}`, 120), exf:1 } 
-                )  
+                // googleAnalytics.send(
+                //     'event',  
+                //     { ec:'Error', ea:stringToLength(`Error : ${message}`, 400), el:`Error occured : ${config.email}`, ev:value }
+                // ),
+                // googleAnalytics.send(  
+                //     'exception',  
+                //     { exd:stringToLength(`Error : ${message}`, 120), exf:1 } 
+                // )  
             ]
         )
     );

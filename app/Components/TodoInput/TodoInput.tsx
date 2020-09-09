@@ -395,16 +395,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     submitCompletedEvent = (timeSeconds:number) => {
-        googleAnalytics.send(    
-            'event',  
-            {   
-                ec:'TodoCompleted', 
-                ea:`Todo Completed ${new Date().toString()}`, 
-                el:`Todo Completed`, 
-                ev:timeSeconds 
-            }
-        )  
-        .catch(err => this.onError(err));
+        // googleAnalytics.send(    
+        //     'event',  
+        //     {   
+        //         ec:'TodoCompleted', 
+        //         ea:`Todo Completed ${new Date().toString()}`, 
+        //         el:`Todo Completed`, 
+        //         ev:timeSeconds 
+        //     }
+        // )  
+        // .catch(err => this.onError(err));
     };
 
       
