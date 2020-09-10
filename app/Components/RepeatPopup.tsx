@@ -17,8 +17,7 @@ import { insideTargetArea } from '../utils/insideTargetArea';
 import { normalize } from '../utils/normalize';
 import { sameDay } from '../utils/time';
 import { stopPropagation } from '../utils/stopPropagation';
-
-let RRule: any = {};
+import { RRule } from 'rrule';
 
 
 let oneDayMore = (date:Date) : Date => { 

@@ -1,5 +1,5 @@
 var ical = require('./ical');
-var rrule ={}//.RRule
+var rrule = require('rrule').RRule;
 
 ical.objectHandlers['RRULE'] = function(val, params, curr, stack, line){
   curr.rrule = line;
