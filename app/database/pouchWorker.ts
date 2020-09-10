@@ -105,8 +105,8 @@ let startSync = (action:actionStartSync) : Promise<void> => {
     }
 
     let username = action.load;
-    let start = startDatabaseSync(username);
-    list = databases.map( db => start(db) );
+    // let start = startDatabaseSync(username);
+    // list = databases.map( db => start(db) );
  
     return new Promise( resolve => resolve(null) );
 };
