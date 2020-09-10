@@ -170,7 +170,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 category, 
                 checklist, 
                 title, 
-                editorState:EditorState.createEmpty(),//noteToState(note)
+                editorState:noteToState(note)
             });
         }
     };
