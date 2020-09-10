@@ -201,8 +201,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             tag:'',
             category:'', 
             title:'',
-            // TODO: REMOVED 
-            editorState:EditorState.createEmpty(),//noteToState(null),
+            editorState:noteToState(null),
             deadline:undefined, 
             deleted:undefined, 
             attachedDate:undefined,

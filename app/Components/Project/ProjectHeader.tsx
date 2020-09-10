@@ -70,7 +70,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         let {project} = this.props;
         this.state={
             showDeadlineCalendar:false,
-            editorState:EditorState.createEmpty(),//noteToState(project.description),
+            editorState:noteToState(project.description),
             showTagsPopup:false,
             name:project.name
         };   
@@ -91,7 +91,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     componentWillReceiveProps(nextProps:ProjectHeaderProps,nextState:ProjectHeaderState){
         if(this.props.project._id!==nextProps.project._id){
            this.setState({
-               editorState:EditorState.createEmpty()//noteToState(nextProps.project.description)
+               editorState:noteToState(nextProps.project.description)
             }); 
         } 
   
