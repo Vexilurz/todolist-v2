@@ -861,6 +861,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onClick={this.onFieldsContainerClick}  
             >          
             <div style={{display:"flex",flexDirection:"column",paddingTop:"4px",width:"100%"}}>
+                {/* <div>[DEBUG] _id: {id}</div> */}
                 <TodoInputTopLevel 
                     onWindowEnterPress={this.onWindowEnterPress}
                     openCalendar={this.openCalendar}
