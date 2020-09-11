@@ -20,9 +20,10 @@
     "------": "----------",
     "build": "npx webpack --env.NODE_ENV=development --env.target=render && npx webpack --env.NODE_ENV=development --env.target=main",
     "build-prod": "npx webpack --env.NODE_ENV=production --env.target=render && npx webpack --env.NODE_ENV=production --env.target=main",
+    "build-prod:tmp": "npx webpack --env.NODE_ENV=production  --config webpack.renderer.js && npx webpack --env.NODE_ENV=production --env.target=main",
     "server": "npx webpack-dev-server --env.NODE_ENV=development --env.target=render --hot",
     "start": "npx webpack --env.NODE_ENV=development --env.target=main && npx electron ./dist/.",
-    "pack": "npm run build-prod && npx electron-packager ./dist --out ./pack --overwrite"
+    "pack": "npm run build-prod:tmp && npx electron-packager ./dist --out ./pack --overwrite"
   },
   "repository": "",
   "keywords": [],

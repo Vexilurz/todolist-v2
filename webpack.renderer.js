@@ -96,7 +96,7 @@ module.exports = [
             rules: [ 
             {   
                 test: /\.(css|scss)$/,  
-                exclude: /node_modules\/(?!(draft-js)\/).*/,  
+                exclude: /node_modules\/(?!((draft-js)|(react-tippy))\/).*/,  
                 use: [ 'style-loader', 'css-loader']
             },  
             {  
