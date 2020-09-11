@@ -7,3 +7,4 @@ release
 tasklist-server/node_modules
 s3clean/node_modules
 tasklist-server/dist
+pack
