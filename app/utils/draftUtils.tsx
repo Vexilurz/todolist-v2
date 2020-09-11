@@ -22,12 +22,23 @@ let getText : (state:any) => string =
     ); 
 
 
-export let noteToState : (note:RawDraftContentState) => any = 
-        ifElse(
-            anyPass([isNil,isString,isEmpty]), 
-            EditorState.createEmpty, 
-            compose(EditorState.createWithContent, convertFromRaw)
-        );
+export let noteToState : (note:RawDraftContentState) => any = (note) => {
+    // console.log(`noteToState note:`, note);
+    let cond = anyPass([isNil,isString,isEmpty])(note);
+    // console.log("anyPass: ", cond);
+    if (cond) {
+      return EditorState.createEmpty();
+    } else {
+      return compose(EditorState.createWithContent, convertFromRaw)(note)
+    }    
+
+    // ifElse(
+    //     anyPass([isNil,isString,isEmpty]), 
+    //     EditorState.createEmpty, 
+    //     compose(EditorState.createWithContent, convertFromRaw)
+    // );
+};
+        
 
 
 //State -> Content -> Raw
