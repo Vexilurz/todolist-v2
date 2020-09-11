@@ -58,18 +58,12 @@ export let detectChanges : (state:Store) => (newState:Store) => Changes =
 
                     prev.forEach( 
                         item => { 
-                            let found_item = findItemInArrayById(next, item);
-
-                            // console.log("item:",item,"\nobj[item._id]", obj[item._id],
-                            //   "\nfindItemInArrayById",found_item)
-
-                            //if(!obj[item._id]){
-                            if (!found_item) {
-                                changes.remove.push(item); //item does not exist in new state
-                            // }else if(item!==obj[item._id]){ 
-                            } else if (item !== found_item) { 
-                                // changes.update.push(obj[item._id]);
-                                changes.update.push(found_item);
+                            let foundItem = next.find((val) => {val._id === item._id});
+                            if (!foundItem) {
+                                 //item does not exist in new state
+                                changes.remove.push(item);
+                            } else if (item !== foundItem) { 
+                                changes.update.push(foundItem);
                             }
                         } 
                     )
@@ -81,12 +75,3 @@ export let detectChanges : (state:Store) => (newState:Store) => Changes =
         pickBy((val, key:string) => val!==state[key]),
         pick(['todos','projects','areas','calendars'])
     );
-
-    let findItemInArrayById= (arr:any[], item:any) : any => {
-        let res = null;
-        arr.forEach(element => {
-            if (element._id == item._id)
-              res = element;
-        });
-        return res;
-    }
