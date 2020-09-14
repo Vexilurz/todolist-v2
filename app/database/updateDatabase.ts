@@ -99,6 +99,6 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
        let actionChanges_json = JSON.parse(JSON.stringify(actionChanges));
        pouchWorker.postMessage(actionChanges_json);
     } 
-    console.log('updateDatabase - return', newState);
+
     return newState; 
 };          

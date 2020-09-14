@@ -5,6 +5,7 @@ import { handleQuickEntryCrashed } from './utils/handleQuickEntryCrashed';
 import { dialog,app,BrowserWindow,Tray } from 'electron';
 import { Listeners } from "./listeners";
 import { not } from 'ramda';  
+import { isDev } from '../utils/isDev';
 import { getWindowSize } from './utils/getWindowSize';
 import { Config } from '../types'; 
 import { getConfig } from './utils/getConfig';
@@ -100,13 +101,15 @@ app.on('ready', () => {
 });    
 
 app.whenReady().then(() => {
-    installExtension(REACT_DEVELOPER_TOOLS)
-        .then((name) => console.log(`Added Extension:  ${name}`))
-        .catch((err) => console.log('An error occurred: ', err));
-        
-    installExtension(REDUX_DEVTOOLS)
-        .then((name) => console.log(`Added Extension:  ${name}`))
-        .catch((err) => console.log('An error occurred: ', err)); 
+    if (isDev()) {
+        installExtension(REACT_DEVELOPER_TOOLS)
+            .then((name) => console.log(`Added Extension:  ${name}`))
+            .catch((err) => console.log('An error occurred: ', err));
+            
+        installExtension(REDUX_DEVTOOLS)
+            .then((name) => console.log(`Added Extension:  ${name}`))
+            .catch((err) => console.log('An error occurred: ', err)); 
+    }
 });
 
 

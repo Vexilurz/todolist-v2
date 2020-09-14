@@ -217,8 +217,10 @@ export class App extends Component<AppProps,AppState>{
     onPouchError = (action:action) => { 
         let error : PouchError = action.load;
 
-        console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
-       
+        if(isDev()){
+          console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
+        }
+        
         globalErrorHandler(error);
  
         if(

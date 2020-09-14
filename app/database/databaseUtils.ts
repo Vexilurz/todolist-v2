@@ -41,13 +41,9 @@ let remRev = compose(map(removeRev), defaultTo([]));
 export let getItemsFromDatabase = (onError:Function, db:any, opt?:any) => {
     let options = defaultTo({})(opt);
     let decrypt = decryptDoc(db.name, window.key, onError);
-    console.log("getItemsFromDatabase");
     
     return db.allDocs({...options,include_docs:true})
-             .then(query => {
-                 console.log("query",query)
-                 return queryToObjects(query)
-                }                ) 
+             .then(query => queryToObjects(query)) 
              .then(reject(isNil))
              .then(map(decrypt))
              .catch(
