@@ -124,7 +124,6 @@
     "react-minimal-pie-chart": "^8.0.1",
     "react-redux": "^7.2.1",
     "react-router-dom": "^5.2.0",
-    "react-tap-event-plugin": "^3.0.3",
     "react-test-renderer": "^16.13.1",
     "react-time-input": "0.0.19",
     "react-tippy": "^1.4.0",

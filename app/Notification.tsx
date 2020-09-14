@@ -2,7 +2,7 @@ import './assets/fonts/index.css';
 import './assets/notification.css'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import * as injectTapEventPlugin from 'react-tap-event-plugin';
+// import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import { Component } from "react";  
 import { ipcRenderer } from 'electron'; 
 import { cond, isNil, defaultTo, isEmpty, compose, prop, ifElse, identity } from 'ramda';
@@ -17,7 +17,7 @@ import { isDev } from './utils/isDev';
 import { isOneElementArray, isManyElementsArray, isNotNil } from './utils/isSomething';
 import { Todo } from './types';
 const pathToFile = require("path");
-injectTapEventPlugin();  
+// injectTapEventPlugin();  
 
 
 

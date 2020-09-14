@@ -3,7 +3,7 @@ import './assets/calendarStyle.css';
 import './assets/quickentry.css'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import * as injectTapEventPlugin from 'react-tap-event-plugin';
+// import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
 import Moon from 'material-ui/svg-icons/image/brightness-3';
@@ -60,7 +60,7 @@ import { generateLayout } from './Components/Area/generateLayout';
 import { getFilters } from './utils/getFilters';
 import { requestFromMain } from './utils/requestFromMain';
 let moment = require("moment");
-injectTapEventPlugin();  
+// injectTapEventPlugin();  
 
 
 window.onerror = function (msg:any, url, lineNo, columnNo, error){

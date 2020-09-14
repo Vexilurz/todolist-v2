@@ -36,8 +36,8 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}) : Brow
     Menu.setApplicationMenu(null);   
     let icon = path.resolve(__dirname,'icon.ico');
     let handler = new BrowserWindow({   
-        width,          
         icon,
+        width,          
         height,      
         show:false, 
         useContentSize:true,  

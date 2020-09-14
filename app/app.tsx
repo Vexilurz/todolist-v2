@@ -2,7 +2,7 @@ import './assets/styles.css';
 import './assets/fonts/index.css'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import * as injectTapEventPlugin from 'react-tap-event-plugin';
+// import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import { Component } from "react";  
 import { ipcRenderer } from 'electron';
 import { attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, initDate, onErrorWindow } from "./utils/utils";  
