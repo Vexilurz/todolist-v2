@@ -1,1 +1,3 @@
-export let isDev = () => { return true };     
+export let isDev = () => { 
+    return !(process.env.NODE_ENV === 'production')
+};     
