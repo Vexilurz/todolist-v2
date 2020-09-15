@@ -12,160 +12,163 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const DEVELOPMENT = "development";
 const PRODUCTION = "production";
 
-
 function createRenderConfig(isDev) {
-    return {
-
-        context: path.join(__dirname, "app"),
-
-        target: "electron-renderer",
-
-        resolve: {
-            extensions: [".js", ".jsx", ".ts", ".tsx", ".json"]
+    return [
+        {
+            context: __dirname + "/app",
+            entry: {
+                'pouchWorker': './database/pouchWorker.ts'
+            },
+            mode: isDev ? DEVELOPMENT : PRODUCTION,
+            target: 'webworker',
+            devtool: 'cheap-module-source-map',
+            resolve: {
+                extensions: [".ts", ".tsx", ".js", ".json"]
+            },
+            module: {
+                rules: [
+                    {
+                        test: /\.(ts|tsx)?$/,
+                        exclude: /(node_modules)/,
+                        loader: "ts-loader"
+                    },
+                    {
+                        test: /\.js$/,
+                        exclude: /(node_modules|bower_components)/,
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['env']
+                        },
+                    }
+                ]
+            },
+            output: {
+                filename: '[name].js',
+                path: path.join(__dirname, isDev ? "dist" : PRODUCTION)
+            }
         },
+        {
+            context: __dirname + "/app",
+            entry: {
+                'generateIndicators': './generateIndicators.ts'
+            },
+            target: 'webworker',
+            devtool: 'cheap-module-source-map', // 'source-map',
+            resolve: {
+                extensions: [".ts", ".tsx", ".js", ".json"]
+            },
+            module: {
+                rules: [
+                    {
+                        test: /\.(ts|tsx)?$/,
+                        exclude: /(node_modules)/,
+                        loader: "ts-loader"
+                    },
+                    {
+                        test: /\.js$/,
+                        exclude: /(node_modules|bower_components)/,
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['env']
+                        },
+                    }
+                ]
+            },
+            output: {
+                filename: '[name].js',
+                path: path.join(__dirname, isDev ? "dist" : PRODUCTION)
+            }
+        }, 
+        {
+            context: __dirname + "/app",
 
-        mode: isDev ? DEVELOPMENT : PRODUCTION,
-
-        devtool: isDev ? "source-map" : "none",
-
-        entry: {
-            "polyfill": "@babel/polyfill",
-            'app':'./app.tsx',
-            'quickentry':'./quickentry.tsx',
-            'notification':'./notification.tsx'
-        },
-
-        output: {
-            filename: isDev ? "[name].js" : "[name].[hash].js",
-            path: path.join(__dirname, "dist")
-        },
-
-        externals: {
-            "react": "React",
-            "react-dom": "ReactDOM",
-            "react-router-dom": "ReactRouterDOM",
-            "fs": "require('fs')" // we must add node native functions as externals to be able to use them. see ./src/views/FooView.tsx.
-        },
-
-        module: {
-            rules: [
-
-                {
-                    test: /\.(css|scss)$/,
-                    exclude: /node_modules\/(?!(draft-js)\/).*/,  
-                    use: [
-                        // {
-                        //     loader: MiniCssExtractPlugin.loader,
-                        //     options: {
-                        //         hmr: isDev
-                        //     }
-                        // },
-                        "css-loader",
-                        "sass-loader"
-                    ]
-                },
+            mode: isDev ? DEVELOPMENT : PRODUCTION,
+             
+            entry:{    
+                'app':'./app.tsx',
+                'quickentry':'./quickentry.tsx',
+                'notification':'./notification.tsx'
+            },  
+    
+            output:{             
+                filename:'[name].js', 
+                path: path.join(__dirname, isDev ? "dist" : PRODUCTION)
+            },     
+            
+            resolve: { 
+                extensions: [".ts", ".tsx", ".js", ".json", ".css"]
+            }, 
+                        
+            module: { 
+                rules: [ 
+                {   
+                    test: /\.(css|scss)$/,  
+                    exclude: /node_modules\/(?!((draft-js)|(react-tippy))\/).*/,  
+                    use: [ 'style-loader', 'css-loader']
+                },  
+                {  
+                    test:/\.(ts|tsx)?$/,  
+                    exclude: /(node_modules)/, 
+                    loader:"ts-loader"
+                },       
                 {   
                     test   : /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
                     exclude: /(node_modules)/, 
                     loader: 'file-loader'  
                 }, 
-                {
-                    test: /\.(js|jsx|ts|tsx)$/,
-                    exclude: /node_modules/,
-                    use: {
-                        loader: "babel-loader",
-                        options: {
-                            presets: [
-                                "@babel/preset-typescript",
-                                "@babel/preset-react",
-                                "@babel/preset-env"
-                            ],
-                            plugins: [
-                                ["@babel/plugin-proposal-decorators", { "legacy": true }],
-                                ["@babel/plugin-proposal-class-properties"]
-                                
-                            ]
-                        }
-                    }
-                },
-
-            ]
-        },
-
-        plugins: [
-
-            new CleanWebpackPlugin({
-                cleanOnceBeforeBuildPatterns: ["!main.*.js"] // config for electron-main deletes this file
-            }),
-
-            // new MiniCssExtractPlugin({
-            //     filename: "main.css"
-            // }),
-
-            // new CopyWebpackPlugin(
-            //     {
-            //         patterns: [ 
-            //             // {
-            //             //     from: './assets',
-            //             //     to: './dist',
-            //             // },
-            //             // {from : 'config.json', to: '/dist'}
-                        
-            //         ],
-            //     }
-            //    ), 
-
-            new HtmlWebpackPlugin({
-                inject:true, 
-                title:'tasklist',     
-                chunks:['app'],
-                filename: 'app.html' 
-            }), 
-            new HtmlWebpackPlugin({
-                inject:true, 
-                title:'Add task',     
-                chunks:['quickentry'],
-                filename: 'quickentry.html' 
-            }),
-            new HtmlWebpackPlugin({
-                inject:true, 
-                title:'Notification',     
-                chunks:['notification'],
-                filename: 'notification.html' 
-            }),
-
-            new HtmlExternalsPlugin({
-                cwpOptions: { context: path.join(__dirname, "node_modules") },
-                externals: [
-                    {
-                        module: "react",
-                        global: "React",
-                        entry: isDev ? "umd/react.development.js" : "umd/react.production.min.js"
+                {     
+                    test: /\.js$/,
+                    exclude: /(node_modules|bower_components)/,
+                    loader: 'babel-loader',
+                    options: {
+                    presets: ['env']
                     },
-                    {
-                        module: "react-dom",
-                        global: "ReactDOM",
-                        entry: isDev ? "umd/react-dom.development.js" : "umd/react-dom.production.min.js"
-                    },
-                    {
-                        module: "react-router-dom",
-                        global: "ReactRouterDOM",
-                        entry: isDev ? "umd/react-router-dom.js" : "umd/react-router-dom.min.js"
-                    },
-                ]
-            }),
-
-        ],
-
-        devServer: isDev ? {
-            contentBase: path.join(__dirname, "dist"),
-            compress: true,
-            hot: true,
-            port: 9000
-        } : undefined
-    };
+                },   
+                ]    
+            }, 
+    
+            devtool: 'cheap-module-source-map', // 'source-map',
+            
+            target: "electron-renderer",     
+            
+            plugins : [
+                new webpack.DefinePlugin({
+                    NODE_ENV: JSON.stringify('development')
+                }),
+                new CopyWebpackPlugin({
+                    patterns: [
+                        {from: "app/config.json", to: "./", context:"../"},
+                        {from: "app/assets", to: "./", context:"../"}
+                    ]
+                }),
+                new HtmlWebpackPlugin({
+                    inject:true, 
+                    title:'tasklist',     
+                    chunks:['app'],
+                    filename: 'app.html' 
+                }), 
+                new HtmlWebpackPlugin({
+                    inject:true, 
+                    title:'Add task',     
+                    chunks:['quickentry'],
+                    filename: 'quickentry.html' 
+                }),
+                new HtmlWebpackPlugin({
+                    inject:true, 
+                    title:'Notification',     
+                    chunks:['notification'],
+                    filename: 'notification.html' 
+                })        
+            ],  
+    
+    
+            node: { 
+                __dirname: false, 
+                __filename: false
+            }        
+        }
+    ]
 }
-
 
 function createMainConfig(isDev) {
     return {
@@ -182,13 +185,13 @@ function createMainConfig(isDev) {
 
         output: {
             filename: "[name].js",
-            path: path.join(__dirname, "dist")
+            path: path.join(__dirname,  isDev ? "dist" : PRODUCTION)
         },
 
         module: {
             rules: [
                 {
-                    test:/\.(ts|tsx)?$/,  
+                    test: /\.(ts|tsx)?$/,
                     exclude: /node_modules/,
                     use: {
                         loader: "babel-loader",
@@ -224,8 +227,8 @@ function createMainConfig(isDev) {
             // electron-packager needs the package.json file. the "../" is because context is set to the ./src folder
             new CopyWebpackPlugin({
                 patterns: [
-                    {from: "package.json", to: "./", context:"../"},
-                    {from: "app/assets", to: "./", context:"../"}
+                    { from: "package.json", to: "./", context: "../" },
+                    { from: "app/assets", to: "./", context: "../" }
                 ]
             })
         ],
@@ -238,10 +241,10 @@ function createMainConfig(isDev) {
             "path": "require('path')"
         },
 
-        node:{ 
-            __dirname: false, 
-            __filename:false
-        }    
+        node: {
+            __dirname: false,
+            __filename: false
+        }
     };
 }
 
