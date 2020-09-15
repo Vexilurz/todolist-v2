@@ -1,4 +1,4 @@
-import { googleAnalytics } from '../analytics';
+// import { googleAnalytics } from '../analytics';
 import { collectSystemInfo } from './collectSystemInfo';
 import { globalErrorHandler } from './globalErrorHandler';
 

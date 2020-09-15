@@ -9,7 +9,7 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { Category, ChecklistItem, Todo, Project, Area, LayoutItem, Store } from '../types';
+import { Category, ChecklistItem, Todo, Project, Heading, Area, LayoutItem, Store } from '../types';
 import { remove, isNil, not, and, equals, path, prop, contains, evolve, reject, assocPath } from 'ramda';
 let uniqid = require("uniqid");    
 import { isDev } from '../utils/isDev'; 
@@ -103,7 +103,23 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         } 
     };
     
-
+    findTodosBelongingProject = (todo:Todo) : {prj:Project, heading:Heading} => {
+        let res = {prj: null, heading: null}; 
+        outer: for (let i = 0; i < this.props.projects.length; i++) {
+            const prj = this.props.projects[i];
+            for (let j = 0; j < prj.layout.length; j++) {
+                const layout = prj.layout[j];
+                if ((layout as any).type === "heading") {
+                    res.heading = layout;
+                }
+                if (todo._id === layout) {
+                    res.prj = prj;
+                    break outer;
+                }
+            }
+        }
+        return res;
+    }
 
     onDuplicate = (e) => {
         let { dispatch } = this.props; 
@@ -114,8 +130,14 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let duplicate : Todo = {...todo};
         duplicate._id = generateId();
         delete duplicate['_rev']; 
- 
+        
         dispatch({type:"addTodo", load:duplicate}); 
+
+        let belonging_prj = this.findTodosBelongingProject(todo);
+        if (belonging_prj.prj) {
+            dispatch({type:"attachTodoToProject", 
+            load:{ projectId:belonging_prj.prj._id, todoId:duplicate._id, targetHeading:belonging_prj.heading }}); 
+        }
     }; 
 
 

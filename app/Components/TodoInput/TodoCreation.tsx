@@ -22,7 +22,7 @@ import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { insideTargetArea } from '../../utils/insideTargetArea';
-import { googleAnalytics } from '../../analytics';
+// import { googleAnalytics } from '../../analytics';
 import { isDate, isToday } from '../../utils/isSomething';
 import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
 import { getTime, setTime } from '../../utils/time';
@@ -255,16 +255,16 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let timeSeconds = Math.round(new Date().getTime() / 1000);
         let actions = [];
 
-        googleAnalytics.send(  
-            'event', 
-            { 
-                ec:'TodoCreation', 
-                ea:`Todo Created ${new Date().toString()}`, 
-                el:'Todo Created', 
-                ev:timeSeconds 
-            } 
-        )  
-        .catch(err => this.onError(err)); 
+        // googleAnalytics.send(  
+        //     'event', 
+        //     { 
+        //         ec:'TodoCreation', 
+        //         ea:`Todo Created ${new Date().toString()}`, 
+        //         el:'Todo Created', 
+        //         ev:timeSeconds 
+        //     } 
+        // )  
+        // .catch(err => this.onError(err)); 
 
         let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
     

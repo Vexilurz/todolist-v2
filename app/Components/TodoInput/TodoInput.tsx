@@ -18,7 +18,7 @@ import { uniq, isEmpty, contains, isNil, not, remove, equals, any, complement, c
 import { Subscription } from 'rxjs/Rx';
 import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../../utils/insideTargetArea';
-import { googleAnalytics } from '../../analytics';
+// import { googleAnalytics } from '../../analytics';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { isFunction, isDate, isString, isToday } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';

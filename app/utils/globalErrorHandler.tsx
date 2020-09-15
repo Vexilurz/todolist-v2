@@ -1,5 +1,5 @@
 import { stringToLength } from './stringToLength';
-import { googleAnalytics } from './../analytics';
+// import { googleAnalytics } from './../analytics';
 import { isNil } from 'ramda';
 import { isString } from './isSomething';
 import { requestFromMain } from './requestFromMain';
