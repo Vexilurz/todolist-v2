@@ -8,7 +8,7 @@ import { ResizableHandle } from './../ResizableHandle';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
 import { not, isEmpty } from 'ramda';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { googleAnalytics } from '../../analytics';
+// import { googleAnalytics } from '../../analytics';
 import { SearchInput } from '../Search/SearchInput';
 import { CategoryMenu } from './CategoryMenu';  
 import { Footer } from './Footer';  

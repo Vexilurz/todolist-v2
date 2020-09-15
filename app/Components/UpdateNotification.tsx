@@ -8,7 +8,7 @@ import { ipcRenderer } from 'electron';
 import { TopSnackbar } from './Snackbar';
 import { downloadUpdates } from '../utils/utils';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
-import { googleAnalytics } from '../analytics';
+// import { googleAnalytics } from '../analytics';
 import { threeDaysLater } from '../utils/time';
  
 
@@ -50,16 +50,16 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
             let timeSeconds = Math.round( new Date().getTime() / 1000 );
             dispatch({type:"showUpdatesNotification", load:false});
             
-            googleAnalytics.send(   
-                'event',   
-                { 
-                   ec:'Updates', 
-                   ea:`Updates downloaded ${new Date().toString()}`, 
-                   el:'Updates downloaded', 
-                   ev:timeSeconds 
-                } 
-            )  
-            .then(() => ipcRenderer.send("quitAndInstall")); 
+            // googleAnalytics.send(   
+            //     'event',   
+            //     { 
+            //        ec:'Updates', 
+            //        ea:`Updates downloaded ${new Date().toString()}`, 
+            //        el:'Updates downloaded', 
+            //        ev:timeSeconds 
+            //     } 
+            // )  
+            // .then(() => ipcRenderer.send("quitAndInstall")); 
   
         }else{
             this.downloading = true;
