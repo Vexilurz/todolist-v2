@@ -9,7 +9,7 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { Category, ChecklistItem, Todo, Project, Heading, Area, LayoutItem, Store } from '../types';
+import { Category, ChecklistItem, Todo, Project, Heading, TodoBelonging, Area, LayoutItem, Store } from '../types';
 import { remove, isNil, not, and, equals, path, prop, contains, evolve, reject, assocPath } from 'ramda';
 let uniqid = require("uniqid");    
 import { isDev } from '../utils/isDev'; 
@@ -103,17 +103,17 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         } 
     };
     
-    findTodosBelongingProject = (todo:Todo) : {prj:Project, heading:Heading} => {
-        let res = {prj: null, heading: null}; 
+    findTodosBelongingProject = (todo:Todo) : TodoBelonging => {
+        let res = {} as TodoBelonging; 
         outer: for (let i = 0; i < this.props.projects.length; i++) {
             const prj = this.props.projects[i];
             for (let j = 0; j < prj.layout.length; j++) {
                 const layout = prj.layout[j];
-                if ((layout as any).type === "heading") {
-                    res.heading = layout;
+                if ((layout as Heading).type === "heading") {
+                    res.heading = layout as Heading;
                 }
                 if (todo._id === layout) {
-                    res.prj = prj;
+                    res.project = prj;
                     break outer;
                 }
             }
@@ -133,10 +133,10 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         
         dispatch({type:"addTodo", load:duplicate}); 
 
-        let belonging_prj = this.findTodosBelongingProject(todo);
-        if (belonging_prj.prj) {
+        let todoBelonging = this.findTodosBelongingProject(todo);
+        if (todoBelonging.project) {
             dispatch({type:"attachTodoToProject", 
-            load:{ projectId:belonging_prj.prj._id, todoId:duplicate._id, targetHeading:belonging_prj.heading }}); 
+            load:{ projectId:todoBelonging.project._id, todoId:duplicate._id, targetHeading:todoBelonging.heading }}); 
         }
     }; 
 
@@ -256,12 +256,14 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let {rightClickMenuX,rightClickMenuY,dispatch} = this.props;   
 
         let repeatTodo : Todo = this.getRightClickedTodo();
+        let repeatTodoBelonging : TodoBelonging = this.findTodosBelongingProject(repeatTodo);
         
         dispatch({
             type : "openRepeatPopup",
             load : {
                 showRepeatPopup : true, 
-                repeatTodo,
+                repeatTodo, 
+                repeatTodoBelonging,
                 repeatPopupX : rightClickMenuX, 
                 repeatPopupY : rightClickMenuY,
                 showRightClickMenu : false

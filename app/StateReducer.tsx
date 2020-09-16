@@ -1,6 +1,6 @@
 import { cond } from 'ramda';
 import { typeEquals } from "./utils/utils";
-import { Store, Category, Todo, section, Calendar, Area, Project, ImportAction } from "./types";
+import { Store, Category, Todo, section, Calendar, Area, TodoBelonging, Project, ImportAction } from "./types";
 
 
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
@@ -241,7 +241,8 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                   type:string, 
                   load:{
                     showRepeatPopup:boolean,
-                    repeatTodo:Todo,
+                    repeatTodo:Todo, 
+                    repeatTodoBelonging:TodoBelonging,
                     repeatPopupX:number,
                     repeatPopupY:number
                   } 
@@ -250,6 +251,7 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                         ...state,
                         showRepeatPopup:action.load.showRepeatPopup,
                         repeatTodo:action.load.repeatTodo,
+                        repeatTodoBelonging:action.load.repeatTodoBelonging,
                         repeatPopupX:action.load.repeatPopupX, 
                         repeatPopupY:action.load.repeatPopupY
                     }); 

@@ -237,6 +237,7 @@ export interface Store extends Config{
   openRepeatPopup : any, 
   showRepeatPopup : boolean,
   repeatTodo : Todo,
+  repeatTodoBelonging? : TodoBelonging,
   repeatPopupX : number,
   repeatPopupY : number,
   showRightClickMenu : boolean, 
@@ -409,6 +410,11 @@ export interface Project{
   enc? : boolean, 
   showCompleted? : boolean,
   showScheduled? : boolean
+};
+
+export interface TodoBelonging{
+    project: Project,
+    heading: Heading
 };
 
  

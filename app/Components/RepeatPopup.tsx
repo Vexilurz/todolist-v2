@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { connect } from "react-redux";
 import { attachDispatchToProps, dateToDateInputValue, dateInputUpperLimit, isNotNan, limitInput, isNotEmpty } from '../utils/utils'; 
-import { RepeatOptions, Todo, Store, Project } from '../types';
+import { RepeatOptions, Todo, Store, Project, TodoBelonging } from '../types';
 import { isNil, not, isEmpty, compose, map, cond, defaultTo, equals, when, adjust, path, drop, uniqBy, evolve, contains, prop } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Rx';
@@ -73,7 +73,7 @@ export let repeat = (
     start:Date, 
     end:Date,
     groupId:string,
-    project:Project
+    todoBelonging:TodoBelonging
 ) : Todo[] => {
 
     if(isDev()){
@@ -150,7 +150,7 @@ export let repeat = (
 
     let todos = compose(
         when(isNotEmpty, setLast),
-        map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options, projectId:prop('_id')(project)} })),
+        map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options, projectId:todoBelonging.project._id} })),
         selectedDatesToTodos(todo),
         optionToDates
     )(selectedOption); 
@@ -200,10 +200,11 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
     onDone = () => {  
         let {interval, freq, until, count, selectedOption, error} = this.state; 
         let todo = {...this.props.repeatTodo};
+        let todoBelonging = {...this.props.repeatTodoBelonging};
         let groupId : string = generateId();
         let options = {interval, freq, until, count, selectedOption};
         let start = new Date();
-        let project = this.props.projects.find((project:Project) => contains(todo._id)(project.layout.filter(isString)));
+        // let project = this.props.projects.find((project:Project) => contains(todo._id)(project.layout.filter(isString)));
 
         let repeatedTodos : Todo[] = repeat(  
             options,
@@ -211,7 +212,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             defaultTo(start)(todo.attachedDate),
             new Date(this.props.limit),
             groupId,
-            project
+            todoBelonging
         );
         
         if(isDev()){
@@ -238,22 +239,26 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     attachedDate:defaultTo(start)(todo.attachedDate), 
                     category:isNil(todo.attachedDate) ? "today" : todo.category,
                     group:{ 
-                        projectId:prop('_id')(project), 
+                        projectId:todoBelonging.project._id, 
                         type:selectedOption, 
                         _id:groupId, 
                         options
                     }
                 }
             },
-            {type:"addTodos", load:repeatedTodos}
+            {type:"addTodos", load:repeatedTodos}            
         ];
 
-
-        if(isNotNil(project)){
+        if(isNotNil(todoBelonging.project)){
             load.push({
                type:"updateProject", 
-               load:{...project,layout:[...project.layout,...repeatedTodos.map(prop('_id')) ]} 
+               load:{...todoBelonging.project,layout:[...todoBelonging.project.layout,...repeatedTodos.map(prop('_id')) ]} 
             } as any) 
+
+            // repeatedTodos.forEach((todoItem) => 
+            //     load.push({type:"attachTodoToProject", 
+            //     load:{ projectId:todoBelonging.project._id, todoId:todoItem._id, targetHeading:todoBelonging.heading }} as any)
+            // )
         }
 
         this.props.dispatch({type:"multiple", load}); 
