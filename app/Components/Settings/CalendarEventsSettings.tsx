@@ -118,6 +118,10 @@ export class CalendarEventsSettings extends Component<CalendarEventsSettingsProp
         let {error} = this.state;
 
         return  <div style={{width:"100%", paddingTop:"25px", paddingLeft:"25px"}}>
+                <div style={{fontSize:"13px", width:"80%", color:"rgba(100,100,100,0.9)", cursor:"default"}}>
+                  Add and manage your calendars here. The events of added calendars 
+                  will show up in “Today” and “Upcoming”.
+                </div>
                 <div style={{display:"flex", alignItems:"center"}}>
                     <Checkbox checked={showCalendarEvents} onClick={this.onShowCalendarEvents}/>
                     <div style={{paddingLeft:"10px"}}>Show Calendar Events in Today and Upcoming lists</div>

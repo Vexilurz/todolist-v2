@@ -216,6 +216,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             hideImportCalendarsHint(calendars,not(this.props.hideHint)),
             addExtendedTodos(projects, this.props.limit, todos),
             addIntroList(projects,this.props.firstLaunch),
+            // addIntroList(projects, true),
             () => [],
             () => this.props.dispatch({
                 type:"multiple",

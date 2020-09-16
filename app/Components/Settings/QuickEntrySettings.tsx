@@ -69,9 +69,8 @@ export class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickE
                     <div style={{paddingLeft:"10px"}}>Enable shortcut for Quick Entry</div>
                 </div> 
                 <div style={{fontSize:"13px", width:"80%", color:"rgba(100,100,100,0.9)", cursor:"default"}}>
-                    The Quick Entry window lets you enter new tasks into Things from anywhere
-                    without having to switch applications. Use the keyboard shortcut to make 
-                    the window appear.
+                  Using the Quick Entry window, you can enter tasks from anywhere 
+                  into tasklist without switching applications. Just press Ctrl+Alt+T.
                 </div>
             </div>
 

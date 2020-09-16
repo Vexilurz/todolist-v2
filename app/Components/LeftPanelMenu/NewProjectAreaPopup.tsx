@@ -83,9 +83,8 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
                         paddingTop:"10px",
                         fontFamily:"sans-serif"
                     }}>
-                        Define a goal, 
-                        then work towards it 
-                        one task at a time.  
+                        Use Projects to collect tasks, 
+                        that you need to accomplish in order to achieve a specific goal  
                     </p> 
                 </div> 
             </div>
@@ -126,9 +125,7 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
                     fontFamily:"sans-serif",
                     width:"85%"  
                 }}>
-                    Group your projects and tasks
-                    based on different responsibilities,
-                    such as Family or Work. 
+                    Use Areas to group projects by their thematic context, such as work or family 
                 </p> 
             </div> 
          </div>

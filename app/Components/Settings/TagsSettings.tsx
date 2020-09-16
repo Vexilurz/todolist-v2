@@ -82,7 +82,10 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
             width:"100%", display:"flex", paddingTop:"25px", height:"100%",
             alignItems:"center", paddingLeft:"25px", paddingRight:"25px",
             justifyContent:"space-between", flexDirection:"column" 
-        }}>
+        }}>    
+        <div style={{fontSize:"13px", width:"80%", color:"rgba(100,100,100,0.9)", cursor:"default"}}>
+            Manage your tags here.
+        </div>        
         <div style={{
             display:"flex",
             justifyContent:"space-between",
