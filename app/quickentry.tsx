@@ -380,6 +380,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     onSave = () => {
         this.addTodo();
         this.clear(); 
+        this.hide(); 
     };
 
     
