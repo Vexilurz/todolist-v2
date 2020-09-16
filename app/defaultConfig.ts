@@ -13,7 +13,7 @@ export const defaultConfig : Config = {
     defaultTags:defaultTags,  
     shouldSendStatistics:true,
     showCalendarEvents:true,
-    groupTodos:false,
+    groupTodos:true,
     preserveWindowWidth:true, //when resizing sidebar
     enableShortcutForQuickEntry:true,
     disableReminder:false,
