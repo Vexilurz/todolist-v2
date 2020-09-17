@@ -776,8 +776,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         byNotDeleted,
                                         (t:Todo) => isNil(t.group) ? true : isTodayOrPast(t.attachedDate)
                                     ];  
-                                    //let selectedTodos = filter(this.props.todos, allPass(projectFilters));
-                                    let selectedTodos = filter(this.props.todos, allPass([t => contains(t._id)(ids)]));
+                                    let selectedTodos = filter(this.props.todos, allPass(projectFilters));
+                                    //let selectedTodos = filter(this.props.todos, allPass([t => contains(t._id)(ids)]));
                                     let indicator = defaultTo({completed:0, active:0})(this.props.indicators[project._id]);
 
                                     return <ProjectComponent  
