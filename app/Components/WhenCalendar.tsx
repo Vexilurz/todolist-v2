@@ -380,7 +380,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                         Today
                     </div>
                 </div>
-                <div  
+                {/* <div  
                     className="hoverDateType"
                     onClick={this.onThisEveningClick}
                     style={{
@@ -403,7 +403,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                     <div style={{marginLeft:"15px"}}>
                         This Evening
                     </div>
-                </div>
+                </div> */}
                 <div style={{display:"flex",justifyContent:"center"}}> 
                     <DayPicker 
                     {
