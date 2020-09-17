@@ -150,7 +150,7 @@ export let repeat = (
 
     let todos = compose(
         when(isNotEmpty, setLast),
-        map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options, projectId:prop('_id')(todoBelonging.project)} })),
+        map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options, projectId:prop('_id')(prop('project')(todoBelonging))} })),
         selectedDatesToTodos(todo),
         optionToDates
     )(selectedOption); 
@@ -239,7 +239,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     attachedDate:defaultTo(start)(todo.attachedDate), 
                     category:isNil(todo.attachedDate) ? "today" : todo.category,
                     group:{ 
-                        projectId:prop('_id')(todoBelonging.project), 
+                        projectId:prop('_id')(prop('project')(todoBelonging)), 
                         type:selectedOption, 
                         _id:groupId, 
                         options
