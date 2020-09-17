@@ -7,6 +7,9 @@ import { Spinner } from '../Spinner';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
 import Exclamation from 'material-ui/svg-icons/notification/priority-high'; 
+import Logbook from 'material-ui/svg-icons/av/library-books';
+import Trash from 'material-ui/svg-icons/action/delete';
+
 
 
 
@@ -19,7 +22,9 @@ interface FooterProps{
     openNewProjectAreaPopup:(e:any) => void,
     setNewProjectAnchor:(e:any) => void,
     openSettings:(e:any) => void,
-    openSyncSettings:(e:any) => void 
+    openSyncSettings:(e:any) => void,
+    logbook:number,
+    trash:number 
 }
 
 
@@ -32,6 +37,20 @@ export class Footer extends Component<FooterProps,FooterState>{
   
     constructor(props){
         super(props); 
+    }
+
+    //todo: this is copy/paste from CategoryMenu.tsx
+    onClick = (title:string) => () => {
+        
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {type:"selectedCategory",load:title},
+                {type:"showProjectMenuPopover",load:false}, 
+                {type:"searchQuery",load:""},
+                {type:"selectedTags",load:["All"]} 
+            ]
+        }); 
     }
 
     render(){ 
@@ -68,14 +87,32 @@ export class Footer extends Component<FooterProps,FooterState>{
                         }} 
                     />
                 </div>    
-            </div>   
+            </div>     
+            {
+                this.props.logbook===0 ? null :
+                <IconButton    
+                    onClick={this.onClick("logbook")}  
+                    iconStyle={{color:"limegreen",width:"25px",height:"25px"}}
+                >        
+                    <Logbook style={{color:"limegreen"}}/> 
+                </IconButton> 
+            }
+            {
+                this.props.trash===0 ? null :
+                <IconButton    
+                onClick={this.onClick("trash")}  
+                iconStyle={{color:"darkgray",width:"25px",height:"25px"}}
+                >        
+                    <Trash style={{color:"darkgray"}}/> 
+                </IconButton>
+            }
             <div style={{flexGrow:1,display:"flex",justifyContent:"flex-end"}}> 
                 <div style={{
                     position:"relative",
                     display:"flex",
                     justifyContent:"center",
                     alignItems:"center"
-                }}>        
+                }}>                            
                     {   
                         null
                         // this.props.sync ? null :

@@ -317,9 +317,9 @@ export class CategoryMenu extends Component<CategoryMenuProps,CategoryMenuState>
                 counter={0} 
             /> 
 
-            <Separator />   
+            <Separator />    
 
-            { 
+            {/* { 
                 this.props.logbook===0 ? null :
                 <LeftPanelMenuItem 
                     onClick={this.onClick("logbook")}
@@ -345,7 +345,7 @@ export class CategoryMenu extends Component<CategoryMenuProps,CategoryMenuState>
                     showCounter={false} 
                     counter={0}
                 />
-            }    
+            }     */}
         </div> 
     }
 }    

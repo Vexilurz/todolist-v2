@@ -283,6 +283,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     openSyncSettings={this.openSyncSettings}
                     openNewProjectAreaPopup={ this.openNewProjectAreaPopup }
                     setNewProjectAnchor={(e) => {this.anchor=e}}  
+                    trash={this.props.amounts.trash}
+                    logbook={this.props.amounts.logbook} 
                 /> 
 
                 <NewProjectAreaPopup   
