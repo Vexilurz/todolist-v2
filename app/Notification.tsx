@@ -91,7 +91,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
 
     componentDidMount(){
-        console.log("notification mounts")
         this.subscriptions.push(
 
             Observable 
@@ -217,12 +216,12 @@ class Notification extends Component<NotificationProps,NotificationState>{
         let { title, header, button }  = this.getTextElements(todos);
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
-            <ReactAudioPlayer
+            {/* <ReactAudioPlayer
                 ref={(e) => {this.beep = e;}}
                 src={this.soundPath}
                 autoPlay={false}
                 controls={false}
-            />
+            /> */}
             <div style={{
                 width:"100%",   
                 position:"relative",
