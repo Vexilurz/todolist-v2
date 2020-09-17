@@ -22,6 +22,12 @@ import { isFunction, isDate } from '../utils/isSomething';
 import { timeOfTheDay } from '../utils/time';
 import TimeInput from 'react-keyboard-time-input';
 
+const tempReminderTime = () => {
+    let now = new Date();
+    now.setMinutes(now.getMinutes() + 1)
+    return now.toLocaleTimeString().slice(0, -3)
+}
+
 
 
 interface DateCalendarProps{ 
@@ -301,7 +307,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
            openReminderInput:false,
            time://this.props.attachedDate ? 
                 //this.props.attachedDate.toLocaleTimeString().replace(/[a-z]/ig, "").trim() : 
-                '12:00' 
+                tempReminderTime() // TODO: HARDCODE
         };     
     }  
 
@@ -394,7 +400,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 value={this.state.time} 
                             /> */}
                             <div  
-                            onClick={() => this.setState({time:'12:00', timeSet:false})}
+                            onClick={() => this.setState({time:tempReminderTime(), timeSet:false})} // TODO: HARDCODE
                             style={{ 
                               cursor:"pointer",
                               display:"flex",
@@ -411,7 +417,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 onClick={() => 
                                     this.setState({
                                         timeSet:false, 
-                                        time:'12:00', 
+                                        time:tempReminderTime(), // TODO: HARDCODE
                                         openReminderInput:false
                                     })
                                 }

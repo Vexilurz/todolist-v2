@@ -18,7 +18,7 @@ export let setCallTimeout = (f:() => void, when:Date) : number => {
     }else{ 
         //if will cause overflow - dont register (more than two weeks ahead)
         if(timeMs >= 0x7FFFFFFF){ 
-           return null; 
+           return null; //TODO: show some error message
         }else{
            return setTimeout(f, timeMs) as any; 
         }
