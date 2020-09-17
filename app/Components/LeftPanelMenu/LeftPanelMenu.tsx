@@ -235,7 +235,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
-                <div style={{padding:"15px", display:"none"}}>
+                {/* <div style={{padding:"15px", display:"none"}}> */}
+                <div style={{padding:"15px", marginBottom:"20px"}}>
                 {
                     this.props.collapsed ? null :
                     <SearchInput 
@@ -246,7 +247,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                         searchQuery={this.props.searchQuery}
                     />
                 }
-                </div>     
+                </div>
                 <CategoryMenu    
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 

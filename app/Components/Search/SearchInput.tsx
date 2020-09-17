@@ -84,8 +84,8 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 position:"relative", 
                 WebkitUserSelect:"none",  
                 maxHeight:isEmpty(this.state.value) ? "0px" : "30px",
-                overflow:"hidden"
-                //overflowY:"visible"
+                overflow:"visible",
+                overflowY:"visible"
             }}   
         >               
             <div style={{ 
@@ -95,7 +95,7 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 height:"30px",  
                 alignItems:"center"
             }}>  
-                <div style={{padding:"5px",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{padding:"5px",display:"flex",alignItems:"center",justifyContent:"center"}}>                    
                   <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
                 </div>   
                 <input 
