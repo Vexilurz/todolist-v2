@@ -91,6 +91,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
 
     componentDidMount(){
+        console.log("notification mounts")
         this.subscriptions.push(
 
             Observable 
