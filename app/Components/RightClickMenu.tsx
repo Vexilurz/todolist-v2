@@ -333,7 +333,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                        WebkitUserSelect:"none", 
                        width: "250px",      
                        position: "absolute",
-                       backgroundColor: "rgba(238,237,239,1)", 
+                       backgroundColor: "rgba(255,255,255,1)",
                        left: this.props.rightClickMenuX+"px",
                        top: this.props.rightClickMenuY+"px"  
                     }}         
