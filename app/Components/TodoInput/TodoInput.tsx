@@ -28,6 +28,7 @@ import { getTime, setTime } from '../../utils/time';
 import { TodoInputLabels } from './TodoInputLabels';
 import { TodoInputTopLevel } from './TodoInputTopLevel';
 import { TodoInputMiddleLevel } from './TodoInputMiddleLevel';
+import { isDev } from '../../utils/isDev';
 
 import { EditorState  } from 'draft-js';
 
@@ -861,7 +862,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onClick={this.onFieldsContainerClick}  
             >          
             <div style={{display:"flex",flexDirection:"column",paddingTop:"4px",width:"100%"}}>
-                <div style={{fontSize:"10px"}}>[DEBUG] _id: {id}</div>
+                {
+                  !isDev() ? null :   
+                  <div style={{fontSize:"10px"}}>[DEBUG] _id: {id}</div>
+                }
                 <TodoInputTopLevel 
                     onWindowEnterPress={this.onWindowEnterPress}
                     openCalendar={this.openCalendar}
