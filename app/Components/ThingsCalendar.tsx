@@ -20,12 +20,17 @@ import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { isFunction, isDate } from '../utils/isSomething';
 import { timeOfTheDay } from '../utils/time';
-import TimeInput from 'react-keyboard-time-input';
+// import TimeInput from 'react-keyboard-time-input';
 
 const tempReminderTime = () => {
     let now = new Date();
     now.setMinutes(now.getMinutes() + 1)
     return now.toLocaleTimeString().slice(0, -3)
+}
+
+const correctTimeString = (time) => {
+    let result = /^(\d{1,2}:\d{1,2})(:\d{1,2})?$/.exec(time)
+    return result ? result[1] : "12:00"
 }
 
 
@@ -307,7 +312,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
            openReminderInput:false,
            time://this.props.attachedDate ? 
                 //this.props.attachedDate.toLocaleTimeString().replace(/[a-z]/ig, "").trim() : 
-                tempReminderTime() // TODO: HARDCODE
+                '12:00'
         };     
     }  
 
@@ -399,8 +404,16 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 onChange={(time) => this.setState({time,timeSet:true})}
                                 value={this.state.time} 
                             /> */}
+                            <input 
+                                className="reminder-time-input"
+                                type="time" 
+                                key={`time-input`} 
+                                onChange={(event) => this.setState({time:event.target.value,timeSet:true})}
+                                value={correctTimeString(this.state.time)} 
+                                pattern="[0-9]{2}:[0-9]{2}"
+                            />
                             <div  
-                            onClick={() => this.setState({time:tempReminderTime(), timeSet:false})} // TODO: HARDCODE
+                            onClick={() => this.setState({time:'12:00', timeSet:false})}                            
                             style={{ 
                               cursor:"pointer",
                               display:"flex",
@@ -417,7 +430,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 onClick={() => 
                                     this.setState({
                                         timeSet:false, 
-                                        time:tempReminderTime(), // TODO: HARDCODE
+                                        time:'12:00', 
                                         openReminderInput:false
                                     })
                                 }

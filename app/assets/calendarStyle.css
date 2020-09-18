@@ -235,3 +235,7 @@ input[type=time]::-webkit-outer-spin-button {
   -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
+
+.reminder-time-input {
+  font: 1rem 'Fira Sans', sans-serif;
+}
