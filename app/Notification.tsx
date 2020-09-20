@@ -115,9 +115,24 @@ class Notification extends Component<NotificationProps,NotificationState>{
                             this.setState( 
                                 {todos},
                                 () => {
-                                   ipcRenderer.send('NremoveReminders',this.state.todos);
+                                    ipcRenderer.send('NremoveReminders',this.state.todos);
 
-                                   if(this.beep){ this.beep.audioEl.play(); }   
+                                    if(this.beep){ 
+                                    //    this.beep.audioEl.playAudio(); 
+                                        let audio = new Audio(this.soundPath)
+                                        audio.load()
+                                        const audioPromise = audio.play()
+                                        if (audioPromise !== undefined) {
+                                            audioPromise
+                                            .then(_ => {
+                                                // autoplay started
+                                            })
+                                            .catch(err => {
+                                                // catch dom exception
+                                                console.info(err)
+                                            })
+                                        }
+                                    }   
  
                                    setTimeout(() => this.move(), 20);
                                 }
@@ -216,12 +231,12 @@ class Notification extends Component<NotificationProps,NotificationState>{
         let { title, header, button }  = this.getTextElements(todos);
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
-            {/* <ReactAudioPlayer
+            <ReactAudioPlayer
                 ref={(e) => {this.beep = e;}}
                 src={this.soundPath}
                 autoPlay={false}
                 controls={false}
-            /> */}
+            />
             <div style={{
                 width:"100%",   
                 position:"relative",
