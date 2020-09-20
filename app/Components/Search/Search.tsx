@@ -187,7 +187,7 @@ export class Search extends Component<SearchProps,SearchState>{
                     paddingLeft: "10px", 
                     cursor: "default" 
                 }}>   
-                    {`Search results${isEmpty(selectedTags) ? '' : '#'+selectedTags.join('/')}`} 
+                    {`Search results${(isEmpty(selectedTags) || (selectedTags[0] == "All")) ? '' : ' #'+selectedTags.join('/')}`} 
                 </div>  
             </div> 
             <div className="no-print" style={{paddingTop:"15px", paddingBottom:"15px"}}>
