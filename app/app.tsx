@@ -309,25 +309,25 @@ export class App extends Component<AppProps,AppState>{
         return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001} as any}>  
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
             { 
-                <TopPopoverMenu 
-                    dispatch={this.props.dispatch} 
-                    showMenu={this.props.showMenu}
-                    selectedTags={this.props.selectedTags}
-                    filters={getFilters(this.props.projects)}
-                    collapsed={this.props.collapsed}
-                    selectedCategory={this.props.selectedCategory}
-                    searchQuery={this.props.searchQuery} 
-                    leftPanelWidth={this.props.leftPanelWidth}
-                    openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
-                    projects={this.props.projects}
-                    areas={this.props.areas}
-                    amounts={this.state.amounts}
-                    indicators={this.state.indicators}
-                    dragged={this.props.dragged}
-                    selectedProjectId={this.props.selectedProjectId}
-                    selectedAreaId={this.props.selectedAreaId}
-                    id={this.props.id}
-                /> 
+                // <TopPopoverMenu 
+                //     dispatch={this.props.dispatch} 
+                //     showMenu={this.props.showMenu}
+                //     selectedTags={this.props.selectedTags}
+                //     filters={getFilters(this.props.projects)}
+                //     collapsed={this.props.collapsed}
+                //     selectedCategory={this.props.selectedCategory}
+                //     searchQuery={this.props.searchQuery} 
+                //     leftPanelWidth={this.props.leftPanelWidth}
+                //     openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
+                //     projects={this.props.projects}
+                //     areas={this.props.areas}
+                //     amounts={this.state.amounts}
+                //     indicators={this.state.indicators}
+                //     dragged={this.props.dragged}
+                //     selectedProjectId={this.props.selectedProjectId}
+                //     selectedAreaId={this.props.selectedAreaId}
+                //     id={this.props.id}
+                // /> 
             }
             {    
                 this.props.clone ? null :

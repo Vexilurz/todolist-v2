@@ -79,7 +79,8 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
 
 
 
-    onQueryChange = (e) => this.props.dispatch({type:"searchQuery", load:e.target.value}); 
+    // onQueryChange = (e) => this.props.dispatch({type:"searchQuery", load:e.target.value}); 
+    onQueryChange = (e) => {};
       
 
 
