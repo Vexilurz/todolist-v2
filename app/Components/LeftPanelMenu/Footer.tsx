@@ -92,9 +92,9 @@ export class Footer extends Component<FooterProps,FooterState>{
                 this.props.logbook===0 ? null :
                 <IconButton    
                     onClick={this.onClick("logbook")}  
-                    iconStyle={{color:"limegreen",width:"25px",height:"25px"}}
+                    iconStyle={{color:"darkgray",width:"25px",height:"25px"}}
                 >        
-                    <Logbook style={{color:"limegreen"}}/> 
+                    <Logbook style={{color:"darkgray"}}/> 
                 </IconButton> 
             }
             {
