@@ -105,36 +105,7 @@ export class Footer extends Component<FooterProps,FooterState>{
                 >        
                     <Trash style={{color:"darkgray"}}/> 
                 </IconButton>
-            }
-            <div style={{flexGrow:1,display:"flex",justifyContent:"flex-end"}}> 
-                <div style={{
-                    position:"relative",
-                    display:"flex",
-                    justifyContent:"center",
-                    alignItems:"center"
-                }}>                            
-                    {   
-                        null
-                        // this.props.sync ? null :
-                        // <div style={{position:"absolute",width:"12px"}}>
-                        //     <Exclamation 
-                        //         style={{
-                        //             color:"red",
-                        //             fill:"currentcolor", 
-                        //             height:"11px",
-                        //             paddingLeft:"1px",
-                        //             width:"11px"
-                        //         }}
-                        //     />
-                        // </div>  
-                    }      
-                    {/* <Spinner 
-                        dispatch={this.props.dispatch} 
-                        sync={this.props.sync} 
-                        openSyncSettings={this.props.openSyncSettings}
-                    />  */}
-                </div>
-            </div>            
+            }               
             <div style={{display:"flex",paddingRight:"10px",alignItems:"center",cursor:"pointer"}}>     
                 <IconButton    
                     onClick={(e) => openSettings(e)}  
