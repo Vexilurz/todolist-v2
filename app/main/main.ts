@@ -35,19 +35,25 @@ export let dateCalendar : BrowserWindow;
 export let tray : Tray;
 
 
-app.requestSingleInstanceLock()
+const gotTheLock = app.requestSingleInstanceLock()
 
-const shouldQuit = app.on('second-instance',
-    (commandLine, workingDirectory) => {
-        if(mainWindow){
-            mainWindow.show();
-            mainWindow.restore();  
-            mainWindow.focus();
-        } 
+if (!gotTheLock) {
+    app.quit()
+} else {
+app.on('second-instance', () => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+    mainWindow.show();
+    mainWindow.restore();  
+    mainWindow.focus();
     }
-);  
+})
 
-
+// Create myWindow, load the rest of the app, etc...
+app.on('ready', () => {
+    getConfig().then((config) => onReady(config))
+}); 
+}
 
 let onReady = (config:Config) => {  
     let {disableReminder, enableShortcutForQuickEntry} = config;
@@ -94,12 +100,6 @@ let onReady = (config:Config) => {
     loadApp(mainWindow).then(() => onAppLoaded(mainWindow));  
 };                
 
-
-
-app.on('ready', () => {
-    getConfig().then((config) => onReady(config))
-});    
-
 app.whenReady().then(() => {
     if (isDev()) {
         installExtension(REACT_DEVELOPER_TOOLS)
@@ -112,11 +112,7 @@ app.whenReady().then(() => {
     }
 });
 
-
-
 app.on('window-all-closed', onWindowAllClosed);     
-
-
 
 process.on( 
     "unchaughtException" as any,
