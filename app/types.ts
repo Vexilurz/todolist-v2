@@ -206,7 +206,7 @@ export interface Block{
 
 
 
-export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'Sync';
+export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'Sync' | 'LicenseManagement';
 
 
 

@@ -22,6 +22,7 @@ import { autoUpdater } from "electron-updater";
 import { onAppLoaded } from './utils/onAppLoaded';
 import { onQuickEntryLoaded } from './utils/onQuickEntryLoaded';
 import { toggleShortcut } from './shortcuts';
+import axios from 'axios';
 const fs = require('fs');
 const pathTo = require('path');
 const log = require("electron-log");
@@ -468,6 +469,21 @@ export class Listeners{
                             windows[i].webContents.send("action", {...attachToProject,kind});
                         }
                     }  
+                }   
+            },
+            {
+                name:"license-request",
+                callback : (event, options) => {  
+                    console.log("listener: license-request options ", options)
+                    
+                    axios.get(options.url)
+                    .then((response) => {
+                      let action={type:"receivedLicense",load:response.data}; 
+                      mainWindow.webContents.send("receivedLicense", {...action});
+                    })
+                    .catch(function (error) {
+                      console.log("listener: license-request error ",error);
+                    })      
                 }   
             }
         ];     

@@ -15,6 +15,7 @@ import { QuickEntrySettings } from './QuickEntrySettings';
 import { CalendarEventsSettings } from './CalendarEventsSettings';
 import { AdvancedSettings } from './AdvancedSettings';
 import { TagsSettings } from './TagsSettings';
+import { LicenseManagement } from './LicenseManagement';
 // import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { SyncSettings } from './SyncSettings';
 
@@ -148,6 +149,12 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         name={'Advanced'} 
                         selected={selectedSettingsSection==='Advanced'}
                     />  
+                    <Section
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'LicenseManagement'})} 
+                        icon={null}
+                        name={'LicenseManagement'} 
+                        selected={selectedSettingsSection==='LicenseManagement'} 
+                    /> 
                 </div>     
             </div> 
             <div 
@@ -198,6 +205,12 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                             todos={this.props.todos}
                             defaultTags={this.props.defaultTags}
                             dispatch={this.props.dispatch}
+                        />
+                    ],
+                    [ 
+                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="LicenseManagement", 
+                        () => <LicenseManagement
+                            dispatch={this.props.dispatch as any}
                         />
                     ],
                     // [ 
