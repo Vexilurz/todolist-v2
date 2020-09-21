@@ -19,5 +19,6 @@ export let init = () : any[] => {
     let projects_db = new PouchDB('projects',{auto_compaction:true});
     let areas_db = new PouchDB('areas',{auto_compaction:true}); 
     let calendars_db = new PouchDB('calendars',{auto_compaction:true}); 
-    return [todos_db, projects_db, areas_db, calendars_db];
+    let license_db = new PouchDB('license',{auto_compaction:true}); 
+    return [todos_db, projects_db, areas_db, calendars_db, license_db];
 };  

@@ -67,6 +67,10 @@ export interface actionLoadDatabase{ type:"load", load:void };
 export interface actionSetDatabase{ type:"set", load:Databases };
 
 
+export interface actionSaveLicense{ type:"saveLicense", load:License };
+export interface actionLoadLicense{ type:"loadLicense", load:License };
+
+
 
 export interface Databases{
     todos:Todo[],
@@ -274,6 +278,10 @@ export interface Changes{
     projects:DatabaseChanges<Project>,
     areas:DatabaseChanges<Area>,
     calendars:DatabaseChanges<Calendar>
+};
+
+export interface License{
+    someField:string
 };
 
 

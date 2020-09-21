@@ -8,7 +8,8 @@ import { Observable } from 'rxjs/Rx';
 import { 
     action, Databases, Changes, DatabaseChanges, actionStartSync, 
     actionStopSync, actionChanges, actionLoadDatabase, actionSetKey, 
-    actionEncryptDatabase, actionEraseDatabase
+    actionEncryptDatabase, actionEraseDatabase, 
+    actionSaveLicense, actionLoadLicense, License
 } from './../types';
 import { 
     cond, compose, equals, prop, isEmpty,
@@ -59,6 +60,10 @@ Observable
             [ typeEquals("encryptDatabase"), encryptDatabase ],
 
             [ typeEquals("eraseDatabase"), eraseDatabase ],
+
+            [ typeEquals("saveLicense"), saveLicense ],
+
+            [ typeEquals("loadLicense"), loadLicense ],
 
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])(action);
@@ -233,3 +238,15 @@ let setKey = (action:actionSetKey) : Promise<void> => {
 
 
 
+let saveLicense = (action:actionSaveLicense) : Promise<void> => {
+    let license : License = action.load;
+    let db = databases.find(d => d.name==='license');
+    updateItems(db, onError)(license) 
+    return null
+};
+
+let loadLicense = (action:actionLoadLicense) : Promise<void> => {
+    let license : License = action.load;
+  
+    return null
+};
