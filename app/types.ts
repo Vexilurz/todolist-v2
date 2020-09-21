@@ -215,6 +215,7 @@ export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'S
 
 
 export interface Store extends Config{
+  license? : License,
   showMenu : boolean,  
   lastImport : Date,
   import : ImportActionLoad,
@@ -281,7 +282,8 @@ export interface Changes{
 };
 
 export interface License{
-    someField:string
+    _id:string,
+    someField:any
 };
 
 

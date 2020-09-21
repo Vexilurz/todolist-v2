@@ -474,7 +474,7 @@ export class Listeners{
             {
                 name:"license-request",
                 callback : (event, options) => {  
-                    console.log("listener: license-request options ", options)
+                    // console.log("listener: license-request options ", options)
                     
                     axios.get(options.url)
                     .then((response) => {
@@ -484,6 +484,13 @@ export class Listeners{
                     .catch(function (error) {
                       console.log("listener: license-request error ",error);
                     })      
+                }   
+            },
+            {
+                name:"received-license-from-DB",
+                callback : (event, options) => {  
+                    // console.log("listener: received-license-from-DB options ", options)
+                    mainWindow.webContents.send("receivedLicenseFromDB", {...options});
                 }   
             }
         ];     

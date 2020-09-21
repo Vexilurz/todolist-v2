@@ -3,7 +3,7 @@ Date.prototype["addDays"] = function(days){
     dat.setDate(dat.getDate() + days);
     return dat; 
 }; 
-import { getDatabaseObjects, addItems, removeItems, updateItems } from './databaseUtils';
+import { getDatabaseObjects, addItems, removeItems, updateItems, getItemsFromDatabase, setItemToDatabase } from './databaseUtils';
 import { Observable } from 'rxjs/Rx';
 import { 
     action, Databases, Changes, DatabaseChanges, actionStartSync, 
@@ -21,6 +21,7 @@ import { encryptDoc } from '../utils/crypto/crypto';
 import { onError } from './onError'; 
 import { init } from './init';
 import { startDatabaseSync } from './startDatabaseSync';
+
 let window : any = self;
 
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
@@ -241,12 +242,13 @@ let setKey = (action:actionSetKey) : Promise<void> => {
 let saveLicense = (action:actionSaveLicense) : Promise<void> => {
     let license : License = action.load;
     let db = databases.find(d => d.name==='license');
-    updateItems(db, onError)(license) 
-    return null
+    setItemToDatabase(onError, db)(license) 
+    return new Promise( resolve => resolve(null) );
 };
 
 let loadLicense = (action:actionLoadLicense) : Promise<void> => {
-    let license : License = action.load;
-  
-    return null
+    // let license : License = action.load;
+    let db = databases.find(d => d.name==='license');
+    getItemsFromDatabase(onError, db).then(items => sendMessage({type:action.type, load:items}))
+    return new Promise( resolve => resolve(null) );
 };

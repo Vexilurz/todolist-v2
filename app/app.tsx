@@ -191,6 +191,15 @@ export class App extends Component<AppProps,AppState>{
         }
     };
 
+
+    onPouchLoadLicense = (action:action) => {
+        console.log(`%c onPouchLoadLicense`, 'color: #00FF00', action);
+        if (action.load) {
+            ipcRenderer.send("received-license-from-DB", {...action});
+            this.props.dispatch(action);
+        }
+    }
+
     
 
     onPouchActive = (action:action) => { 
@@ -243,7 +252,8 @@ export class App extends Component<AppProps,AppState>{
             subscribeToChannel("changes", this.onPouchChanges),
             subscribeToChannel("log", this.onPouchLog),
             subscribeToChannel("error", this.onPouchError),
-            subscribeToChannel("active", this.onPouchActive)
+            subscribeToChannel("active", this.onPouchActive),
+            subscribeToChannel("loadLicense", this.onPouchLoadLicense)
         );
     };
 
