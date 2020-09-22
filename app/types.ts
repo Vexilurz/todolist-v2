@@ -281,8 +281,7 @@ export interface Changes{
     calendars:DatabaseChanges<Calendar>
 };
 
-export interface License{
-    _id:string,
+export interface License{    
     someField:any
 };
 

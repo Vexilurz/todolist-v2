@@ -195,7 +195,6 @@ export class App extends Component<AppProps,AppState>{
     onPouchLoadLicense = (action:action) => {
         console.log(`%c onPouchLoadLicense`, 'color: #00FF00', action);
         if (action.load) {
-            ipcRenderer.send("received-license-from-DB", {...action});
             this.props.dispatch(action);
         }
     }
@@ -431,6 +430,7 @@ export class App extends Component<AppProps,AppState>{
                     disableReminder={this.props.disableReminder}
                     todos={this.props.todos}
                     defaultTags={this.props.defaultTags}
+                    license={this.props.license}
                 />
             } 
             {/* { 

@@ -7,7 +7,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import QuickEntry from 'material-ui/svg-icons/content/add-box';  
 import CalendarEvents from 'material-ui/svg-icons/action/date-range';  
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import { section, Calendar, Todo, ImportActionLoad } from '../../types';
+import { section, Calendar, Todo, ImportActionLoad, License } from '../../types';
 import { Section } from './section';
 import Advanced from 'material-ui/svg-icons/action/settings-applications'; 
 import { cond } from 'ramda';
@@ -46,6 +46,7 @@ export interface SettingsProps{
     sync:boolean, 
     lastSync:Date,
 
+    license:License,
     dispatch:Function
 }
 
@@ -210,6 +211,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     [ 
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="LicenseManagement", 
                         () => <LicenseManagement
+                            license={this.props.license}
                             dispatch={this.props.dispatch as any}
                         />
                     ],

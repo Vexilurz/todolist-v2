@@ -238,11 +238,12 @@ let setKey = (action:actionSetKey) : Promise<void> => {
 };
 
 
+const LICENSE_ID = "license-id"; //todo: to something global...
 
 let saveLicense = (action:actionSaveLicense) : Promise<void> => {
     let license : License = action.load;
     let db = databases.find(d => d.name==='license');
-    setItemToDatabase(onError, db)(license) 
+    setItemToDatabase(onError, db)({_id:LICENSE_ID, ...license}) 
     return new Promise( resolve => resolve(null) );
 };
 

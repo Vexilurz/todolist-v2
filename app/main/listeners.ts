@@ -485,14 +485,7 @@ export class Listeners{
                       console.log("listener: license-request error ",error);
                     })      
                 }   
-            },
-            {
-                name:"received-license-from-DB",
-                callback : (event, options) => {  
-                    // console.log("listener: received-license-from-DB options ", options)
-                    mainWindow.webContents.send("receivedLicenseFromDB", {...options});
-                }   
-            }
+            }            
         ];     
       
         this.startToListenOnAllChannels(); 

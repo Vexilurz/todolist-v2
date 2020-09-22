@@ -49,6 +49,7 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
                 todos={this.props.todos}
                 defaultTags={this.props.defaultTags}
 
+                license={this.props.license}
                 dispatch={this.props.dispatch}
             /> 
         </SimplePopup>    
