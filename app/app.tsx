@@ -45,7 +45,7 @@ import { logout } from './utils/logout';
 import { setWindowTitle } from './utils/setWindowTitle';
 import { updateQuickEntry } from './utils/updateQuickEntry';
 import { onCloseWindow } from './utils/onCloseWindow';
-
+import { loadLicenseFromDB } from './utils/licenseUtils'
 import { defaultConfig } from './defaultConfig';
 
 window.onerror = onErrorWindow; 
@@ -112,6 +112,8 @@ export class App extends Component<AppProps,AppState>{
             // this.initSync();
             reportStart();
         }
+
+        loadLicenseFromDB();
     }; 
 
 
@@ -192,10 +194,10 @@ export class App extends Component<AppProps,AppState>{
     };
 
 
-    onPouchLoadLicense = (action:action) => {
+    onPouchSetLicense = (action:action) => {
         console.log(`%c onPouchLoadLicense`, 'color: #00FF00', action);
         if (action.load) {
-            this.props.dispatch(action);
+            this.props.dispatch({type:"setLicense", load:action.load}); // to redux store via StateReducer.tsx
         }
     }
 
@@ -252,7 +254,7 @@ export class App extends Component<AppProps,AppState>{
             subscribeToChannel("log", this.onPouchLog),
             subscribeToChannel("error", this.onPouchError),
             subscribeToChannel("active", this.onPouchActive),
-            subscribeToChannel("loadLicense", this.onPouchLoadLicense)
+            subscribeToChannel("setLicense", this.onPouchSetLicense)
         );
     };
 

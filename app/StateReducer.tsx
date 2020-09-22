@@ -1,13 +1,13 @@
 import { cond } from 'ramda';
 import { typeEquals } from "./utils/utils";
-import { Store, Category, Todo, section, Calendar, Area, TodoBelonging, Project, ImportAction, actionLoadLicense } from "./types";
+import { Store, Category, Todo, section, Calendar, Area, TodoBelonging, Project, ImportAction, License } from "./types";
 
 
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
     return cond([
             [ 
-                typeEquals("loadLicense"),
-                (action:actionLoadLicense) : Store => {
+                typeEquals("setLicense"),
+                (action:{type:string, load:License}) : Store => {
                     return ({...state, license:action.load}); 
                 }   
             ], 

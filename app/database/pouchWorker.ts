@@ -250,6 +250,8 @@ let saveLicense = (action:actionSaveLicense) : Promise<void> => {
 let loadLicense = (action:actionLoadLicense) : Promise<void> => {
     // let license : License = action.load;
     let db = databases.find(d => d.name==='license');
-    getItemsFromDatabase(onError, db).then(items => sendMessage({type:action.type, load:items}))
+    getItemsFromDatabase(onError, db)
+    // message sends to app.tsx
+    .then(items => sendMessage({type:"setLicense", load:items.find(item => item._id === LICENSE_ID)})) 
     return new Promise( resolve => resolve(null) );
 };

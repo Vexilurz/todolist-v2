@@ -5,7 +5,8 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { ipcRenderer } from 'electron';
 import { pouchWorker } from '../../app';
-import { actionSaveLicense, actionLoadLicense, License } from '../../types'
+import { actionSaveLicense, License } from '../../types'
+import { prop } from 'ramda'
 
 interface LicenseManagementProps{
   license:License,
@@ -23,34 +24,22 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
 
   apiAnswer = 'empty';
 
-  onTestFetchClick = (e) => {
+  onUseKeyClick = (e) => {
     // let { url, error } = this.state;
-    let url = 'https://5f687836dc0bff0016f437f6.mockapi.io/key'; 
+    let license_key = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
 
-    ipcRenderer.send("license-request", {url});
+    ipcRenderer.send("license-request", {license_key});
 
     return null;    
   };
 
-  onTestSaveToDB = (e) => {
-    let license:License = { someField:"test "+(new Date()) }
-    let actionSaveLicense : actionSaveLicense = { type:"saveLicense", load:license };
-    let actionSaveLicense_json = JSON.parse(JSON.stringify(actionSaveLicense));
-    pouchWorker.postMessage(actionSaveLicense_json);
-  }
-
-  onTestLoadFromDB = (e) => {
-    let license:License = { someField:"dummy" }
-    let actionLoadLicense : actionLoadLicense = { type:"loadLicense", load:license };
-    let actionLoadLicense_json = JSON.parse(JSON.stringify(actionLoadLicense));
-    pouchWorker.postMessage(actionLoadLicense_json);
-  }
-
   onReceivedLicense = (event, ...args) => {
     console.log("onReceivedLicense", event, {...args})
-    this.apiAnswer = JSON.stringify(args);
-    this.render()
-    this.forceUpdate()
+    let license:License = { apiAnswer:args[0] }
+    let actionSaveLicense : actionSaveLicense = { type:"saveLicense", load:license };
+    let actionSaveLicense_json = JSON.parse(JSON.stringify(actionSaveLicense));
+    pouchWorker.postMessage(actionSaveLicense_json); // save to DB
+    this.props.dispatch({type:"setLicense", load:license}) // set to redux store (StateReducer.tsx)
   }
 
   render(){
@@ -73,7 +62,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
           flexWrap:"wrap"
       }}>
         <div     
-          onClick={this.onTestFetchClick}
+          onClick={this.onUseKeyClick}
           style={{     
             display:"flex",
             alignItems:"center",
@@ -89,53 +78,14 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
           }}  
         >   
           <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-            Test fetch 
+            Use key 
           </div>   
-        </div>    
-        <div     
-          onClick={this.onTestSaveToDB}
-          style={{     
-            display:"flex",
-            alignItems:"center",
-            cursor:"pointer",
-            justifyContent:"center",
-            height:"20px",
-            borderRadius:"5px",
-            paddingLeft:"25px",
-            paddingRight:"25px",
-            paddingTop:"5px", 
-            paddingBottom:"5px",
-            backgroundColor:"rgba(81, 144, 247, 1)"  
-          }}  
-        >   
-          <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-            Test save to DB 
-          </div>   
-        </div>  
-        <div     
-          onClick={this.onTestLoadFromDB}
-          style={{     
-            display:"flex",
-            alignItems:"center",
-            cursor:"pointer",
-            justifyContent:"center",
-            height:"20px",
-            borderRadius:"5px",
-            paddingLeft:"25px",
-            paddingRight:"25px",
-            paddingTop:"5px", 
-            paddingBottom:"5px",
-            backgroundColor:"rgba(81, 144, 247, 1)"  
-          }}  
-        >   
-          <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-            Test load from DB 
-          </div>   
-        </div>      
+        </div>               
       </div>        
-      <div>
-        {/* {this.apiAnswer}   */}
-        {JSON.stringify(this.props.license)}
+      <div>                
+        {
+          JSON.stringify(prop('apiAnswer')(this.props.license))
+        }
       </div>  
     </div>
   }   

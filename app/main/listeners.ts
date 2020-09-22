@@ -475,11 +475,19 @@ export class Listeners{
                 name:"license-request",
                 callback : (event, options) => {  
                     // console.log("listener: license-request options ", options)
+
+                    var body = {
+                        product_permalink: 'kwjZb',
+                        license_key: options.license_key
+                    }
                     
-                    axios.get(options.url)
+                    axios({
+                        method: 'post',
+                        url: 'https://api.gumroad.com/v2/licenses/verify',
+                        data: body
+                    })
                     .then((response) => {
-                      let action={type:"receivedLicense",load:response.data}; 
-                      mainWindow.webContents.send("receivedLicense", {...action});
+                      mainWindow.webContents.send("receivedLicense", response.data);
                     })
                     .catch(function (error) {
                       console.log("listener: license-request error ",error);

@@ -282,7 +282,7 @@ export interface Changes{
 };
 
 export interface License{    
-    someField:any
+    apiAnswer:any
 };
 
 
