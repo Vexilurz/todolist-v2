@@ -33,7 +33,8 @@ export class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickE
         let enableReminder = !this.props.disableReminder;
         let shouldAutolaunch = next || enableReminder;
 
-        ipcRenderer.send('autolaunch', shouldAutolaunch);
+        // ipcRenderer.send('autolaunch', shouldAutolaunch);
+        ipcRenderer.send('autolaunch', false);
         ipcRenderer.send('toggleShortcut', next,'Ctrl+Alt+T');
 
         this.props.dispatch({type:"enableShortcutForQuickEntry", load:next});
