@@ -13,7 +13,9 @@ interface LicenseManagementProps{
   dispatch:Function
 }
 
-interface LicenseManagementState{}
+interface LicenseManagementState{
+  licenseKey:string  
+}
 
 export class LicenseManagement extends Component<LicenseManagementProps,LicenseManagementState>{
 
@@ -26,16 +28,16 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
 
   onUseKeyClick = (e) => {
     // let { url, error } = this.state;
-    let license_key = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
+    // let license_key = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
 
-    ipcRenderer.send("license-request", {license_key});
+    ipcRenderer.send("license-request", {license_key:prop('licenseKey')(this.state)});
 
     return null;    
   };
 
-  onReceivedLicense = (event, ...args) => {
-    console.log("onReceivedLicense", event, {...args})
-    let license:License = { apiAnswer:args[0] }
+  onReceivedLicense = (event, responce) => {
+    console.log("onReceivedLicense", event, responce)
+    let license:License = { apiAnswer:responce }
     let actionSaveLicense : actionSaveLicense = { type:"saveLicense", load:license };
     let actionSaveLicense_json = JSON.parse(JSON.stringify(actionSaveLicense));
     pouchWorker.postMessage(actionSaveLicense_json); // save to DB
@@ -61,6 +63,12 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
           paddingBottom:"5px",
           flexWrap:"wrap"
       }}>
+        <input 
+            className="license-key-input"
+            type="text" 
+            onChange={(event) => this.setState({licenseKey:event.target.value})}
+            // value="E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69"
+        />
         <div     
           onClick={this.onUseKeyClick}
           style={{     
