@@ -76,8 +76,9 @@ let onReady = (config:Config) => {
     registerAllLocalShortcuts(); 
 
     toggleGlobalShortcut(enableShortcutForQuickEntry, 'Ctrl+Alt+T');
-    initAutoUpdater();
-    initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
+    // initAutoUpdater();
+    // initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
+    initAutoLaunch(false);   
     
 
     mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));

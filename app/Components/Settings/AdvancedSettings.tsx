@@ -237,7 +237,8 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
         if(enableReminder){ load.push({type:"moveReminderFromPast", load:null}); }
 
-        ipcRenderer.send('autolaunch', shouldAutolaunch);
+        // ipcRenderer.send('autolaunch', shouldAutolaunch);
+        ipcRenderer.send('autolaunch', false);
 
         this.props.dispatch({type:"multiple", load});
     };
