@@ -283,11 +283,12 @@ export interface Changes{
 
 export interface License{    
     data:any
-    message?:string
-    status?:number
-    statusText?:string
-    active?:boolean
-    lisenceDueDate: Date;
+    status:number
+    statusText:string
+    active:boolean
+    lisenceDueDate:Date
+    gettedFromDB:boolean
+    errorMessage:string
 };
 
 

@@ -524,11 +524,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                        backgroundColor:"rgba(255, 255, 255, 1)", 
                        flexDirection:"column"     
                     }}  
-                >  
-                {
-                    prop('message')(this.props.license) ? 
-                    this.props.license.message : 'License not found'
-                }
+                >                  
                 <div><p>
                     { !(prop('active')(this.props.license)) ? 'BANNER HERE!' : '' }
                 </p></div>

@@ -4,10 +4,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { ipcRenderer } from 'electron';
-import { pouchWorker } from '../../app';
 import { actionSaveLicense, License } from '../../types'
 import { prop } from 'ramda'
 const { shell } = window.require('electron'); 
+const TEST_LICENSE_KEY = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
 
 interface LicenseManagementProps{
   license:License,
@@ -22,28 +22,25 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
 
   constructor(props){ 
     super(props) 
-    ipcRenderer.on('receivedLicense', this.onReceivedLicense)
+    ipcRenderer.on('receivedLicense', this.onReceiveAnswerFromApi)
   } 
 
   onUseKeyClick = (e) => { 
-    // let license_key = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
-
     ipcRenderer.send("license-request", {license_key:prop('licenseKey')(this.state)});
-
     return null;    
   };
 
-  onReceivedLicense = (event, response) => {
+  onReceiveAnswerFromApi = (event, response) => {
     console.log("onReceivedLicense", event, response)  
     let license:License = { 
       data:response.data, 
       status:response.status, 
       statusText:response.statusText,
-      lisenceDueDate: null
-    }    
-    let actionSaveLicense:actionSaveLicense = { type:"saveLicense", load:license }
-    let actionSaveLicense_json = JSON.parse(JSON.stringify(actionSaveLicense));
-    pouchWorker.postMessage(actionSaveLicense_json); // save to DB
+      errorMessage:null,
+      active:null,
+      lisenceDueDate:null,
+      gettedFromDB:false
+    }        
     this.props.dispatch({type:"setLicense", load:license}) // set to redux store (StateReducer.tsx)
   }
 
@@ -73,17 +70,23 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
               marginTop: "15px",
               marginBottom: "25px"
         }}> 
-          License Key:  
+          {'License Key: '}  
           {this.props.license.data.purchase ? this.props.license.data.purchase.license_key : "No key"}
       </div>
       { 
         this.props.license.data.purchase && 
-        <div style={{ marginBottom: "25px"}}> 
-          Valid until:  
-          {this.createDisplayDateString(this.props.license.lisenceDueDate)}
+        <div>
+          <div style={{ marginBottom: "25px"}}> 
+            {'Status: '}  
+            {this.props.license.active ? 'Active' : 'Expired'}
+          </div>
+          <div style={{ marginBottom: "25px"}}> 
+            {'Valid until: '} 
+            {this.createDisplayDateString(this.props.license.lisenceDueDate)}
+          </div> 
         </div>
       }
-      
+     
       <div> Enter new license key:</div>
       <div style={{
           display:"flex",
@@ -99,7 +102,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
               marginRight: "50px"
             }}
             onChange={(event) => this.setState({licenseKey:event.target.value})}
-            // value={"E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69"}
+            // value={TEST_LICENSE_KEY}
         />
         <div     
           onClick={this.onUseKeyClick}
@@ -120,14 +123,13 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
         </div>               
       </div>
       <a href="#" onClick={this.hrefClickFunction}> Get a new license key here</a>        
-      {/* <div>    
-        // PLACE ERRORS FROM API HERE            
+      <div>    
         {
-          prop('message')(this.props.license) ? 
-          this.props.license.message : 
-          'Enter your license key and press "Use key" button'
+          prop('errorMessage')(this.props.license) ? 
+          this.props.license.errorMessage : ''
+          //'Enter your license key and press "Activate" button'
         }
-      </div>   */}
+      </div>  
     </div>
   }   
 };

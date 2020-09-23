@@ -474,7 +474,7 @@ export class Listeners{
             {
                 name:"license-request",
                 callback : (event, options) => {  
-                    var body = {
+                    let body = {
                         product_permalink: 'kwjZb',
                         license_key: options.license_key
                     }
@@ -485,7 +485,7 @@ export class Listeners{
                         data: body
                     })
                     .then((response) => {
-                      mainWindow.webContents.send("receivedLicense", response);
+                        mainWindow.webContents.send("receivedLicense", response);
                     })
                     .catch((error) => {
                         mainWindow.webContents.send("receivedLicense", error.response)
