@@ -487,10 +487,10 @@ export class Listeners{
                         data: body
                     })
                     .then((response) => {
-                      mainWindow.webContents.send("receivedLicense", response.data);
+                      mainWindow.webContents.send("receivedLicense", response);
                     })
-                    .catch(() => {
-                      mainWindow.webContents.send("receivedLicense", {success:false});                      
+                    .catch((error) => {
+                        mainWindow.webContents.send("receivedLicense", error.response)
                     })
                     // .catch((error) => {
                     //   console.log("listener: license-request error ",error);

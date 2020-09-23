@@ -195,7 +195,7 @@ export class App extends Component<AppProps,AppState>{
 
 
     onPouchSetLicense = (action:action) => {
-        console.log(`%c onPouchLoadLicense`, 'color: #00FF00', action);
+        console.log(`%cAPP license set to: `, 'color: #00FF00', action.load);
         if (action.load) {
             this.props.dispatch({type:"setLicense", load:action.load}); // to redux store via StateReducer.tsx
         }

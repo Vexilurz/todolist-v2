@@ -153,7 +153,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'LicenseManagement'})} 
                         icon={null}
-                        name={'LicenseManagement'} 
+                        name={'License Management'} 
                         selected={selectedSettingsSection==='LicenseManagement'} 
                     /> 
                 </div>     

@@ -283,6 +283,7 @@ export interface Changes{
 
 export interface License{    
     apiAnswer:any
+    message?:string
 };
 
 

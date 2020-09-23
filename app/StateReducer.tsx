@@ -8,6 +8,7 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
             [ 
                 typeEquals("setLicense"),
                 (action:{type:string, load:License}) : Store => {
+                    console.log('distapch license to redux store', action.load)
                     return ({...state, license:action.load}); 
                 }   
             ], 
