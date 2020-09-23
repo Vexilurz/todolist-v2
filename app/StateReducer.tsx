@@ -9,11 +9,20 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                 typeEquals("setLicense"),
                 (action:{type:string, load:License}) : Store => {                    
                     // there license status check
-                    if (action.load.status === 200) { // OK 
+                    if (action.load.status === 200) { // OK  
                         let lisenceDueDate:Date = new Date(action.load.data.purchase.sale_timestamp);
+                        // let lisenceDueDate:Date = new Date('2018-09-17T19:59:02Z'); // expired date for testing
                         lisenceDueDate.setFullYear(lisenceDueDate.getFullYear() + 1);
-                        action.load.message = `License status: OK. Expires on ${lisenceDueDate}`      
+                        let now = new Date();
+                        action.load.active = lisenceDueDate.getTime() - now.getTime() > 0;
+                        if (action.load.active)
+                        {
+                          action.load.message = `License status: OK. Expires on ${lisenceDueDate}`
+                        } else {
+                          action.load.message = `License status: EXPIRED. Expires on ${lisenceDueDate}`  
+                        }
                     } else {
+                        action.load.active = false;
                         let respMsg = prop('message')(action.load.data) ? action.load.data.message : ''
                         action.load.message = `License status: ${action.load.status} - ${action.load.statusText}. ${respMsg}`
                     }

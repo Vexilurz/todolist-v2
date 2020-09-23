@@ -361,6 +361,7 @@ export class App extends Component<AppProps,AppState>{
                 />  
             } 
             <MainContainer 
+                license={this.props.license}
                 dispatch={this.props.dispatch} 
                 secretKey={this.props.secretKey}
                 selectedCategory={this.props.selectedCategory}

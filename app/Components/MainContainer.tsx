@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { isDev } from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { Todo, Project, Area, Calendar, Category, action } from '.././types';
+import { Todo, Project, Area, Calendar, Category, action, License } from '.././types';
 import Print from 'material-ui/svg-icons/action/print';  
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -107,6 +107,7 @@ let addExtendedTodos = (projects:Project[], limit:Date, todos:Todo[]) => (action
 
 
 interface MainContainerProps{
+    license:License,
     dispatch:Function, 
     selectedCategory:Category,
     limit:Date,
@@ -524,6 +525,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                        flexDirection:"column"     
                     }}  
                 >  
+                {
+                    prop('message')(this.props.license) ? 
+                    this.props.license.message : 'License not found'
+                }
+                <div><p>
+                    { !(prop('active')(this.props.license)) ? 'BANNER HERE!' : '' }
+                </p></div>
                 { 
                     not(this.props.showRightClickMenu) ? null : 
                     <RightClickMenu {...{} as any}/> 

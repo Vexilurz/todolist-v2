@@ -24,10 +24,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
     ipcRenderer.on('receivedLicense', this.onReceivedLicense)
   } 
 
-  apiAnswer = 'empty';
-
   onUseKeyClick = (e) => {
-    // let { url, error } = this.state;
     // let license_key = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
 
     ipcRenderer.send("license-request", {license_key:prop('licenseKey')(this.state)});
