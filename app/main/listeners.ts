@@ -474,8 +474,6 @@ export class Listeners{
             {
                 name:"license-request",
                 callback : (event, options) => {  
-                    // console.log("listener: license-request options ", options)
-
                     var body = {
                         product_permalink: 'kwjZb',
                         license_key: options.license_key
@@ -491,10 +489,7 @@ export class Listeners{
                     })
                     .catch((error) => {
                         mainWindow.webContents.send("receivedLicense", error.response)
-                    })
-                    // .catch((error) => {
-                    //   console.log("listener: license-request error ",error);
-                    // })      
+                    })    
                 }   
             }            
         ];     

@@ -1,4 +1,4 @@
-import { cond } from 'ramda';
+import { cond, prop } from 'ramda';
 import { typeEquals } from "./utils/utils";
 import { Store, Category, Todo, section, Calendar, Area, TodoBelonging, Project, ImportAction, License } from "./types";
 
@@ -7,8 +7,16 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
     return cond([
             [ 
                 typeEquals("setLicense"),
-                (action:{type:string, load:License}) : Store => {
-                    console.log('distapch license to redux store', action.load)
+                (action:{type:string, load:License}) : Store => {                    
+                    // there license status check
+                    if (action.load.status === 200) { // OK 
+                        let lisenceDueDate:Date = new Date(action.load.data.purchase.sale_timestamp);
+                        lisenceDueDate.setFullYear(lisenceDueDate.getFullYear() + 1);
+                        action.load.message = `License status: OK. Expires on ${lisenceDueDate}`      
+                    } else {
+                        let respMsg = prop('message')(action.load.data) ? action.load.data.message : ''
+                        action.load.message = `License status: ${action.load.status} - ${action.load.statusText}. ${respMsg}`
+                    }
                     return ({...state, license:action.load}); 
                 }   
             ], 

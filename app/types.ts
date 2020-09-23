@@ -282,8 +282,11 @@ export interface Changes{
 };
 
 export interface License{    
-    apiAnswer:any
+    data:any
     message?:string
+    status?:number
+    statusText?:string
+    active?:boolean
 };
 
 

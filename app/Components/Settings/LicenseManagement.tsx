@@ -37,13 +37,11 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
 
   onReceivedLicense = (event, response) => {
     console.log("onReceivedLicense", event, response)  
-    let license:License = { apiAnswer:response.data }
-    if (response.status === 200) { // OK 
-      license.message = `License status: OK. ${'TODO'} days remaining.`      
-    } else {
-      let respMsg = response.data.message ? response.data.message : ''
-      license.message = `License status:  ${response.status} - ${response.statusText}. ${respMsg}`
-    }
+    let license:License = { 
+      data:response.data, 
+      status:response.status, 
+      statusText:response.statusText 
+    }    
     let actionSaveLicense:actionSaveLicense = { type:"saveLicense", load:license }
     let actionSaveLicense_json = JSON.parse(JSON.stringify(actionSaveLicense));
     pouchWorker.postMessage(actionSaveLicense_json); // save to DB
