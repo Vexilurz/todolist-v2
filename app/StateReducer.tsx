@@ -17,9 +17,11 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                         action.load.active = lisenceDueDate.getTime() - now.getTime() > 0;
                         if (action.load.active)
                         {
-                          action.load.message = `License status: OK. Expires on ${lisenceDueDate}`
+                          action.load.message = `License status: OK. Expires on ${lisenceDueDate}`;
+                          action.load.lisenceDueDate = lisenceDueDate;
                         } else {
-                          action.load.message = `License status: EXPIRED. Expires on ${lisenceDueDate}`  
+                          action.load.message = `License status: EXPIRED. Expires on ${lisenceDueDate}`; 
+                          action.load.lisenceDueDate = lisenceDueDate; 
                         }
                     } else {
                         action.load.active = false;

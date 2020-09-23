@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import Clear from 'material-ui/svg-icons/content/clear';
+import VerifiedUserIcon from 'material-ui/svg-icons/hardware/security';
 import QuickEntry from 'material-ui/svg-icons/content/add-box';  
 import CalendarEvents from 'material-ui/svg-icons/action/date-range';  
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
@@ -152,7 +153,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     />  
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'LicenseManagement'})} 
-                        icon={null}
+                        icon={<VerifiedUserIcon style={{color:"rgba(100,100,100,0.8)", height:20, width:20}}/>}
                         name={'License Management'} 
                         selected={selectedSettingsSection==='LicenseManagement'} 
                     /> 

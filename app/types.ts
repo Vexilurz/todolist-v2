@@ -287,6 +287,7 @@ export interface License{
     status?:number
     statusText?:string
     active?:boolean
+    lisenceDueDate: Date;
 };
 
 
