@@ -96,8 +96,9 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
       </div>        
       <div>                
         {
-          // JSON.stringify(prop('message')(prop('apiAnswer')(this.props.license)))
-          `${this.props.license.message}`
+          prop('message')(this.props.license) ? 
+          this.props.license.message : 
+          'Enter your license key and press "Use key" button'
         }
       </div>  
     </div>
