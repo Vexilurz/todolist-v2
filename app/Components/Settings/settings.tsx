@@ -48,6 +48,8 @@ export interface SettingsProps{
     lastSync:Date,
 
     license:License,
+    licenseErrorMessage:string,
+
     dispatch:Function
 }
 
@@ -213,6 +215,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="LicenseManagement", 
                         () => <LicenseManagement
                             license={this.props.license}
+                            licenseErrorMessage={this.props.licenseErrorMessage}
                             dispatch={this.props.dispatch as any}
                         />
                     ],

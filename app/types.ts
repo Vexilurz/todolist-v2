@@ -69,6 +69,7 @@ export interface actionSetDatabase{ type:"set", load:Databases };
 
 export interface actionSaveLicense{ type:"saveLicense", load:License };
 export interface actionLoadLicense{ type:"loadLicense", load:License };
+export interface actionDeleteLicense{ type:"deleteLicense", load:License };
 
 
 
@@ -216,6 +217,7 @@ export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'S
 
 export interface Store extends Config{
   license? : License,
+  licenseErrorMessage? : string,
   showMenu : boolean,  
   lastImport : Date,
   import : ImportActionLoad,
@@ -283,14 +285,12 @@ export interface Changes{
 
 export interface License{    
     data:any
-    status:number
-    statusText:string
+    status?:LicenseStatus
+};
+export interface LicenseStatus{    
     active:boolean
     lisenceDueDate:Date
-    gettedFromDB:boolean
-    errorMessage:string
 };
-
 
 
 export interface withId{ _id:string };

@@ -50,6 +50,7 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
                 defaultTags={this.props.defaultTags}
 
                 license={this.props.license}
+                licenseErrorMessage={this.props.licenseErrorMessage}
                 dispatch={this.props.dispatch}
             /> 
         </SimplePopup>    

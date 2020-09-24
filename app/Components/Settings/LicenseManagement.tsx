@@ -4,13 +4,16 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { ipcRenderer } from 'electron';
-import { actionSaveLicense, License } from '../../types'
-import { prop } from 'ramda'
+import { isDev } from '../../utils/isDev';
+import { License } from '../../types'
+import { checkNewLicense, deleteLicense } from '../../utils/licenseUtils'
+import { prop, isNil } from 'ramda'
 const { shell } = window.require('electron'); 
 const TEST_LICENSE_KEY = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
 
 interface LicenseManagementProps{
   license:License,
+  licenseErrorMessage:string,
   dispatch:Function
 }
 
@@ -31,17 +34,9 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
   };
 
   onReceiveAnswerFromApi = (event, response) => {
-    console.log("onReceivedLicense", event, response)  
-    let license:License = { 
-      data:response.data, 
-      status:response.status, 
-      statusText:response.statusText,
-      errorMessage:null,
-      active:null,
-      lisenceDueDate:null,
-      gettedFromDB:false
-    }        
-    this.props.dispatch({type:"setLicense", load:license}) // set to redux store (StateReducer.tsx)
+    console.log("onReceiveAnswerFromApi", event, response)  
+    let license:License = {data : prop('data')(response) }
+    checkNewLicense(license, this.props.dispatch)
   }
 
   createDisplayDateString = (date: Date): string => {
@@ -64,26 +59,30 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
       flexDirection:"column",
       alignItems:"flex-start",
     }}>    
-
-      <div 
-        style={{  
-              marginTop: "15px",
-              marginBottom: "25px"
-        }}> 
-          {'License Key: '}  
-          {this.props.license.data.purchase ? this.props.license.data.purchase.license_key : "No key"}
-      </div>
-      { 
-        this.props.license.data.purchase && 
+      {
+        isNil(prop('data')(prop('license')(this.props))) ? null :
         <div>
-          <div style={{ marginBottom: "25px"}}> 
-            {'Status: '}  
-            {this.props.license.active ? 'Active' : 'Expired'}
+          <div 
+            style={{  
+                  marginTop: "15px",
+                  marginBottom: "25px"
+            }}> 
+              {'License Key: '}  
+              {this.props.license.data.purchase ? this.props.license.data.purchase.license_key : "No key"}
           </div>
-          <div style={{ marginBottom: "25px"}}> 
-            {'Valid until: '} 
-            {this.createDisplayDateString(this.props.license.lisenceDueDate)}
-          </div> 
+          { 
+            this.props.license.data.purchase && 
+            <div>
+              <div style={{ marginBottom: "25px"}}> 
+                {'Status: '}  
+                {this.props.license.status.active ? 'Active' : 'Expired'}
+              </div>
+              <div style={{ marginBottom: "25px"}}> 
+                {'Valid until: '} 
+                {this.createDisplayDateString(this.props.license.status.lisenceDueDate)}
+              </div> 
+            </div>
+          }
         </div>
       }
      
@@ -120,14 +119,34 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
           <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
             Activate
           </div>   
-        </div>               
+        </div>       
+        {
+          !isDev() ? null : 
+          <div     
+            onClick={deleteLicense}
+            style={{     
+              cursor:"pointer",
+              height:"20px",
+              borderRadius:"5px",
+              textAlign:"center",
+              width: "80px",
+              paddingTop:"5px", 
+              paddingBottom:"5px",
+              marginLeft:"3px",
+              backgroundColor:"rgba(81, 144, 247, 1)"  
+            }}  
+          >   
+            <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+              DELETE
+            </div>   
+          </div>
+        }        
       </div>
-      <a href="#" onClick={this.hrefClickFunction}> Get a new license key here</a>        
+      <a href="#" onClick={this.hrefClickFunction}> Get a new license key here</a>       
+      <p></p> 
       <div>    
         {
-          prop('errorMessage')(this.props.license) ? 
-          this.props.license.errorMessage : ''
-          //'Enter your license key and press "Activate" button'
+          this.props.licenseErrorMessage 
         }
       </div>  
     </div>

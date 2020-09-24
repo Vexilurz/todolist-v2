@@ -2,7 +2,6 @@ import { cond, prop, isNil } from 'ramda';
 import { typeEquals } from "./utils/utils";
 import { Store, Category, Todo, section, Calendar, Area, TodoBelonging, 
          Project, ImportAction, License, actionSaveLicense } from "./types";
-import { pouchWorker } from './app';
 
 
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
@@ -10,43 +9,13 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
             [ 
                 typeEquals("setLicense"),
                 (action:{type:string, load:License}) : Store => {                    
-                    // there license status check
-                    if (action.load.status === 200) { // OK  
-                        let lisenceDueDate:Date = new Date(action.load.data.purchase.sale_timestamp);
-                        // let lisenceDueDate:Date = new Date('2018-09-17T19:59:02Z'); // expired date for testing
-                        lisenceDueDate.setFullYear(lisenceDueDate.getFullYear() + 1);
-                        action.load.lisenceDueDate = lisenceDueDate;
-                        action.load.active = lisenceDueDate.getTime() - (new Date()).getTime() > 0;
-                        action.load.errorMessage = null; 
-                        // if call was from server answer (onReceiveAnswerFromApi() in LicenseManagement.tsx)  
-                        if (!action.load.gettedFromDB) {
-                            action.load.gettedFromDB = true;
-                            let actionSaveLicense:actionSaveLicense = { type:"saveLicense", load:action.load }
-                            let actionSaveLicense_json = JSON.parse(JSON.stringify(actionSaveLicense));
-                            // we save to DB only valid keys!
-                            pouchWorker.postMessage(actionSaveLicense_json);                          
-                        }
-                        // else the call was from DB loader
-                        // and we just calculate expire date
-                        return ({...state, license:action.load})
-                    } else {
-                        action.load.active = false;
-                        let errorMessage:string                        
-                        if (action.load.data.success === false) {
-                            // if gumroad answers that key is not valid
-                            errorMessage = action.load.data.message
-                        } else {
-                            // if gumroad do not response at all
-                            errorMessage = `License API server response: ${action.load.status} - ${action.load.statusText}`
-                        } 
-
-                        // if there was any loaded license from DB before
-                        if (state.license) {
-                            action.load = {...state.license}
-                            action.load.errorMessage = errorMessage
-                        }
-                        return ({...state, license:action.load})
-                    }                     
+                    return ({...state, license:action.load})
+                }   
+            ], 
+            [ 
+                typeEquals("setLicenseErrorMessage"),
+                (action:{type:string, load:string}) : Store => {                    
+                    return ({...state, licenseErrorMessage:action.load})
                 }   
             ], 
             [ 

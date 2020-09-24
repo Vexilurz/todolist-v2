@@ -9,7 +9,7 @@ import {
     action, Databases, Changes, DatabaseChanges, actionStartSync, 
     actionStopSync, actionChanges, actionLoadDatabase, actionSetKey, 
     actionEncryptDatabase, actionEraseDatabase, 
-    actionSaveLicense, actionLoadLicense, License
+    actionSaveLicense, actionLoadLicense, actionDeleteLicense, License
 } from './../types';
 import { 
     cond, compose, equals, prop, isEmpty,
@@ -63,8 +63,8 @@ Observable
             [ typeEquals("eraseDatabase"), eraseDatabase ],
 
             [ typeEquals("saveLicense"), saveLicense ],
-
             [ typeEquals("loadLicense"), loadLicense ],
+            [ typeEquals("deleteLicense"), deleteLicense ],
 
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])(action);
@@ -253,5 +253,10 @@ let loadLicense = (action:actionLoadLicense) : Promise<void> => {
     getItemsFromDatabase(onError, db)
     // message sends to app.tsx
     .then(items => sendMessage({type:"setLicense", load:items.find(item => item._id === LICENSE_ID)})) 
+    return new Promise( resolve => resolve(null) );
+};
+
+let deleteLicense = (action:actionDeleteLicense) : Promise<void> => {
+    databases.find(d => d.name==='license').destroy();
     return new Promise( resolve => resolve(null) );
 };

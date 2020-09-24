@@ -45,7 +45,7 @@ import { logout } from './utils/logout';
 import { setWindowTitle } from './utils/setWindowTitle';
 import { updateQuickEntry } from './utils/updateQuickEntry';
 import { onCloseWindow } from './utils/onCloseWindow';
-import { loadLicenseFromDB } from './utils/licenseUtils'
+import { loadLicenseFromDB, checkNewLicense } from './utils/licenseUtils'
 import { defaultConfig } from './defaultConfig';
 
 window.onerror = onErrorWindow; 
@@ -195,10 +195,10 @@ export class App extends Component<AppProps,AppState>{
 
 
     onPouchSetLicense = (action:action) => {
-        console.log(`%cAPP license set to: `, 'color: #00FF00', action.load);
-        if (action.load) {
-            this.props.dispatch({type:"setLicense", load:action.load}); // to redux store via StateReducer.tsx
+        if (isDev()) {
+          console.log(`%cAPP license set to: `, 'color: #00FF00', action.load);
         }
+        checkNewLicense(action.load, this.props.dispatch)
     }
 
     
@@ -434,6 +434,7 @@ export class App extends Component<AppProps,AppState>{
                     todos={this.props.todos}
                     defaultTags={this.props.defaultTags}
                     license={this.props.license}
+                    licenseErrorMessage={this.props.licenseErrorMessage}
                 />
             } 
             {/* { 
