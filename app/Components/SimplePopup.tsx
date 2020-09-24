@@ -47,7 +47,7 @@ export class SimplePopup extends Component<SimplePopupProps,SimplePopupState>{
      
     componentDidMount(){
         let click = Observable 
-                    .fromEvent(window, "click")
+                    .fromEvent(window, "mousedown")
                     .subscribe(this.onOutsideClick);
 
         this.subscriptions.push(click); 
