@@ -209,6 +209,11 @@ export interface Block{
     type:string
 }; 
 
+export interface BannerText {
+    text:string,
+    hrefText:string
+}
+
 
 
 export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'Sync' | 'LicenseManagement';
@@ -218,6 +223,7 @@ export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'S
 export interface Store extends Config{
   license? : License,
   licenseErrorMessage? : string,
+  bannerText : BannerText,
   showMenu : boolean,  
   lastImport : Date,
   import : ImportActionLoad,
@@ -289,7 +295,9 @@ export interface License{
 };
 export interface LicenseStatus{    
     active:boolean
-    lisenceDueDate:Date
+    dueDate:Date
+    daysRemaining:number
+    demo?:boolean
 };
 
 

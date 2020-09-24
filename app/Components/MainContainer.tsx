@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { isDev } from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { Todo, Project, Area, Calendar, Category, action, License } from '.././types';
+import { Todo, Project, Area, Calendar, Category, action, License, BannerText } from '.././types';
 import Print from 'material-ui/svg-icons/action/print';  
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -109,6 +109,7 @@ let addExtendedTodos = (projects:Project[], limit:Date, todos:Todo[]) => (action
 
 interface MainContainerProps{
     license:License,
+    bannerText:BannerText,
     dispatch:Function, 
     selectedCategory:Category,
     limit:Date,
@@ -528,11 +529,12 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 >                  
                 <div>
                     { 
-                        (prop('active')(prop('status')(this.props.license))) ? null :
+                        (
+                            (prop('daysRemaining')(prop('status')(this.props.license)) > 5) && 
+                            !(prop('demo')(prop('status')(this.props.license)))
+                        ) ? null :
                         <Banner 
-                          text={'banner text. '}
-                          hrefText={'href text'}
-                          onClick={()=>{}}
+                          bannerText={this.props.bannerText}                          
                         />
                     }
                 </div>

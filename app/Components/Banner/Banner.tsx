@@ -1,11 +1,10 @@
 import './banner.css'
 import * as React from 'react'; 
 import { Component } from "react"; 
+import { BannerText } from '../../types'
 
 interface BannerProps{
-  text:string,
-  hrefText:string,
-  onClick:Function
+  bannerText:BannerText
 }
 
 interface BannerState{}
@@ -15,10 +14,14 @@ export class Banner extends Component<BannerProps, BannerState> {
     super(props)
   }
 
+  openSettings = () => {
+    
+  }
+
   render() {
     return <div className="license-banner"><b>
-      {this.props.text}
-      <a href="#" onClick={()=>{}}>{this.props.hrefText}</a>       
+      {this.props.bannerText.text}
+      <a href="#" onClick={this.openSettings}>{this.props.bannerText.hrefText}</a>       
     </b></div>
   }
 }

@@ -45,7 +45,7 @@ import { logout } from './utils/logout';
 import { setWindowTitle } from './utils/setWindowTitle';
 import { updateQuickEntry } from './utils/updateQuickEntry';
 import { onCloseWindow } from './utils/onCloseWindow';
-import { loadLicenseFromDB, checkNewLicense } from './utils/licenseUtils'
+import { loadLicenseFromDB, checkLicense } from './utils/licenseUtils'
 import { defaultConfig } from './defaultConfig';
 
 window.onerror = onErrorWindow; 
@@ -198,7 +198,7 @@ export class App extends Component<AppProps,AppState>{
         if (isDev()) {
           console.log(`%cAPP license set to: `, 'color: #00FF00', action.load);
         }
-        checkNewLicense(action.load, this.props.dispatch)
+        checkLicense(action.load, this.props.dispatch)
     }
 
     
@@ -362,6 +362,7 @@ export class App extends Component<AppProps,AppState>{
             } 
             <MainContainer 
                 license={this.props.license}
+                bannerText={this.props.bannerText}
                 dispatch={this.props.dispatch} 
                 secretKey={this.props.secretKey}
                 selectedCategory={this.props.selectedCategory}

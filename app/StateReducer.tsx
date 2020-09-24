@@ -1,7 +1,7 @@
 import { cond, prop, isNil } from 'ramda';
 import { typeEquals } from "./utils/utils";
 import { Store, Category, Todo, section, Calendar, Area, TodoBelonging, 
-         Project, ImportAction, License, actionSaveLicense } from "./types";
+         Project, ImportAction, License, BannerText } from "./types";
 
 
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
@@ -16,6 +16,12 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                 typeEquals("setLicenseErrorMessage"),
                 (action:{type:string, load:string}) : Store => {                    
                     return ({...state, licenseErrorMessage:action.load})
+                }   
+            ], 
+            [ 
+                typeEquals("setBannerText"),
+                (action:{type:string, load:BannerText}) : Store => {                    
+                    return ({...state, bannerText:action.load})
                 }   
             ], 
             [ 

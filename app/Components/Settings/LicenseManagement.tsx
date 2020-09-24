@@ -6,7 +6,7 @@ import { Component } from "react";
 import { ipcRenderer } from 'electron';
 import { isDev } from '../../utils/isDev';
 import { License } from '../../types'
-import { checkNewLicense, deleteLicense } from '../../utils/licenseUtils'
+import { checkLicense, deleteLicense } from '../../utils/licenseUtils'
 import { prop, isNil } from 'ramda'
 const { shell } = window.require('electron'); 
 const TEST_LICENSE_KEY = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
@@ -35,8 +35,12 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
 
   onReceiveAnswerFromApi = (event, response) => {
     console.log("onReceiveAnswerFromApi", event, response)  
-    let license:License = {data : prop('data')(response) }
-    checkNewLicense(license, this.props.dispatch)
+    let license:License = {data : prop('data')(response)}
+    if (isNil(prop('success')(license.data))) {
+      this.props.dispatch({type:"setLicenseErrorMessage", load:'License data does not match API'})
+    } else {
+      checkLicense(license, this.props.dispatch)
+    }
   }
 
   createDisplayDateString = (date: Date): string => {
@@ -68,15 +72,16 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
                   marginBottom: "25px"
             }}> 
               {'License Key: '}  
-              {this.props.license.data.purchase ? this.props.license.data.purchase.license_key : "No key"}
+              {this.props.license.data.purchase.license_key}
           </div>
-          { 
-            this.props.license.data.purchase && 
-            <div style={{ marginBottom: "25px"}}> 
-              {'Valid until: '} 
-              {this.createDisplayDateString(this.props.license.status.lisenceDueDate)}
-            </div> 
-          }
+          <div style={{ marginBottom: "25px"}}> 
+            {'Valid until: '} 
+            {this.createDisplayDateString(this.props.license.status.dueDate)}
+          </div> 
+          {/* <div style={{ marginBottom: "25px"}}> 
+            {'Days remaining: '} 
+            {this.props.license.status.daysRemaining}
+          </div> */}
         </div>
       }
      
@@ -139,9 +144,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
       <a href="#" onClick={this.hrefClickFunction}> Get a new license key here</a>       
       <p></p> 
       <div>    
-        {
-          this.props.licenseErrorMessage 
-        }
+        {this.props.licenseErrorMessage}
       </div>  
     </div>
   }   

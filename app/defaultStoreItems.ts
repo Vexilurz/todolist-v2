@@ -6,6 +6,7 @@ import { nDaysFromNow } from "./utils/utils";
 
 export let defaultStoreItems : Store = {
     ...defaultConfig,
+    bannerText:{text:'',hrefText:''},
     showMenu:false,
     lastImport:new Date(),
     import:null,
