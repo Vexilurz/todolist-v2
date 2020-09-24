@@ -72,16 +72,10 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
           </div>
           { 
             this.props.license.data.purchase && 
-            <div>
-              <div style={{ marginBottom: "25px"}}> 
-                {'Status: '}  
-                {this.props.license.status.active ? 'Active' : 'Expired'}
-              </div>
-              <div style={{ marginBottom: "25px"}}> 
-                {'Valid until: '} 
-                {this.createDisplayDateString(this.props.license.status.lisenceDueDate)}
-              </div> 
-            </div>
+            <div style={{ marginBottom: "25px"}}> 
+              {'Valid until: '} 
+              {this.createDisplayDateString(this.props.license.status.lisenceDueDate)}
+            </div> 
           }
         </div>
       }

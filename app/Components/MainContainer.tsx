@@ -530,7 +530,9 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     { 
                         (prop('active')(prop('status')(this.props.license))) ? null :
                         <Banner 
-                        
+                          text={'banner text. '}
+                          hrefText={'href text'}
+                          onClick={()=>{}}
                         />
                     }
                 </div>

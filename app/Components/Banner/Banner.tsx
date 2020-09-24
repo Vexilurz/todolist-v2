@@ -2,14 +2,23 @@ import './banner.css'
 import * as React from 'react'; 
 import { Component } from "react"; 
 
-export class Banner extends Component {
+interface BannerProps{
+  text:string,
+  hrefText:string,
+  onClick:Function
+}
+
+interface BannerState{}
+
+export class Banner extends Component<BannerProps, BannerState> {
   constructor(props) {
     super(props)
   }
 
   render() {
     return <div className="license-banner"><b>
-      BANNER HERE
+      {this.props.text}
+      <a href="#" onClick={()=>{}}>{this.props.hrefText}</a>       
     </b></div>
   }
 }
