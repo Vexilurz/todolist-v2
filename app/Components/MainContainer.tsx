@@ -17,6 +17,7 @@ import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
+import { Banner } from './Banner/Banner';
 import { 
     isNil, contains, not, evolve, map, compose, allPass, groupBy, 
     cond, defaultTo, when, concat, append, path, prop, reject, 
@@ -525,9 +526,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                        flexDirection:"column"     
                     }}  
                 >                  
-                <div><p>
-                    { !(prop('active')(this.props.license)) ? 'BANNER HERE!' : '' }
-                </p></div>
+                <div>
+                    { 
+                        (prop('active')(prop('status')(this.props.license))) ? null :
+                        <Banner 
+                        
+                        />
+                    }
+                </div>
                 { 
                     not(this.props.showRightClickMenu) ? null : 
                     <RightClickMenu {...{} as any}/> 
