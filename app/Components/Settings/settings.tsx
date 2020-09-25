@@ -107,14 +107,14 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     }}>
                         Settings
                     </div> 
-                    <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
+                    {/* <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
                         <div   
                             style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
                             onClick={() => dispatch({type:"openSettings",load:false})}
                         >
                             <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
                 <div style={{ 
                     display:"flex",
