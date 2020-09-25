@@ -536,7 +536,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             !(this.props.license.demo)
                         ) ? null :
                         <Banner 
-                          bannerText={this.props.bannerText}                          
+                          bannerText={this.props.bannerText}  
+                          dispatch={this.props.dispatch}                        
                         />
                     }
                 </div>

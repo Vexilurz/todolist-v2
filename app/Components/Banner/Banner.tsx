@@ -5,6 +5,7 @@ import { BannerText } from '../../types'
 
 interface BannerProps{
   bannerText:BannerText
+  dispatch:Function
 }
 
 interface BannerState{}
@@ -15,7 +16,10 @@ export class Banner extends Component<BannerProps, BannerState> {
   }
 
   openSettings = () => {
-    
+    this.props.dispatch({type:'multiple', load:[
+      {type:"selectedSettingsSection", load:'LicenseManagement'},
+      {type:"openSettings", load:true}]
+    })    
   }
 
   render() {
