@@ -48,7 +48,7 @@ export let checkLicense = (license:License, dispatch:Function) => {
   // console.log("checkLicense", license)
   let err = ''
   if (!isNil(license)) {
-    if (isActive(license.dueDate)) {
+    if (isActive(license.dueDate)) { // comment this if you want to test expired data
       dispatch({type:"setLicense", load:license}) // set to redux store (StateReducer.tsx)   
 
       let action:actionSaveLicense = { type:"saveLicense", load:license }
