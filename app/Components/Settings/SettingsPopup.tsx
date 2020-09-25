@@ -5,7 +5,8 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { SimplePopup } from '../SimplePopup';
 import { Settings, SettingsProps } from './settings';
-
+import { isActive } from '../../utils/licenseUtils'
+import { isNil } from 'ramda';
 
 
 interface SettingsPopupProps extends SettingsProps{
@@ -20,10 +21,17 @@ interface SettingsPopupState{}
 
 export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
     constructor(props){ super(props) }
+
+    onOutsideClick = () => {
+        if (!isNil(this.props.license))
+        if (isActive(this.props.license.dueDate))
+          this.props.dispatch({type:"openSettings",load:false})
+    }
+
     render(){ 
         return <SimplePopup
             show={this.props.openSettings} 
-            onOutsideClick={() => this.props.dispatch({type:"openSettings",load:false})}
+            onOutsideClick={this.onOutsideClick}
         > 
             <Settings 
                 email={this.props.email} 

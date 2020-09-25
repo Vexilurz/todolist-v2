@@ -144,7 +144,11 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
           </div>
         }        
       </div>
-      <a href="#" onClick={this.hrefClickFunction}> Get a new license key here</a>       
+      {
+        isNil(prop('license')(this.props)) ? null :
+        !this.props.license.demo ? null : 'You are using the demo version. '
+      }
+      <a href="#" onClick={this.hrefClickFunction}> Get a license key here</a>       
       <p></p> 
       <div>    
         {this.props.licenseErrorMessage}

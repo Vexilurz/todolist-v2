@@ -45,7 +45,7 @@ import { logout } from './utils/logout';
 import { setWindowTitle } from './utils/setWindowTitle';
 import { updateQuickEntry } from './utils/updateQuickEntry';
 import { onCloseWindow } from './utils/onCloseWindow';
-import { loadLicenseFromDB, checkLicense, getNewDemoLicense } from './utils/licenseUtils'
+import { loadLicenseFromDB, checkLicense, getNewDemoLicense, isActive } from './utils/licenseUtils'
 import { defaultConfig } from './defaultConfig';
 
 window.onerror = onErrorWindow; 
@@ -200,6 +200,12 @@ export class App extends Component<AppProps,AppState>{
         checkLicense(license, this.props.dispatch)
         if (isDev()) {
             console.log(`%cAPP license set to: `, 'color: #00FF00', license);
+        }
+        if (!isActive(license.dueDate)) {
+            this.props.dispatch({type:'multiple', load:[
+                {type:"selectedSettingsSection", load:'LicenseManagement'},
+                {type:"openSettings", load:true}]
+            })
         }
     }
 
