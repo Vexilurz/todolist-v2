@@ -45,7 +45,7 @@ import { logout } from './utils/logout';
 import { setWindowTitle } from './utils/setWindowTitle';
 import { updateQuickEntry } from './utils/updateQuickEntry';
 import { onCloseWindow } from './utils/onCloseWindow';
-import { loadLicenseFromDB, checkLicense } from './utils/licenseUtils'
+import { loadLicenseFromDB, checkLicense, getNewDemoLicense } from './utils/licenseUtils'
 import { defaultConfig } from './defaultConfig';
 
 window.onerror = onErrorWindow; 
@@ -195,10 +195,12 @@ export class App extends Component<AppProps,AppState>{
 
 
     onPouchSetLicense = (action:action) => {
+        let license = action.load
+        if (isNil(action.load)) license = getNewDemoLicense()
+        checkLicense(license, this.props.dispatch)
         if (isDev()) {
-          console.log(`%cAPP license set to: `, 'color: #00FF00', action.load);
+            console.log(`%cAPP license set to: `, 'color: #00FF00', license);
         }
-        checkLicense(action.load, this.props.dispatch)
     }
 
     

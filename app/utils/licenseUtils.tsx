@@ -1,11 +1,10 @@
-import { actionLoadLicense, License, LicenseStatus, actionSaveLicense, actionDeleteLicense } from '../types'
+import { actionLoadLicense, License, actionSaveLicense, actionDeleteLicense } from '../types'
 import { pouchWorker } from '../app'
 import { isNil, prop } from 'ramda'
 
-let calcNewDemoSaleDate = ():Date => {
+let calcNewDemoDueDate = ():Date => {
   let date = new Date();
   date.setDate(date.getDate() + 7);
-  date.setFullYear(date.getFullYear() - 1);
   return date
 }
 
@@ -15,68 +14,70 @@ let calcDueDate = (fromDate:Date):Date => {
   return dueDate
 }
 
-let calcDaysRemaining = (dueDate:Date):number => {
-  return Math.round((dueDate.getTime() - (new Date()).getTime()) / (1000 * 3600 * 24))
+export let calcDaysRemaining = (dueDate:Date):number => {
+  return ((new Date(dueDate)).getTime() - (new Date()).getTime()) / (1000 * 3600 * 24)
 }
 
-let getNewDemoLicense = ():License => {
+export let isActive = (dueDate:Date):boolean => {
+  return calcDaysRemaining(dueDate) > 0
+}
+
+export let getNewDemoLicense = ():License => {
   return {
-    data:{
-      success:true,
-      purchase:{
-        license_key:'DEMO',
-        sale_timestamp:calcNewDemoSaleDate()
-      }
-    },
-    status:{ demo:true, dueDate:null, daysRemaining:0, active:false }
+    data:null,
+    key:'DEMO',
+    dueDate:calcNewDemoDueDate(),
+    demo:true
   }
 }
 
-let getLicenseStatus = (license:License) : {status:LicenseStatus, errorMessage?:string} => {
-  let status:LicenseStatus = { dueDate:null, daysRemaining:0, active:false }
-  if (prop('demo')(prop('status')(license))) status.demo = true;
-
-  if (license.data.success === false) return { status, errorMessage:license.data.message }
-
-  if (prop('purchase')(license.data)) {
-    // status.dueDate = new Date('2018-09-17T19:59:02Z'); // expired date for testing
-    status.dueDate = calcDueDate(license.data.purchase.sale_timestamp) 
-    status.daysRemaining = calcDaysRemaining(status.dueDate) 
-    status.active = status.daysRemaining > 0
-    let errorMessage = ''
-    if (!status.active) errorMessage = 'Your license is expired.'
-    return { status, errorMessage }
-  } else return { status, errorMessage:'There is no purchase data in license' }
+export let createLicense = (data:any):License => {
+  // if (isNil(data)) return null;//getNewDemoLicense();
+  if (prop('purchase')(data)) {
+    return {
+      data,
+      key : data.purchase.license_key,
+    // dueDate : new Date('2018-09-17T19:59:02Z'); // expired date for testing
+      dueDate : calcDueDate(data.purchase.sale_timestamp),
+      demo : false
+    }
+  } else throw new Error("There is no 'purchase' field in responce.")
 }
 
-export let checkLicense = (license:License, dispatch:Function) => {
-  // if license is undefined - this is first app launch. Run demo mode.
-  if (isNil(license)) license = getNewDemoLicense()  
-
-  let tmp = getLicenseStatus(license) 
-  license.status = tmp.status   
-
-  dispatch({type:"setLicenseErrorMessage", load:tmp.errorMessage})
-
-  if (license.status.active) {
+export let checkLicense = (license:License, dispatch:Function) => {  
+  // console.log("checkLicense", license)
+  let err = ''
+  if (!isNil(license)) {
+    if (isActive(license.dueDate)) {
     dispatch({type:"setLicense", load:license}) // set to redux store (StateReducer.tsx)   
-     
+
     let action:actionSaveLicense = { type:"saveLicense", load:license }
     let action_json = JSON.parse(JSON.stringify(action));
     //todo: if it was load from DB it will save it again to DB
-    pouchWorker.postMessage(action_json); // save new valid license to DB
+    // but if it was new demo license - it's ok
+    pouchWorker.postMessage(action_json); // save new valid license to DB    
+    } else err = "Your license is expired."
+  } else err = "You don't have any active license."
+  dispatch({type:"setLicenseErrorMessage", load:err})
+  setBannerText(license, dispatch) 
+}
 
-    if (prop('demo')(license.status)) 
-      dispatch({type:'setBannerText', load:{
-        text:'You are using the demo version. ',
-        hrefText:'Please enter your license key here.'}
-      })
-    else
-      dispatch({type:'setBannerText', load:{
-        text:`Your license expires in ${license.status.daysRemaining} days. `,
-        hrefText:'Please renew your license key here.'}
-      }) 
-  }  
+let setBannerText = (license:License, dispatch:Function) => {
+  if (isNil(license))
+    dispatch({type:'setBannerText', load:{
+      text:"You don't have any active license. ",
+      hrefText:'Please enter your license key here.'}
+    })
+  else if (license.demo) 
+    dispatch({type:'setBannerText', load:{
+      text:'You are using the demo version. ',
+      hrefText:'Please enter your license key here.'}
+    })
+  else
+    dispatch({type:'setBannerText', load:{
+      text:`Your license expires in ${Math.round(calcDaysRemaining(license.dueDate))} days. `,
+      hrefText:'Please renew your license key here.'}
+    })
 }
 
 export let loadLicenseFromDB = () => {

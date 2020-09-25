@@ -6,7 +6,7 @@ import { Component } from "react";
 import { ipcRenderer } from 'electron';
 import { isDev } from '../../utils/isDev';
 import { License } from '../../types'
-import { checkLicense, deleteLicense } from '../../utils/licenseUtils'
+import { checkLicense, createLicense, deleteLicense } from '../../utils/licenseUtils'
 import { prop, isNil } from 'ramda'
 const { shell } = window.require('electron'); 
 const TEST_LICENSE_KEY = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
@@ -35,17 +35,20 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
 
   onReceiveAnswerFromApi = (event, response) => {
     console.log("onReceiveAnswerFromApi", event, response)  
-    let license:License = {data : prop('data')(response)}
-    if (isNil(prop('success')(license.data))) {
-      this.props.dispatch({type:"setLicenseErrorMessage", load:'License data does not match API'})
+    let data = prop('data')(response)
+    if (isNil(prop('success')(data))) {
+      this.props.dispatch({type:"setLicenseErrorMessage", load:'License data does not match API'})      
+    } else if (data.success === false) {
+      this.props.dispatch({type:"setLicenseErrorMessage", load:data.message})            
     } else {
-      checkLicense(license, this.props.dispatch)
+      checkLicense(createLicense(data), this.props.dispatch)
     }
   }
 
   createDisplayDateString = (date: Date): string => {
-    let monthName = date.toLocaleString('default', { month: 'long' })
-    return `${monthName} ${date.getDay()}, ${date.getFullYear()}`;
+    let fixDate = new Date(date)
+    let monthName = fixDate.toLocaleString('default', { month: 'long' })
+    return `${monthName} ${fixDate.getDate()}, ${fixDate.getFullYear()}`;
   }
 
   hrefClickFunction = () => {
@@ -64,7 +67,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
       alignItems:"flex-start",
     }}>    
       {
-        isNil(prop('data')(prop('license')(this.props))) ? null :
+        isNil(prop('license')(this.props)) ? null :
         <div>
           <div 
             style={{  
@@ -72,11 +75,11 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
                   marginBottom: "25px"
             }}> 
               {'License Key: '}  
-              {this.props.license.data.purchase.license_key}
+              {this.props.license.key}
           </div>
           <div style={{ marginBottom: "25px"}}> 
             {'Valid until: '} 
-            {this.createDisplayDateString(this.props.license.status.dueDate)}
+            {this.createDisplayDateString(this.props.license.dueDate)}
           </div> 
           {/* <div style={{ marginBottom: "25px"}}> 
             {'Days remaining: '} 

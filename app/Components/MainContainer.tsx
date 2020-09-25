@@ -46,6 +46,7 @@ import { fixIncomingData } from '../utils/fixIncomingData';
 import { extend } from '../utils/extend';
 import { UpcomingDefault } from './Categories/Upcoming/UpcomingDefault';
 import { Tag } from './Categories/Tag';
+import { calcDaysRemaining } from '../utils/licenseUtils'
 
 /*
 const MockDate = require('mockdate');  
@@ -530,8 +531,9 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 <div>
                     { 
                         (
-                            (prop('daysRemaining')(prop('status')(this.props.license)) > 5) && 
-                            !(prop('demo')(prop('status')(this.props.license)))
+                            !isNil(this.props.license) &&
+                            (calcDaysRemaining(this.props.license.dueDate) > 5) && 
+                            !(this.props.license.demo)
                         ) ? null :
                         <Banner 
                           bannerText={this.props.bannerText}                          

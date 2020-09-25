@@ -291,13 +291,9 @@ export interface Changes{
 
 export interface License{    
     data:any
-    status?:LicenseStatus
-};
-export interface LicenseStatus{    
-    active:boolean
+    key:string
     dueDate:Date
-    daysRemaining:number
-    demo?:boolean
+    demo:boolean
 };
 
 
