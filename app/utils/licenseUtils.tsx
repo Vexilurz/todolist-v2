@@ -33,20 +33,23 @@ export let getNewDemoLicense = ():License => {
 
 export let createLicense = (data:any):License => {
   // if (isNil(data)) return null;//getNewDemoLicense();
+  // let dueDate = new Date();
+  // dueDate.setDate(dueDate.getDate() + 1);
   if (prop('purchase')(data)) {
     return {
       data,
       key : data.purchase.license_key,
-      //dueDate : new Date('2018-09-17T19:59:02Z'), // expired date for testing
+      // dueDate, // expired date for testing
+      // dueDate : new Date('2018-09-17T19:59:02Z'), // expired date for testing
       dueDate : calcDueDate(data.purchase.sale_timestamp),
       demo : false
     }
   } else throw new Error("There is no 'purchase' field in responce.")
 }
 
-export let checkLicense = (license:License, dispatch:Function) => {  
+export let checkLicense = (license:License, dispatch:Function, isNewLicense?:boolean) => {  
   // console.log("checkLicense", license)
-  let err = ''
+  let err = ''  
   if (!isNil(license)) {
     if (isActive(license.dueDate)) { // comment this if you want to test expired data
       dispatch({type:"setLicense", load:license}) // set to redux store (StateReducer.tsx)   
@@ -56,6 +59,7 @@ export let checkLicense = (license:License, dispatch:Function) => {
       //todo: if it was load from DB it will save it again to DB
       // but if it was new demo license - it's ok
       pouchWorker.postMessage(action_json); // save new valid license to DB    
+      if (isNewLicense) err = 'License has successfully updated.'
     } else err = "Your license expired."
   } else err = "You don't have any active license."
   dispatch({type:"setLicenseErrorMessage", load:err})
@@ -70,7 +74,9 @@ let setBannerText = (license:License, dispatch:Function) => {
     })
   else if (license.demo) 
     dispatch({type:'setBannerText', load:{
-      text:'You are using the demo version. ',
+      text:isActive(license.dueDate) ?
+        'You are using the demo version. ' :
+        'Demo version is expired. ',
       hrefText:'Please enter your license key here.'}
     })
   else {

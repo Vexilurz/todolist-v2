@@ -24,8 +24,10 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
 
     onOutsideClick = () => {
         if (!isNil(this.props.license))
-        if (isActive(this.props.license.dueDate))
+        if (isActive(this.props.license.dueDate)) {
           this.props.dispatch({type:"openSettings",load:false})
+          this.props.dispatch({type:"setLicenseErrorMessage", load:''})      
+        }
     }
 
     render(){ 

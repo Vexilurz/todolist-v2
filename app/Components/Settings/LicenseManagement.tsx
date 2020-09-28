@@ -39,9 +39,9 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
     if (isNil(prop('success')(data))) {
       this.props.dispatch({type:"setLicenseErrorMessage", load:'License data does not match API'})      
     } else if (data.success === false) {
-      this.props.dispatch({type:"setLicenseErrorMessage", load:data.message})            
+      this.props.dispatch({type:"setLicenseErrorMessage", load:'License key does not exist.'})//load:data.message})            
     } else {
-      checkLicense(createLicense(data), this.props.dispatch)
+      checkLicense(createLicense(data), this.props.dispatch, true)
     }
   }
 
