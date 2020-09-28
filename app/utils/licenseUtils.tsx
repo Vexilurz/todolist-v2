@@ -56,7 +56,7 @@ export let checkLicense = (license:License, dispatch:Function, isNewLicense?:boo
 
       let action:actionSaveLicense = { type:"saveLicense", load:license }
       let action_json = JSON.parse(JSON.stringify(action));
-      //todo: if it was load from DB it will save it again to DB
+      //todo: if it was load from DB it will save it again to DB...
       // but if it was new demo license - it's ok
       pouchWorker.postMessage(action_json); // save new valid license to DB    
       if (isNewLicense) err = 'License has successfully updated.'

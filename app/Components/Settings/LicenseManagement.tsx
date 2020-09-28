@@ -7,6 +7,7 @@ import { ipcRenderer } from 'electron';
 import { isDev } from '../../utils/isDev';
 import { License } from '../../types'
 import { checkLicense, createLicense, deleteLicense } from '../../utils/licenseUtils'
+import { CircularProgress } from '@material-ui/core';
 import { prop, isNil } from 'ramda'
 const { shell } = window.require('electron'); 
 const TEST_LICENSE_KEY = 'E69C1EF6-1AAD4E9E-89C4A9EB-BE587A69'; 
@@ -28,7 +29,15 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
     ipcRenderer.on('receivedLicense', this.onReceiveAnswerFromApi)
   } 
 
+  waitingForAnswer = false;
+  setWaitingForAnswer = (value:boolean) => {
+    this.waitingForAnswer = value;
+    this.render();
+    this.forceUpdate();
+  }
+
   onUseKeyClick = (e) => { 
+    this.setWaitingForAnswer(true);
     ipcRenderer.send("license-request", {license_key:prop('licenseKey')(this.state)});
     return null;    
   };
@@ -45,6 +54,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
     } else {
       checkLicense(createLicense(data), this.props.dispatch, true)
     }
+    this.setWaitingForAnswer(false);
   }
 
   createDisplayDateString = (date: Date): string => {
@@ -107,23 +117,29 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
             onChange={(event) => this.setState({licenseKey:event.target.value})}
             // value={TEST_LICENSE_KEY}
         />
-        <div     
-          onClick={this.onUseKeyClick}
-          style={{     
-            cursor:"pointer",
-            height:"20px",
-            borderRadius:"5px",
-            textAlign:"center",
-            width: "100px",
-            paddingTop:"5px", 
-            paddingBottom:"5px",
-            backgroundColor:"rgba(81, 144, 247, 1)"  
-          }}  
-        >   
-          <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-            Activate
-          </div>   
-        </div>       
+        {
+          this.waitingForAnswer ? 
+          <CircularProgress 
+            size={'30px'}            
+          /> :
+          <div     
+            onClick={this.onUseKeyClick}
+            style={{     
+              cursor:"pointer",
+              height:"20px",
+              borderRadius:"5px",
+              textAlign:"center",
+              width: "100px",
+              paddingTop:"5px", 
+              paddingBottom:"5px",
+              backgroundColor:"rgba(81, 144, 247, 1)"  
+            }}  
+          >   
+            <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+              Activate
+            </div>   
+          </div>       
+        }
         {
           !isDev() ? null : 
           <div     

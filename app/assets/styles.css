@@ -349,3 +349,7 @@ ul {
   -o-user-select: none;
   user-select: none;
 }
+
+.MuiCircularProgress-colorPrimary {
+  color: rgba(81, 144, 247, 1) !important;
+}
