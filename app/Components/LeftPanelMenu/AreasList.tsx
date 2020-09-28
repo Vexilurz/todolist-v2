@@ -490,15 +490,15 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     alignItems:"center" 
                 }}
             >      
-                <div style={{height:"20px",paddingLeft:"2px",width:"20px"}}>
-                    <NewAreaIcon style={{width:"20px",height:"20px",color:'rgba(100, 100, 100,0.8)'}}/>
+                <div style={{height:"24px",paddingLeft:"0px",width:"24px", marginLeft:"1px"}}>
+                    <NewAreaIcon style={{width:"24px",height:"24px",color:'rgba(100, 100, 100,0.8)'}}/>
                 </div>
                 <div style={{ 
                     width:'calc(80% - 40px)',
                     fontFamily:"sans-serif",
                     fontSize:"15px",    
                     cursor:"default", 
-                    paddingLeft:"5px", 
+                    paddingLeft:"4px", 
                     WebkitUserSelect:"none",
                     fontWeight:"bolder", 
                     color:"rgba(0, 0, 0, 0.8)" 
@@ -506,7 +506,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     <AutoresizableText
                         text={area.name}
                         placeholder="New Area" 
-                        fontSize={15}
+                        fontSize={18}
                         fontWeight="normal"
                         style={{}}
                         offset={2}
@@ -620,7 +620,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                                     selected ? "rgba(228,230,233,1)" : 
                                     "",   
                     height:"25px",  
-                    paddingLeft:"4px",   
+                    paddingLeft:"3px",   
                     display:"flex",
                     alignItems:"center"
                 }} 
@@ -665,7 +665,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         id = {this.props.project._id}   
                         style={{  
                             width:'calc(90% - 18px)',
-                            paddingLeft:"5px",
+                            paddingLeft:"8px",
                             fontFamily: "sans-serif",
                             fontSize:`15px`,  
                             whiteSpace: "nowrap",
@@ -679,7 +679,15 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             fontSize={15}
                             offset={2}
                             fontWeight="normal"
-                            style={{}}
+                            style={{
+                                height: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                fontWeight: 500,
+                                fontSize: "18px",  
+                                color: "rgba(10, 10, 10, 0.9)", 
+                                WebkitUserSelect:"none"
+                            }}
                             placeholderStyle={{}} 
                         />
                     </div>    

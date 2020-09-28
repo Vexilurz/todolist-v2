@@ -98,7 +98,18 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
         let defaultStyle = {fontSize:`${fontSize}px`, whiteSpace:"nowrap", width:"100%"};  
         let textStyle = merge(isEmpty(text) ? placeholderStyle : style, defaultStyle);  
         
-        return <div ref={(e) => {this.ref = e;}} style={textStyle}>  
+        return <div ref={(e) => {this.ref = e;}} 
+          //style={textStyle}
+          style={{
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            fontWeight: 500,
+            fontSize: "18px",  
+            color: "rgba(10, 10, 10, 0.9)", 
+            WebkitUserSelect:"none"
+          }}
+        >  
             { stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
         </div>  
     } 
