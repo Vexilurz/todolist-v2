@@ -38,7 +38,9 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
   };
 
   onReceiveAnswerFromApi = (event, response) => {
-    console.log("onReceiveAnswerFromApi", event, response)  
+    if (isDev()) {
+      console.log("onReceiveAnswerFromApi", event, response)  
+    }
     let data = prop('data')(response)
     if (isNil(prop('success')(data))) {
       this.props.dispatch({type:"setLicenseErrorMessage", load:'License data does not match API'})      
