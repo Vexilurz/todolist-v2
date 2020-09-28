@@ -20,24 +20,19 @@ interface LicenseManagementProps{
 
 interface LicenseManagementState{
   licenseKey:string  
+  waitingForAnswer:boolean
 }
 
 export class LicenseManagement extends Component<LicenseManagementProps,LicenseManagementState>{
 
   constructor(props){ 
     super(props) 
+    this.state={licenseKey:'',waitingForAnswer:false}; 
     ipcRenderer.on('receivedLicense', this.onReceiveAnswerFromApi)
   } 
 
-  waitingForAnswer = false;
-  setWaitingForAnswer = (value:boolean) => {
-    this.waitingForAnswer = value;
-    this.render();
-    this.forceUpdate();
-  }
-
   onUseKeyClick = (e) => { 
-    this.setWaitingForAnswer(true);
+    this.setState({waitingForAnswer:true})
     ipcRenderer.send("license-request", {license_key:prop('licenseKey')(this.state)});
     return null;    
   };
@@ -54,7 +49,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
     } else {
       checkLicense(createLicense(data), this.props.dispatch, true)
     }
-    this.setWaitingForAnswer(false);
+    this.setState({waitingForAnswer:false})
   }
 
   createDisplayDateString = (date: Date): string => {
@@ -118,7 +113,7 @@ export class LicenseManagement extends Component<LicenseManagementProps,LicenseM
             // value={TEST_LICENSE_KEY}
         />
         {
-          this.waitingForAnswer ? 
+          this.state.waitingForAnswer ? 
           <CircularProgress 
             size={'30px'}            
           /> :
