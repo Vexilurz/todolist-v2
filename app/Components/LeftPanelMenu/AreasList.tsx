@@ -494,14 +494,13 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     <NewAreaIcon style={{width:"24px",height:"24px",color:'rgba(100, 100, 100,0.8)'}}/>
                 </div>
                 <div style={{ 
-                    width:'calc(80% - 40px)',
-                    fontFamily:"sans-serif",
-                    fontSize:"15px",    
-                    cursor:"default", 
-                    paddingLeft:"4px", 
-                    WebkitUserSelect:"none",
-                    fontWeight:"bolder", 
-                    color:"rgba(0, 0, 0, 0.8)" 
+                    width:'calc(90% - 18px)',
+                    paddingLeft:"4px",
+                    fontFamily: "sans-serif",
+                    fontSize:`18px`,  
+                    whiteSpace: "nowrap",
+                    cursor: "default",
+                    WebkitUserSelect: "none"
                 }}>  
                     <AutoresizableText
                         text={area.name}
@@ -667,7 +666,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             width:'calc(90% - 18px)',
                             paddingLeft:"8px",
                             fontFamily: "sans-serif",
-                            fontSize:`15px`,  
+                            fontSize:`18px`,  
                             whiteSpace: "nowrap",
                             cursor: "default",
                             WebkitUserSelect: "none" 
@@ -676,18 +675,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         <AutoresizableText
                             text={project.name}
                             placeholder="New Project"
-                            fontSize={15}
+                            fontSize={18}
                             offset={2}
                             fontWeight="normal"
-                            style={{
-                                height: "100%",
-                                display: "flex",
-                                alignItems: "center",
-                                fontWeight: 500,
-                                fontSize: "18px",  
-                                color: "rgba(10, 10, 10, 0.9)", 
-                                WebkitUserSelect:"none"
-                            }}
+                            style={{}}
                             placeholderStyle={{}} 
                         />
                     </div>    

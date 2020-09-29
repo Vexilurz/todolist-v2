@@ -110,7 +110,11 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
             WebkitUserSelect:"none"
           }}
         >  
-            { stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
+            { 
+            //   stringToLength(
+                  isEmpty(text) ? placeholder : text
+                //   , stringLength) 
+            }
         </div>  
     } 
 };
