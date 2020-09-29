@@ -41,7 +41,8 @@ export let createLicense = (data:any):License => {
       key : data.purchase.license_key,
       // dueDate, // expired date for testing
       // dueDate : new Date('2018-09-17T19:59:02Z'), // expired date for testing
-      dueDate : calcDueDate(data.purchase.sale_timestamp),
+      // dueDate : calcDueDate(data.purchase.sale_timestamp),
+      dueDate : calcDueDate(new Date()),
       demo : false
     }
   } else throw new Error("There is no 'purchase' field in responce.")
