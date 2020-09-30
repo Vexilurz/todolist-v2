@@ -140,13 +140,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         icon={<CalendarEvents style={{color:"rgba(150,10,10,0.8)", height:20, width:20}}/>}
                         name={'Calendars'}
                         selected={selectedSettingsSection==='CalendarEvents'}
-                    />
-                     {/* <Section
-                        onClick={() => dispatch({type:"selectedSettingsSection", load:'Sync'})} 
-                        icon={<Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
-                        name={'Sync'} 
-                        selected={selectedSettingsSection==='Sync'} 
-                    />  */}
+                    />                     
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
                         icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
