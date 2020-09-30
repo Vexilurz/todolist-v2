@@ -19,6 +19,8 @@ import { TagsSettings } from './TagsSettings';
 import { LicenseManagement } from './LicenseManagement';
 // import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { SyncSettings } from './SyncSettings';
+import { isNil } from 'ramda'
+import { isActive } from '../../utils/licenseUtils'
 
  
 export interface SettingsProps{
@@ -107,14 +109,18 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     }}>
                         Settings
                     </div> 
-                    {/* <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
-                        <div   
-                            style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                            onClick={() => dispatch({type:"openSettings",load:false})}
-                        >
-                            <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
-                        </div>
-                    </div> */}
+                    { 
+                        isNil(this.props.license) ? null :
+                        !isActive(this.props.license.dueDate) ? null :
+                        <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
+                            <div   
+                                style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+                                onClick={() => dispatch({type:"openSettings",load:false})}
+                            >
+                                <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
+                            </div>
+                        </div> 
+                    }
                 </div>
                 <div style={{ 
                     display:"flex",
