@@ -83,7 +83,7 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 borderRadius:"5px",
                 position:"relative", 
                 WebkitUserSelect:"none",  
-                maxHeight:isEmpty(this.state.value) ? "0px" : "30px",
+                maxHeight:"0px",//isEmpty(this.state.value) ? "0px" : "30px",
                 overflow:"visible",
                 overflowY:"visible"
             }}   
