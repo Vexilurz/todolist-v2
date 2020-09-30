@@ -25,7 +25,7 @@ export class Banner extends Component<BannerProps, BannerState> {
   render() {
     return <div className="license-banner"><b>
       {this.props.bannerText.text}
-      <a href="#" onClick={this.openSettings}>{this.props.bannerText.hrefText}</a>       
+      <a href="#" style={{color:"black"}} onClick={this.openSettings}>{this.props.bannerText.hrefText}</a>       
     </b></div>
   }
 }
