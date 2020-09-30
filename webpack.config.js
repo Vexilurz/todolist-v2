@@ -1,6 +1,5 @@
 const path = require("path");
 const HtmlPlugin = require("html-webpack-plugin");
-const HtmlExternalsPlugin = require("html-webpack-externals-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const DefinePlugin = require("webpack").DefinePlugin;

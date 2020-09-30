@@ -1,5 +1,5 @@
 import { collectSystemInfo } from './utils/collectSystemInfo';
-import Analytics from 'electron-ga';
+// import Analytics from 'electron-ga';
 import { isNil } from 'ramda';
 import { requestFromMain } from './utils/requestFromMain';
 
