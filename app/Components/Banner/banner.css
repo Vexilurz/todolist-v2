@@ -8,6 +8,6 @@
   background-color: rgb(255,230,153);
   z-index: 999999 !important;
   text-align: center;
-  border: 2px solid black;
+  /* border: 2px solid black; */
   min-height: 24px;
 }
