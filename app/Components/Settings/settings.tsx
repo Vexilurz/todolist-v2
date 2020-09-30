@@ -62,6 +62,11 @@ interface SettingsState{}
 export class Settings extends Component<SettingsProps,SettingsState>{
 
     constructor(props){ super(props) }
+
+    getSectionVisible = ():boolean => {
+        if (isNil(this.props.license)) return false;
+        return isActive(this.props.license.dueDate);
+    }
     
     render(){
         let {selectedSettingsSection, dispatch} = this.props;
@@ -128,36 +133,41 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     alignItems:"center",
                     width:"100%",
                     padding:"10px"  
-                }}>  
+                }}>                                        
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'QuickEntry'})} 
                         icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:20, width:20}}/>}
                         name={'Quick Entry'}
                         selected={selectedSettingsSection==='QuickEntry'}
+                        visible={this.getSectionVisible()}
                     />
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'CalendarEvents'})} 
                         icon={<CalendarEvents style={{color:"rgba(150,10,10,0.8)", height:20, width:20}}/>}
                         name={'Calendars'}
                         selected={selectedSettingsSection==='CalendarEvents'}
+                        visible={this.getSectionVisible()}
                     />                     
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
                         icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
                         name={'Tags'}
                         selected={selectedSettingsSection==='Tags'}  
+                        visible={this.getSectionVisible()}
                     /> 
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Advanced'})} 
                         icon={<Advanced style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
                         name={'Advanced'} 
                         selected={selectedSettingsSection==='Advanced'}
-                    />  
+                        visible={this.getSectionVisible()}
+                    />                      
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'LicenseManagement'})} 
                         icon={<VerifiedUserIcon style={{color:"rgba(100,100,100,0.8)", height:20, width:20}}/>}
                         name={'License Management'} 
                         selected={selectedSettingsSection==='LicenseManagement'} 
+                        visible={true}
                     /> 
                 </div>     
             </div> 

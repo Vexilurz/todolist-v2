@@ -9,7 +9,8 @@ interface SectionProps{
     onClick:() => void,
     icon:JSX.Element,
     name:string,
-    selected:boolean
+    selected:boolean,
+    visible:boolean
 }
 
 
@@ -18,7 +19,7 @@ export class Section extends Component<SectionProps,{}>{
     render(){
         let {icon, name, onClick, selected} = this.props;
           
-        return <div  
+        return !this.props.visible ? null : <div  
             className={selected ? "" : "settingsSection"}
             onClick={() => onClick()}
             style={{
