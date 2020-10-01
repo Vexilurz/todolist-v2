@@ -34,7 +34,7 @@ interface ProjectMenuPopoverProps extends Store{
 
 interface ProjectMenuPopoverState{}
 
-   
+//@ts-ignore   
 @connect((store,props) => ({...store,...props}), attachDispatchToProps) 
 export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,ProjectMenuPopoverState>{
 

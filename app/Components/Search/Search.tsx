@@ -35,7 +35,7 @@ interface SearchProps extends Store{
 interface SearchState{ limit:number }
 
 
-
+//@ts-ignore
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class Search extends Component<SearchProps,SearchState>{ 
     limitReached:boolean;

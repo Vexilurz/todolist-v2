@@ -25,7 +25,7 @@ interface WhenCalendarState{
     todo:Todo
 }
 
-
+//@ts-ignore
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>{
     ref:HTMLElement;  

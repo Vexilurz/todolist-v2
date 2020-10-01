@@ -242,7 +242,7 @@ interface SearchSuggestionsProps extends Store{
 interface SearchSuggestionsState{ limit:number }
 
 
-
+//@ts-ignore
 @connect((store,props) => ({...store,...props}), attachDispatchToProps)
 export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSuggestionsState>{ 
     limitReached:boolean;

@@ -16,7 +16,7 @@ interface ImportPopupProps extends Store{}
 
 
 interface ImportPopupState{}
-
+//@ts-ignore
 @connect((store,props) => store, attachDispatchToProps)   
 export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
     ref:HTMLElement; 

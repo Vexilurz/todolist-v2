@@ -179,7 +179,7 @@ interface QuickEntryProps{
 };    
 
 
-
+//@ts-ignore
 @connect((store:QuickEntryProps,props) : QuickEntryProps => ({...store}), attachDispatchToProps)  
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     calendar:HTMLElement; 

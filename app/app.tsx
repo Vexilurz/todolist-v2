@@ -71,6 +71,7 @@ interface AppState{
     },
     syncActive:boolean
 }
+//@ts-ignore
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{ 
     generateIndicatorsWorker:any;

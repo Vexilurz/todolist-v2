@@ -11,7 +11,7 @@ import { sortByCompletedOrNot } from '../Search/sortByCompletedOrNot';
 
 interface TagProps extends Store{}
 interface TagState{}
-
+//@ts-ignore
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class Tag extends Component<TagProps,TagState>{ 
 

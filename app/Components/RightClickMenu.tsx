@@ -28,7 +28,7 @@ import { filter } from 'lodash';
 interface RightClickMenuState{
     offset:number
 }   
- 
+//@ts-ignore 
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class RightClickMenu extends Component<Store,RightClickMenuState>{
 

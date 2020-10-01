@@ -29,7 +29,7 @@ interface TagsPopupProps{
     todos? : any[]
 }    
 
- 
+//@ts-ignore 
 @connect(  
     (store:Store,props:TagsPopupProps) : TagsPopupProps => { 
         let tagsProps = {...props};

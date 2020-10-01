@@ -176,7 +176,7 @@ interface RepeatPopupState extends RepeatOptions{
 };   
 
 
- 
+//@ts-ignore 
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
     ref:HTMLElement;  
